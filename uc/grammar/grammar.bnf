@@ -10,9 +10,9 @@ ident : _letter { _letter | _digit };
 
 _line_comment : '/' '/' {.} '\n';
 
-_block_comment : '/' '*' {.} '*' '/';
+_block_comment : '/' '*' {. | '*'} '*' '/';
 
-!comment : _line_comment | _block_comment;
+comment : _line_comment | _block_comment;
 
 !whitespace : ' ' | '\t' | '\n' | '\r';
 
