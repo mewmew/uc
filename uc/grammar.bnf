@@ -1,0 +1,36 @@
+program         ::= topdec_list
+topdec_list     ::= /empty/ | topdec topdec_list
+topdec          ::= vardec ";"
+                  | funtype ident "(" formals ")" funbody
+vardec          ::= scalardec | arraydec
+scalardec       ::= typename ident
+arraydec        ::= typename ident "[" intconst "]"
+typename        ::= "int" | "char"
+funtype         ::= typename | "void"
+funbody         ::= "{" locals stmts "}" | ";"
+formals         ::= "void" | formal_list
+formal_list     ::= formaldec | formaldec "," formal_list
+formaldec       ::= scalardec | typename ident "[" "]"
+locals          ::= /empty/ | vardec ";" locals
+stmts           ::= /empty/ | stmt stmts
+stmt            ::= expr ";"
+                  | "return" expr ";" | "return" ";"
+                  | "while" condition stmt
+                  | "if" condition stmt else_part
+                  | "{" stmts "}"
+                  | ";"
+else_part       ::= /empty/ | "else" stmt
+condition       ::= "(" expr ")"
+expr            ::= intconst
+                  | ident | ident "[" expr "]"
+                  | unop expr
+                  | expr binop expr
+                  | ident "(" actuals ")"
+                  | "(" expr ")"
+unop            ::= "-" | "!"
+binop           ::= "+" | "-" | "*" | "/"
+                  | "<" | ">" | "<=" | ">=" | "!=" | "=="
+                  | "&&"
+                  | "="
+actuals         ::= /empty/ | expr_list
+expr_list       ::= expr | expr "," expr_list
