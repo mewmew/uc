@@ -48,3 +48,11 @@ const (
 	VOID // function signatures return type only
 	WHILE
 )
+
+func (t Token) String() string {
+	switch t {
+	case ILLEGAL:
+		return "ILLEGAL"
+	}
+	return "< token name not yet implemented >"
+}
