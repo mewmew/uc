@@ -5,6 +5,7 @@ notifications:
 
 env:
   global:
+    - secure: "dQHh+E9KlCM4qOJVNcIGWpaVGuoCrBz2sjBXSCpRZFt/gzNekv0Ae1ui/x0Of3xeaGZxO6TXjTVsEr5eP486APUM1dLy8UL1hCnMlfb+eKYqf25GZVdF86Lfb/55zwYq9Bh0RGwooFqS0GD6JzFFqK2+zoCXDkuVJjkf+rudu/QETU8OUNP/HXQRLHMGhWY/qXa0M8gAlz8geHGseBRRw0+xEzUNBVnKBs6fWoh9LGOVRAz/Lc/uzzA5BIfgMbrLOjH11qOPAjLR0uHqP/G4nYagBhi8r9rLg3XM+A4laoWr96oZxHsQc2fdfwH0FGe+u9tuZa0IrliTqGRzQuioRDgnY0uwyxawETFc+vGLXkcAW0cktzGykEG+ab47beQHOEykB7wIbf0ShExIW6FapENb34vpx+QaDKAK7B8L5wZ5zIfy8JgA4Oz4OZ0qJP8ki0LZZ47mk0h1Cr4+c7K/8F/G6RohwrJC6331k6XCCmMWm4Uim3SE+RwFqI7G96gQdLEpybZe5tng6hPdpLq5ZbRqfcAiR3wKkL1GjLFHDveGGT+qjwbuLl6mlGFRM4oaRevZN6gE/fAf4E1S4aV2Zx4IdzT3PbrhBqFcQ9no4Tq5sBnFeso5uDkJDmaWvg+8BlBgY1iSw8+gQ6S4CfwsnGa8+yS0rDuMSt9gOmRhAmc="
     - PATH=$HOME/gopath/bin:$PATH
 
 before_install:
