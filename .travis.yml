@@ -15,7 +15,7 @@ before_install:
   - go get github.com/golang/lint/golint
   - go get github.com/mattn/goveralls
   - go get github.com/goccmack/gocc
-  - cd $HOME/gopath/src/github.com/mewmew/uc/uc/grammar && ./gen.sh
+  - make -C $HOME/gopath/src/github.com/mewmew/uc/uc/grammar gen
 
 install:
   - go get ./...
