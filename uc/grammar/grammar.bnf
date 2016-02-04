@@ -1,0 +1,145 @@
+/* Lexical part */
+
+_digit : '0' - '9';
+
+_letter : 'a' - 'z' | 'A' - 'Z' | '_';
+
+int_lit : _digit { _digit };
+
+ident : _letter { _letter | _digit };
+
+_line_comment : '/' '/' {.} '\n';
+
+_block_comment : '/' '*' {. | '*'} '*' '/';
+
+comment : _line_comment | _block_comment;
+
+!whitespace : ' ' | '\t' | '\n' | '\r';
+
+/* Symtax part */
+
+Program
+	: TopLevelDeclList
+;
+
+TopLevelDeclList
+	: empty
+	| TopLevelDecl TopLevelDeclList
+;
+
+TopLevelDecl
+	: VarDecl ";"
+	| FuncType ident "(" Formals ")" FuncBody
+;
+
+VarDecl
+	: ScalarDecl
+	| ArrayDecl
+;
+
+ScalarDecl
+	: TypeName ident
+;
+
+ArrayDecl
+	: TypeName ident "[" int_lit "]"
+;
+
+TypeName
+	: "int"
+	| "char"
+;
+
+FuncType
+	: TypeName
+	| "void"
+;
+
+FuncBody
+	: "{" Locals Stmts "}"
+	| ";"
+;
+
+Formals
+	: "void"
+	| FormalList
+;
+
+FormalList
+	: FormalDecl
+	| FormalDecl "," FormalList
+;
+
+FormalDecl
+	: ScalarDecl
+	| TypeName ident "[" "]"
+;
+
+Locals
+	: empty
+	| VarDecl ";" Locals
+;
+
+Stmts
+	: empty
+	| Stmt Stmts
+;
+
+Stmt
+	: Expr ";"
+	| "return" Expr ";"
+	| "return" ";"
+	| "while" Condition Stmt
+	| "if" Condition Stmt ElsePart
+	| "{" Stmts "}"
+	| ";"
+;
+
+ElsePart
+	: empty
+	| "else" Stmt
+;
+
+Condition
+	: "(" Expr ")"
+;
+
+Expr
+	: int_lit
+	| ident
+	| ident "[" Expr "]"
+	| UnaryOp Expr
+	| Expr BinaryOp Expr
+	| ident "(" Actuals ")"
+	| "(" Expr ")"
+;
+
+UnaryOp
+	: "-"
+	| "!"
+;
+
+BinaryOp
+	: "+"
+	| "-"
+	| "*"
+	| "/"
+	| "<"
+	| ">"
+	| "<="
+	| ">="
+	| "!="
+	| "=="
+	| "&&"
+	| "="
+;
+
+Actuals
+	: empty
+	| ExprList
+;
+
+ExprList
+	: Expr
+	| Expr "," ExprList
+;

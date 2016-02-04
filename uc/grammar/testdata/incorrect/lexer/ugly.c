@@ -1,0 +1,2 @@
+|+	
+ !"#$%&'()*+ ,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~€‚ƒ„…†‡ˆ‰Š‹Œ‘’“”•–—˜™š›œŸ ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖ×ØÙÚÛÜİŞßàáâãäåæçèéêëìíîïğñòóôõö÷øùúûüışÿ+| int a , b , c , d ; BEGIN a = ( 4711 + 17 - 2001 ) / 100 - 17 ; b = a / 5 ; c = a * b * b * a * b * b ; d = c + c / ( 100 / 2 ) ; if ( a > 3 * b or not a == c / 2 and c > ( d - 3 ) * ( a - b ) ) and a < 0 then begin a = 1 ; read b ; end else begin a = 0 ; read c ; end END
