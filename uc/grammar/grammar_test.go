@@ -1,4 +1,4 @@
-package a
+package grammar
 
 import (
 	"bytes"
