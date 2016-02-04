@@ -2,6 +2,7 @@ package lexer_test
 
 import (
 	"bytes"
+	"io/ioutil"
 	"log"
 	"testing"
 
@@ -121,4 +122,21 @@ func TestLexer(t *testing.T) {
 // tokenEqual reports whether the given tokens are equal.
 func tokenEqual(t1, t2 *token.Token) bool {
 	return bytes.Equal(t1.Lit, t2.Lit) && t1.Type == t2.Type && t1.Pos.Offset == t2.Pos.Offset
+}
+
+func BenchmarkLexer(b *testing.B) {
+	src, err := ioutil.ReadFile("../testdata/noisy/advanced/eval.c")
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	for i := 0; i < b.N; i++ {
+		s := lexer.NewLexer(src)
+		for {
+			tok := s.Scan()
+			if tok.Type == token.EOF {
+				break
+			}
+		}
+	}
 }
