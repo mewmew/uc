@@ -1,22 +1,80 @@
-/* Lexical part */
+// A grammar for the µC programming language [1], with the following extensions:
+//
+// * Character literals extended to support those of K&R C.
+//
+// The content and structure of this document is heavily influenced by the Go
+// Programming Language Specification [2] and some parts are therefore governed
+// by a BSD-style license [3]. Any original content of this document is hereby
+// released into the public domain [4].
+//
+// References:
+//    [1]: https://www.it.uu.se/katalog/aleji304/CompilersProject/uc.html
+//    [2]: http://golang.org/ref/spec
+//    [3]: http://golang.org/LICENSE
+//    [4]: https://creativecommons.org/publicdomain/zero/1.0/
 
-_digit : '0' - '9';
+// # Source code representation
+//
 
-_letter : 'a' - 'z' | 'A' - 'Z' | '_';
+// ## Characters
+//
 
-int_lit : _digit { _digit };
+// An arbitrary ASCII character except null (0x00), new line (0x0A), carriage
+// return (0x0D), apostrophe (0x27), double quote (0x22) and backslash (0x5C).
+_ascii_char
+	: '\x01' - '\x09'
+	| '\x0B' - '\x0C'
+	| '\x0E' - '\x21'
+	| '\x23' - '\x26'
+	| '\x28' - '\x5B'
+	| '\x5D' - '\x7F'
+;
 
-ident : _letter { _letter | _digit };
+_ascii_letter : 'a' - 'z' | 'A' - 'Z' ;
+_ascii_digit  : '0' - '9' ;
 
-_line_comment : '/' '/' {.} '\n';
+// ## Letters and digits
+//
 
-_block_comment : '/' '*' {. | '*'} '*' '/';
+_letter        : _ascii_letter | '_' ;
+_decimal_digit : _ascii_digit ;
 
-comment : _line_comment | _block_comment;
+// # Lexical elements
+//
 
-!whitespace : ' ' | '\t' | '\n' | '\r';
+// ## Comments
+//
 
-/* Symtax part */
+_line_comment  : '/' '/' { . } '\n' ;
+_block_comment : '/' '*' { . | '*' } '*' '/' ;
+comment        : _line_comment | _block_comment ;
+
+// ## Tokens
+//
+
+// White space, formed from spaces (0x20), horizontal tabs (0x09), form feeds
+// (0x0C), carriage returns (0x0D), and new lines (0x0A), is ignored except as
+// it separates tokens that would otherwise combine into a single token.
+!whitespace : ' ' | '\t' | '\f' | '\r' | '\n' ;
+
+// ## Identifiers
+//
+
+ident : _letter { _letter | _decimal_digit } ;
+
+// ## Integer literals
+//
+
+int_lit : _decimal_digit { _decimal_digit } ;
+
+// ## Character literals
+//
+
+_escaped_char : '\\' ( 'a' | 'b' | 'f' | 'n' | 'r' | 't' | 'v' | '\\' | '\'' | '"' ) ;
+char_lit      : '\'' ( _ascii_char | '"' | _escaped_char ) '\'' ;
+
+// # Syntaxic production rules
+//
 
 Program
 	: TopLevelDeclList
