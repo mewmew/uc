@@ -1,58 +1,102 @@
+// Package token defines constants representing the lexical tokens of the µC
+// programming language.
 package token
 
-// Example taken from https://blog.gopheracademy.com/advent-2014/parsers-lexers/
+// A Token represents a lexical token of the µC programming language.
+type Token struct {
+	// The token type.
+	Kind
+	// The string value of the token.
+	Val string
+	// Start position in the input string.
+	Pos int
+}
 
-type Token int
+func (tok Token) String() string {
+	if tok.Kind == EOF {
+		return "EOF"
+	}
+	return tok.Val
+}
 
+//go:generate stringer -type Kind
+
+// Kind is the set of lexical token types of the µC programming language.
+type Kind uint16
+
+// Token types.
 const (
-	// Special tokens
-	ILLEGAL Token = iota
-	EOF
-	WS // blank (32), newline (10), carriage return (13), form feed (12), and tab (9)
+	// Special tokens.
+	EOF     Kind = iota // End of file
+	Error               // Token value holds an error message (e.g. unterminated string)
+	Comment             // /* block comment */ or // line comment
 
-	IDENT // identifiers (function names, variables, ...) [a-zA-Z_][a-zA-Z0-9_]*
+	literalStart
 
-	// Literals
-	STRING
-	NUM
+	// Identifiers and basic literals.
+	Ident // main (also includes type names)
+	Int   // 123
+	Char  // 'a', '\n'
 
-	// Misc characters
-	NEQ       // !=
-	NOT       // !
-	AND       // &&
-	LPARAN    // (
-	RPARAN    // )
-	ASTERIX   // *
-	PLUS      // +
-	COMMA     // , (comma)
-	MINUS     // -
-	DIVIDE    // /
-	SEMICOLON // ;
-	LE        // <=
-	LT        // <
-	EQ        // ==
-	ASSIGN    // =
-	GE        // >=
-	GT        // >
-	LBRACKET  // [
-	RBRACKET  // ]
-	LBRACE    // {
-	RBRACE    // }
+	literalEnd
 
-	// Keywords
-	CHAR
-	ELSE
-	IF
-	INT
-	RETURN
-	VOID // function signatures return type only
-	WHILE
+	operatorStart
+
+	// Operators and delimiters.
+	Add       // +
+	Sub       // -
+	Mul       // *
+	Div       // /
+	Assign    // =
+	Eq        // ==
+	Ne        // !=
+	Lt        // <
+	Le        // <=
+	Gt        // >
+	Ge        // >=
+	Land      // &&
+	Not       // !
+	Lparen    // (
+	Rparen    // )
+	Lbrack    // [
+	Rbrack    // ]
+	Lbrace    // {
+	Rbrace    // }
+	Comma     // ,
+	Semicolon // ;
+
+	operatorEnd
+
+	keywordStart
+
+	// Keywords.
+	KwElse   // else
+	KwIf     // if
+	KwReturn // return
+	KwWhile  // while
+
+	keywordEnd
 )
 
-func (t Token) String() string {
-	switch t {
-	case ILLEGAL:
-		return "ILLEGAL"
-	}
-	return "< token name not yet implemented >"
+// IsKeyword reports whether kind is a keyword.
+func (kind Kind) IsKeyword() bool {
+	return keywordStart < kind && kind < keywordEnd
+}
+
+// IsLiteral reports whether kind is an identifier or a basic literal.
+func (kind Kind) IsLiteral() bool {
+	return literalStart < kind && kind < literalEnd
+}
+
+// IsOperator reports whether kind is an operator or a delimiter.
+func (kind Kind) IsOperator() bool {
+	return operatorStart < kind && kind < operatorEnd
+}
+
+// Keywords is the set of valid keywords in the µC programming language.
+var Keywords = map[string]Kind{
+	"else":   KwElse,
+	"if":     KwIf,
+	"return": KwReturn,
+	"while":  KwWhile,
 }

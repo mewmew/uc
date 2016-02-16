@@ -2,23 +2,18 @@ package token
 
 import "testing"
 
-type test struct {
-	tok  Token
-	want string
-}
-
-func TestTokenString(t *testing.T) {
-	golden := []test{
-		{
-			tok:  ILLEGAL,
-			want: "ILLEGAL",
-		},
+func TestKeywords(t *testing.T) {
+	m := make(map[Kind]bool)
+	for _, kind := range Keywords {
+		if !kind.IsKeyword() {
+			t.Errorf("%v incorrectly classified as keyword", kind)
+			continue
+		}
+		m[kind] = true
 	}
-
-	for i, g := range golden {
-		got := g.tok.String()
-		if got != g.want {
-			t.Errorf("i=%d: expected %q, got %q", i, g.want, got)
+	for kind := keywordStart + 1; kind < keywordEnd; kind++ {
+		if _, ok := m[kind]; !ok {
+			t.Errorf("Keywords map is missing %v", kind)
 		}
 	}
 }
