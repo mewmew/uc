@@ -1,9 +1,9 @@
 gen:
-	gocc -a grammar.bnf
+	gocc -a uc.bnf
 	find . -type f -name '*.go' | xargs goimports -w
 
 debug:
-	gocc -debug_lexer -v -a grammar.bnf
+	gocc -debug_lexer -v -a uc.bnf
 	find . -type f -name '*.go' | xargs goimports -w
 
 clean:
