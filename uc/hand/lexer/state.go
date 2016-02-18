@@ -8,6 +8,8 @@ package lexer
 import (
 	"strings"
 	"unicode/utf8"
+
+	"github.com/mewmew/uc/uc/hand/token"
 )
 
 const (
@@ -27,12 +29,6 @@ const (
 	lower = "abcdefghijklmnopqrstuvwxyz"
 	// alpha specifies the alphabetic characters.
 	alpha = upper + lower
-	// head is the set of valid characters for the first character of an
-	// identifier.
-	head = alpha + "_"
-	// tail is the set of valid characters for the remaining characters of an
-	// identifier (i.e. all characters in the identifier except the first).
-	tail = head + decimal
 )
 
 // A stateFn represents the state of the lexer as a function that returns a
@@ -56,14 +52,56 @@ func lexToken(l *lexer) stateFn {
 		// Terminate the lexer with a nil state function.
 		return nil
 
-		// Operators and delimiters.
-
-		// Constants.
+	// Operators and delimiters.
+	case '(':
+		l.emit(token.Lparen)
+		return lexToken
+	case ')':
+		l.emit(token.Rparen)
+		return lexToken
+	case '[':
+		l.emit(token.Lbracket)
+		return lexToken
+	case ']':
+		l.emit(token.Rbracket)
+		return lexToken
+	case '{':
+		l.emit(token.Lbrace)
+		return lexToken
+	case '}':
+		l.emit(token.Rbrace)
+		return lexToken
+	case ';':
+		l.emit(token.Semicolon)
+		return lexToken
+	case '-':
+		l.emit(token.Sub)
+		return lexToken
+	case ',':
+		l.emit(token.Comma)
+		return lexToken
+	case '+':
+		l.emit(token.Add)
+		return lexToken
+	case '*':
+		l.emit(token.Mul)
+		return lexToken
+	case '>':
+		return lexGreater
+	case '<':
+		return lexLess
+	case '/':
+		return lexSlash
+	case '&':
+		return lexAmpersand
+	case '\'':
+		// Lex character literal.
+		return lexCharLit
 	}
 
-	// Lex integer literals.
+	// Lex integer literal.
 	if isDigit(r) {
-		return lexDigit // 123
+		return lexIntLit // 123
 	}
 
 	// Lex identifier or keyword.
@@ -76,12 +114,157 @@ func lexToken(l *lexer) stateFn {
 	return lexToken
 }
 
-func lexDigit(l *lexer) stateFn {
-	panic("not yet implemented")
+// lexSlash lexes a division operator (/), a line comment (//), or a block
+// comment (/*). A slash character (/) has already been consumed.
+func lexSlash(l *lexer) stateFn {
+	switch l.next() {
+	case '/':
+		// Line comment (//).
+		return lexLineComment
+	case '*':
+		// Block comment (/*).
+		return lexBlockComment
+	default:
+		// Division operator (/).
+		l.backup()
+		l.emit(token.Div)
+		return lexToken
+	}
 }
 
+// lexLineComment lexes a line comment which acts like a newline. Two slash
+// characters (//) have already been consumed.
+//
+//    Line comment: //[^\n]*
+func lexLineComment(l *lexer) stateFn {
+	for {
+		switch l.next() {
+		case utf8.RuneError:
+			// Append error but continue lexing line comment.
+			l.errorf("illegal UTF-8 encoding")
+		case eof:
+			s := l.input[l.start+2 : l.cur] // skip leading slashes (//)
+			s = strings.TrimRight(s, "\r")  // skip trailing carriage returns.
+			l.emitCustom(token.Comment, s)
+			l.emitEOF()
+			// Terminate the lexer with a nil state function.
+			return nil
+		case '\n':
+			s := l.input[l.start+2 : l.cur]  // skip leading slashes (//)
+			s = strings.TrimRight(s, "\r\n") // skip trailing carriage returns and newlines.
+			l.emitCustom(token.Comment, s)
+			return lexToken
+		}
+	}
+}
+
+// lexBlockComment lexes a block comment which acts like a white-space
+// character. A slash and an asterisk character (/*) have already been consumed.
+//
+//    Block comment: "/*" .* "*/"
+func lexBlockComment(l *lexer) stateFn {
+	for !strings.HasSuffix(l.input[l.start+2:l.cur], "*/") {
+		switch l.next() {
+		case utf8.RuneError:
+			// Append error but continue lexing line comment.
+			l.errorf("illegal UTF-8 encoding")
+		case eof:
+			// Terminate the lexer with a nil state function.
+			l.emitErrorf("unexpected eof in block comment")
+			return nil
+		}
+	}
+
+	// Strip carriage returns.
+	s := strings.Replace(l.input[l.start+2:l.cur-2], "\r", "", -1)
+	l.emitCustom(token.Comment, s)
+
+	return lexToken
+}
+
+// lexGreater lexes a logical AND operator (&&). An ampersand (&) has already
+// been consumed.
+func lexAmpersand(l *lexer) stateFn {
+	if r := l.next(); r == '&' {
+		l.emit(token.Land)
+	} else {
+		// Emit error token but continue lexing next token.
+		l.emitErrorf("expected '&' after '&', got %q", r)
+	}
+	return lexToken
+}
+
+// lexLess lexes a less-than operator (<) or a less-than-or-equal-to
+// operator (<=). A less than character (<) has already been consumed.
+func lexLess(l *lexer) stateFn {
+	if l.accept("=") {
+		l.emit(token.Le)
+	} else {
+		l.emit(token.Lt)
+	}
+	return lexToken
+}
+
+// lexGreater lexes a greater-than operator (>) or a greater-than-or-equal-to
+// operator (>=). A greater than character (>) has already been consumed.
+func lexGreater(l *lexer) stateFn {
+	if l.accept("=") {
+		l.emit(token.Ge)
+	} else {
+		l.emit(token.Gt)
+	}
+	return lexToken
+}
+
+// lexCharLit lexes a character literal (e.g. 'a', '\n'). An apostrophe (') has
+// already been consumed.
+//
+//    CharLit = "'" ([^'] | "\n" ) "'"
+func lexCharLit(l *lexer) stateFn {
+	// Consume character or escape sequence.
+	if r := l.next(); r == '\\' {
+		if !l.accept("n") {
+			l.emitErrorf(`unknown escape sequence '\%c'`, r)
+			return lexToken
+		}
+	}
+
+	// Consume apostrophe.
+	if !l.accept("'") {
+		l.emitErrorf("unterminated character literal")
+		return lexToken
+	}
+
+	l.emit(token.Char)
+	return lexToken
+}
+
+// lexIntLit lexes an integer literal (e.g. 123). A decimal digit (0-9) has
+// already been consumed.
+//
+//    IntLit = [0-9]+
+func lexIntLit(l *lexer) stateFn {
+	l.acceptRun(decimal)
+	l.emit(token.Int)
+	return lexToken
+}
+
+// lexLetter lexes an identifier (e.g. main) or a keyword (e.g. return). An
+// alphabetic character (a-z or A-Z) or an underscore (_) has already been
+// consumed.
+//
+//    Identifier = [a-zA-Z_][a-zA-Z0-9_]*
+//    Keyword    = if, return, …
 func lexLetter(l *lexer) stateFn {
-	panic("not yet implemented")
+	l.acceptRun(alpha + decimal + "_")
+	// TODO: Optimize using binary search on keyword.
+	if kind, ok := token.Keywords[l.input[l.start:l.cur]]; ok {
+		l.emit(kind)
+	} else {
+		l.emit(token.Ident)
+
+	}
+	return lexToken
 }
 
 // isDigit returns true if r is a digit (0-9), and false otherwise.
