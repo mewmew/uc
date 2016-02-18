@@ -3,9 +3,9 @@
 //
 // [1]: https://www.youtube.com/watch?v=HxaD_trXwRE
 
-// Package lexer implements lexical tokenization of the LLVM IR assembly
-// language. While breaking the input into tokens, the next token is the longest
-// sequence of characters that form a valid token.
+// Package lexer implements lexical tokenization of the µC programming language.
+// While breaking the input into tokens, the next token is the longest sequence
+// of characters that form a valid token.
 package lexer
 
 import (
@@ -15,7 +15,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/llir/llvm/asm/token"
+	"github.com/mewmew/uc/uc/hand/token"
 )
 
 // Parse lexes the input read from r into a slice of tokens. Potential errors
@@ -48,9 +48,8 @@ func ParseFile(path string) ([]token.Token, error) {
 func ParseString(s string) []token.Token {
 	l := &lexer{
 		input: s,
-		// The average token size of LLVM IR is 4.06 (based on the 30000+ tokens
-		// of the c4 compiler project).
-		tokens: make([]token.Token, 0, len(s)/5),
+		// TODO: Calculate the average token size of µC programs.
+		tokens: make([]token.Token, 0, len(s)/4),
 	}
 
 	// Tokenize the input.

@@ -3,10 +3,10 @@ package lexer
 import (
 	"sort"
 
-	"github.com/llir/llvm/asm/token"
+	"github.com/mewmew/uc/uc/hand/token"
 )
 
-// keywords is the set of valid keywords in LLVM IR
+// keywords is the set of valid keywords in the µC programming language
 var keywords []string
 
 func init() {
