@@ -58,8 +58,8 @@ const (
 	Not       // !
 	Lparen    // (
 	Rparen    // )
-	Lbrack    // [
-	Rbrack    // ]
+	Lbracket  // [
+	Rbracket  // ]
 	Lbrace    // {
 	Rbrace    // }
 	Comma     // ,
