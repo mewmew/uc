@@ -3,8 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/mewmew/uc/uc/hand/lexer"
 	"log"
+
+	"github.com/kr/pretty"
+	"github.com/mewmew/uc/uc/hand/lexer"
 )
 
 func main() {
@@ -23,7 +25,9 @@ func lexFile(path string) error {
 		return err
 	}
 	for _, token := range tokens {
-		fmt.Println(token)
+		fmt.Printf("=== [ %s ] ===\n", token.Kind)
+		pretty.Println(token)
+		fmt.Println()
 	}
 	return nil
 }
