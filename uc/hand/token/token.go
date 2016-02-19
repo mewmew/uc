@@ -34,9 +34,9 @@ const (
 	literalStart
 
 	// Identifiers and basic literals.
-	Ident // main (also includes type names)
-	Int   // 123
-	Char  // 'a', '\n'
+	Ident   // main (also includes type names)
+	IntLit  // 123
+	CharLit // 'a', '\n'
 
 	literalEnd
 

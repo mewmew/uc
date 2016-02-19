@@ -235,7 +235,7 @@ func lexCharLit(l *lexer) stateFn {
 		return lexToken
 	}
 
-	l.emit(token.Char)
+	l.emit(token.CharLit)
 	return lexToken
 }
 
@@ -245,7 +245,7 @@ func lexCharLit(l *lexer) stateFn {
 //    IntLit = [0-9]+
 func lexIntLit(l *lexer) stateFn {
 	l.acceptRun(decimal)
-	l.emit(token.Int)
+	l.emit(token.IntLit)
 	return lexToken
 }
 
