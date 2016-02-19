@@ -16,7 +16,7 @@ func TestLexer(t *testing.T) {
 		toks []*token.Token
 	}{
 		{
-			path: "../testdata/incorrect/lexer/bad.c",
+			path: "../../testdata/incorrect/lexer/bad.c",
 			toks: []*token.Token{
 				{
 					Type: token.TokMap.Type("comment"),
@@ -81,15 +81,15 @@ func TestLexer(t *testing.T) {
 			},
 		},
 		// TODO: Add tokens for the following test cases.
-		{path: "../testdata/incorrect/lexer/good.c"},
-		{path: "../testdata/incorrect/lexer/long-char.c"},
-		{path: "../testdata/incorrect/lexer/ugly.c"},
-		{path: "../testdata/quiet/lexer/l01.c"},
-		{path: "../testdata/quiet/lexer/l02.c"},
-		{path: "../testdata/quiet/lexer/l03.c"},
-		{path: "../testdata/quiet/lexer/l04.c"},
-		{path: "../testdata/quiet/lexer/l05.c"},
-		{path: "../testdata/quiet/lexer/l06.c"},
+		{path: "../../testdata/incorrect/lexer/good.c"},
+		{path: "../../testdata/incorrect/lexer/long-char.c"},
+		{path: "../../testdata/incorrect/lexer/ugly.c"},
+		{path: "../../testdata/quiet/lexer/l01.c"},
+		{path: "../../testdata/quiet/lexer/l02.c"},
+		{path: "../../testdata/quiet/lexer/l03.c"},
+		{path: "../../testdata/quiet/lexer/l04.c"},
+		{path: "../../testdata/quiet/lexer/l05.c"},
+		{path: "../../testdata/quiet/lexer/l06.c"},
 	}
 
 	for i, g := range golden {
@@ -125,7 +125,7 @@ func tokenEqual(t1, t2 *token.Token) bool {
 }
 
 func BenchmarkLexer(b *testing.B) {
-	src, err := ioutil.ReadFile("../testdata/noisy/advanced/eval.c")
+	src, err := ioutil.ReadFile("../../testdata/noisy/advanced/eval.c")
 	if err != nil {
 		b.Fatal(err)
 	}
