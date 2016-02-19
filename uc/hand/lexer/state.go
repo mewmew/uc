@@ -144,17 +144,15 @@ func lexLineComment(l *lexer) stateFn {
 			// Append error but continue lexing line comment.
 			l.errorf("illegal UTF-8 encoding")
 		case eof:
-			// TODO: Check if needed +2.
-			s := l.input[l.start: /*+2*/ l.cur] // skip leading slashes (//)
-			s = strings.TrimRight(s, "\r")      // skip trailing carriage returns.
+			s := l.input[l.start+2 : l.cur] // skip leading slashes (//)
+			s = strings.TrimRight(s, "\r")  // skip trailing carriage returns.
 			l.emitCustom(token.Comment, s)
 			l.emitEOF()
 			// Terminate the lexer with a nil state function.
 			return nil
 		case '\n':
-			// TODO: Check if needed +2.
-			s := l.input[l.start: /*+2*/ l.cur] // skip leading slashes (//)
-			s = strings.TrimRight(s, "\r\n")    // skip trailing carriage returns and newlines.
+			s := l.input[l.start+2 : l.cur]  // skip leading slashes (//)
+			s = strings.TrimRight(s, "\r\n") // skip trailing carriage returns and newlines.
 			l.emitCustom(token.Comment, s)
 			return lexToken
 		}
@@ -166,22 +164,21 @@ func lexLineComment(l *lexer) stateFn {
 //
 //    Block comment: "/*" .* "*/"
 func lexBlockComment(l *lexer) stateFn {
-	// TODO: Add +2 so that /*/ comments are ignored.
-	for !strings.HasSuffix(l.input[l.start: /*+2*/ l.cur], "*/") {
+	for !strings.HasSuffix(l.input[l.start+2:l.cur], "*/") {
 		switch l.next() {
 		case utf8.RuneError:
 			// Append error but continue lexing line comment.
 			l.errorf("illegal UTF-8 encoding")
 		case eof:
-			// Terminate the lexer with a nil state function.
 			l.emitErrorf("unexpected eof in block comment")
+			l.emitEOF()
+			// Terminate the lexer with a nil state function.
 			return nil
 		}
 	}
 
 	// Strip carriage returns.
-	// TODO: Check if needed +2.
-	s := strings.Replace(l.input[l.start: /*+2*/ l.cur /*-2*/], "\r", "", -1)
+	s := strings.Replace(l.input[l.start+2:l.cur-2], "\r", "", -1)
 	l.emitCustom(token.Comment, s)
 
 	return lexToken

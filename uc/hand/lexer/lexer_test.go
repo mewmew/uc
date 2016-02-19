@@ -19,7 +19,7 @@ func TestLexer(t *testing.T) {
 			toks: []token.Token{
 				{
 					Kind: token.Comment,
-					Val:  "/*\t\t\t\t\t\t\t||\n**\tFile for testing lexical analysis\t\t||\n**\t\t\t\t\t\t\t||\n**\tThis file is 'lexically incorrect'.\t\t||\n*/",
+					Val:  "\t\t\t\t\t\t\t||\n**\tFile for testing lexical analysis\t\t||\n**\t\t\t\t\t\t\t||\n**\tThis file is 'lexically incorrect'.\t\t||\n",
 					Pos:  0,
 				},
 				{
@@ -69,13 +69,15 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Error,
-					Val:  "/*\n\tIt is not legal to end the code like this, \n\twithout a comment terminator\n",
-					Pos:  143,
+					Val:  "unexpected eof in block comment",
+					// TODO: Figure out how to handle the offset in error cases.
+					Pos: 220,
 				},
 				{
 					Kind: token.EOF,
 					Val:  "",
-					Pos:  221,
+					// TODO: Figure out how to handle the offset in error cases.
+					Pos: 221,
 				},
 			},
 		},
