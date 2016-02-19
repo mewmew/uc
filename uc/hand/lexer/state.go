@@ -74,28 +74,29 @@ func lexToken(l *lexer) stateFn {
 	case ';':
 		l.emit(token.Semicolon)
 		return lexToken
-	case '-':
-		l.emit(token.Sub)
-		return lexToken
 	case ',':
 		l.emit(token.Comma)
 		return lexToken
 	case '+':
 		l.emit(token.Add)
 		return lexToken
+	case '-':
+		l.emit(token.Sub)
+		return lexToken
 	case '*':
 		l.emit(token.Mul)
 		return lexToken
-	case '>':
-		return lexGreater
-	case '<':
-		return lexLess
 	case '/':
 		return lexSlash
+	case '<':
+		return lexLess
+	case '>':
+		return lexGreater
+	case '=':
+		return lexEqual
 	case '&':
 		return lexAmpersand
 	case '\'':
-		// Lex character literal.
 		return lexCharLit
 	}
 
@@ -143,15 +144,17 @@ func lexLineComment(l *lexer) stateFn {
 			// Append error but continue lexing line comment.
 			l.errorf("illegal UTF-8 encoding")
 		case eof:
-			s := l.input[l.start+2 : l.cur] // skip leading slashes (//)
-			s = strings.TrimRight(s, "\r")  // skip trailing carriage returns.
+			// TODO: Check if needed +2.
+			s := l.input[l.start: /*+2*/ l.cur] // skip leading slashes (//)
+			s = strings.TrimRight(s, "\r")      // skip trailing carriage returns.
 			l.emitCustom(token.Comment, s)
 			l.emitEOF()
 			// Terminate the lexer with a nil state function.
 			return nil
 		case '\n':
-			s := l.input[l.start+2 : l.cur]  // skip leading slashes (//)
-			s = strings.TrimRight(s, "\r\n") // skip trailing carriage returns and newlines.
+			// TODO: Check if needed +2.
+			s := l.input[l.start: /*+2*/ l.cur] // skip leading slashes (//)
+			s = strings.TrimRight(s, "\r\n")    // skip trailing carriage returns and newlines.
 			l.emitCustom(token.Comment, s)
 			return lexToken
 		}
@@ -163,7 +166,8 @@ func lexLineComment(l *lexer) stateFn {
 //
 //    Block comment: "/*" .* "*/"
 func lexBlockComment(l *lexer) stateFn {
-	for !strings.HasSuffix(l.input[l.start+2:l.cur], "*/") {
+	// TODO: Add +2 so that /*/ comments are ignored.
+	for !strings.HasSuffix(l.input[l.start: /*+2*/ l.cur], "*/") {
 		switch l.next() {
 		case utf8.RuneError:
 			// Append error but continue lexing line comment.
@@ -176,19 +180,21 @@ func lexBlockComment(l *lexer) stateFn {
 	}
 
 	// Strip carriage returns.
-	s := strings.Replace(l.input[l.start+2:l.cur-2], "\r", "", -1)
+	// TODO: Check if needed +2.
+	s := strings.Replace(l.input[l.start: /*+2*/ l.cur /*-2*/], "\r", "", -1)
 	l.emitCustom(token.Comment, s)
 
 	return lexToken
 }
 
-// lexGreater lexes a logical AND operator (&&). An ampersand (&) has already
+// lexAmpersand lexes a logical AND operator (&&). An ampersand (&) has already
 // been consumed.
 func lexAmpersand(l *lexer) stateFn {
 	if r := l.next(); r == '&' {
 		l.emit(token.Land)
 	} else {
 		// Emit error token but continue lexing next token.
+		l.backup()
 		l.emitErrorf("expected '&' after '&', got %q", r)
 	}
 	return lexToken
@@ -212,6 +218,31 @@ func lexGreater(l *lexer) stateFn {
 		l.emit(token.Ge)
 	} else {
 		l.emit(token.Gt)
+	}
+	return lexToken
+}
+
+// lexEqual lexes an assignment operator (=) or an equality operator (==). An
+// equal character (=) has already been consumed.
+func lexEqual(l *lexer) stateFn {
+	if l.accept("=") {
+		l.emit(token.Eq)
+	} else {
+		l.emit(token.Assign)
+	}
+	return lexToken
+}
+
+// lexExclaim lexes a negation operator (!) or an inequality operator (!=). An
+// exclamation mark (!) has already been consumed.
+//
+//    Negation operator:   !
+//    Inequality operator: !=
+func lexExclaim(l *lexer) stateFn {
+	if l.accept("=") {
+		l.emit(token.Ne) // !=
+	} else {
+		l.emit(token.Not) // !
 	}
 	return lexToken
 }
