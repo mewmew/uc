@@ -537,8 +537,124 @@ func TestLexer(t *testing.T) {
 				},
 			},
 		},
+		{
+			path: "../../testdata/incorrect/lexer/long-char.c",
+			toks: []token.Token{
+				{
+					Kind: token.Ident,
+					Val:  "int",
+					Pos:  0,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "main",
+					Pos:  4,
+				},
+				{
+					Kind: token.Lparen,
+					Val:  "(",
+					Pos:  8,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "void",
+					Pos:  9,
+				},
+				{
+					Kind: token.Rparen,
+					Val:  ")",
+					Pos:  13,
+				},
+				{
+					Kind: token.Lbrace,
+					Val:  "{",
+					Pos:  15,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "char",
+					Pos:  19,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "c",
+					Pos:  24,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  25,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "c",
+					Pos:  29,
+				},
+				{
+					Kind: token.Assign,
+					Val:  "=",
+					Pos:  31,
+				},
+				{
+					Kind: token.CharLit,
+					Val:  "'c'",
+					Pos:  33,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  36,
+				},
+				{
+					Kind: token.Comment,
+					Val:  " OK",
+					Pos:  38,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "c",
+					Pos:  46,
+				},
+				{
+					Kind: token.Assign,
+					Val:  "=",
+					Pos:  48,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unterminated character literal",
+					// TODO: Figure out how to handle position of errors.
+					Pos: 51,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "c",
+					Pos:  52,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unterminated character literal",
+					// TODO: Figure out how to handle position of errors.
+					Pos: 54,
+				},
+				{
+					Kind: token.Comment,
+					Val:  " Not OK",
+					Pos:  56,
+				},
+				{
+					Kind: token.Rbrace,
+					Val:  "}",
+					Pos:  66,
+				},
+				{
+					Kind: token.EOF,
+					Val:  "",
+					Pos:  68,
+				},
+			},
+		},
 		// TODO: Add tokens for the following test cases.
-		{path: "../../testdata/incorrect/lexer/long-char.c"},
 		{path: "../../testdata/incorrect/lexer/ugly.c"},
 		{path: "../../testdata/quiet/lexer/l01.c"},
 		{path: "../../testdata/quiet/lexer/l02.c"},
@@ -575,7 +691,7 @@ func TestLexer(t *testing.T) {
 				break
 			}
 		}
-		if looprun >= 1 {
+		if looprun >= 2 {
 			break // TODO: Remove this break to test all test cases and not just the first.
 		}
 	}
