@@ -98,6 +98,8 @@ func lexToken(l *lexer) stateFn {
 		return lexAmpersand
 	case '\'':
 		return lexCharLit
+	case '!':
+		return lexExclaim
 	}
 
 	// Lex integer literal.
