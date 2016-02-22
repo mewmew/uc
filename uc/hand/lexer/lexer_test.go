@@ -86,8 +86,13 @@ func TestLexer(t *testing.T) {
 			toks: []token.Token{
 				{
 					Kind: token.Comment,
-					Val:  "\t\t\t\t\t\t\t||\n**\tFile for testing lexical analysis\t\t||\n**\t\t\t\t\t\t\t||\n**\nThis file would confuse a parser, but\n        is 'lexically correct'.\t\t                ||\n*/\n\n/* ** / ** ",
+					Val:  "\t\t\t\t\t\t\t||\n**\tFile for testing lexical analysis\t\t||\n**\t\t\t\t\t\t\t||\n**\tThis file would confuse a parser, but\n        is 'lexically correct'.\t\t                ||\n",
 					Pos:  1,
+				},
+				{
+					Kind: token.Comment,
+					Val:  " ** / ** ",
+					Pos:  163,
 				},
 				{
 					Kind: token.Comment,
@@ -110,17 +115,17 @@ func TestLexer(t *testing.T) {
 					Pos:  248,
 				},
 				{
-					Kind: token.Ident,
+					Kind: token.KwIf,
 					Val:  "if",
 					Pos:  277,
 				},
 				{
-					Kind: token.Ident,
+					Kind: token.KwElse,
 					Val:  "else",
 					Pos:  280,
 				},
 				{
-					Kind: token.Ident,
+					Kind: token.KwWhile,
 					Val:  "while",
 					Pos:  285,
 				},
@@ -130,7 +135,7 @@ func TestLexer(t *testing.T) {
 					Pos:  311,
 				},
 				{
-					Kind: token.Ident,
+					Kind: token.KwReturn,
 					Val:  "return",
 					Pos:  332,
 				},
@@ -157,7 +162,7 @@ func TestLexer(t *testing.T) {
 				{
 					Kind: token.Ge,
 					Val:  ">=",
-					Pos:  348,
+					Pos:  351,
 				},
 				{
 					Kind: token.Ident,
@@ -336,7 +341,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Ident,
-					Val:  "K23",
+					Val:  "R23",
 					Pos:  631,
 				},
 				{
@@ -553,15 +558,15 @@ func TestLexer(t *testing.T) {
 		for j := 0; ; j++ {
 			if j >= len(tokens) {
 				t.Errorf("%s: invalid number of tokens; expected %d tokens, got %d", g.path, len(tokens), j)
-				continue
+				break
 			}
 			got := tokens[j]
 			if j >= len(g.toks) {
 				t.Errorf("%s: invalid number of tokens; expected %d tokens, got %d", g.path, len(g.toks), j)
-				continue
+				break
 			}
 			if want := g.toks[j]; got != want {
-				t.Errorf("%s: token mismatch; expected %#v, got %#v", g.path, want, got)
+				t.Errorf("%s: token %d mismatch; expected %#v, got %#v", g.path, j, want, got)
 			}
 			if got.Kind == token.EOF {
 				if j != len(g.toks)-1 {
