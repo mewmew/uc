@@ -656,7 +656,56 @@ func TestLexer(t *testing.T) {
 		},
 		// TODO: Add tokens for the following test cases.
 		//{path: "../../testdata/incorrect/lexer/ugly.c"},
-		//{path: "../../testdata/quiet/lexer/l01.c"},
+		{
+			path: "../../testdata/quiet/lexer/l01.c",
+			toks: []token.Token{
+				{
+					Kind: token.Ident,
+					Val:  "int",
+					Pos:  0,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "main",
+					Pos:  4,
+				},
+				{
+					Kind: token.Lparen,
+					Val:  "(",
+					Pos:  9,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "void",
+					Pos:  10,
+				},
+				{
+					Kind: token.Rparen,
+					Val:  ")",
+					Pos:  14,
+				},
+				{
+					Kind: token.Lbrace,
+					Val:  "{",
+					Pos:  16,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  18,
+				},
+				{
+					Kind: token.Rbrace,
+					Val:  "}",
+					Pos:  20,
+				},
+				{
+					Kind: token.EOF,
+					Val:  "",
+					Pos:  23,
+				},
+			},
+		},
 		//{path: "../../testdata/quiet/lexer/l02.c"},
 		//{path: "../../testdata/quiet/lexer/l03.c"},
 		//{path: "../../testdata/quiet/lexer/l04.c"},
