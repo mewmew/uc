@@ -1011,8 +1011,222 @@ func TestLexer(t *testing.T) {
 				},
 			},
 		},
+		{
+			path: "../../testdata/quiet/lexer/l04.c",
+			toks: []token.Token{
+				{
+					Kind: token.Ident,
+					Val:  "int",
+					Pos:  0,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "main",
+					Pos:  4,
+				},
+				{
+					Kind: token.Lparen,
+					Val:  "(",
+					Pos:  8,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "void",
+					Pos:  9,
+				},
+				{
+					Kind: token.Rparen,
+					Val:  ")",
+					Pos:  13,
+				},
+				{
+					Kind: token.Lbrace,
+					Val:  "{",
+					Pos:  15,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "int",
+					Pos:  19,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "i",
+					Pos:  23,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  24,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "char",
+					Pos:  28,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "j",
+					Pos:  33,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  34,
+				},
+				{
+					Kind: token.KwIf,
+					Val:  "if",
+					Pos:  38,
+				},
+				{
+					Kind: token.Lparen,
+					Val:  "(",
+					Pos:  41,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "1",
+					Pos:  42,
+				},
+				{
+					Kind: token.Eq,
+					Val:  "==",
+					Pos:  43,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "0",
+					Pos:  45,
+				},
+				{
+					Kind: token.Rparen,
+					Val:  ")",
+					Pos:  46,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "i",
+					Pos:  48,
+				},
+				{
+					Kind: token.Assign,
+					Val:  "=",
+					Pos:  50,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "0",
+					Pos:  52,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  53,
+				},
+				{
+					Kind: token.KwElse,
+					Val:  "else",
+					Pos:  58,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "i",
+					Pos:  63,
+				},
+				{
+					Kind: token.Assign,
+					Val:  "=",
+					Pos:  65,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "1",
+					Pos:  67,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  68,
+				},
+				{
+					Kind: token.KwWhile,
+					Val:  "while",
+					Pos:  72,
+				},
+				{
+					Kind: token.Lparen,
+					Val:  "(",
+					Pos:  78,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "1",
+					Pos:  79,
+				},
+				{
+					Kind: token.Eq,
+					Val:  "==",
+					Pos:  80,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "0",
+					Pos:  82,
+				},
+				{
+					Kind: token.Rparen,
+					Val:  ")",
+					Pos:  83,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "i",
+					Pos:  85,
+				},
+				{
+					Kind: token.Assign,
+					Val:  "=",
+					Pos:  87,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "0",
+					Pos:  89,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  90,
+				},
+				{
+					Kind: token.KwReturn,
+					Val:  "return",
+					Pos:  94,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "42",
+					Pos:  101,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  103,
+				},
+				{
+					Kind: token.Rbrace,
+					Val:  "}",
+					Pos:  105,
+				},
+				{
+					Kind: token.EOF,
+					Val:  "",
+					Pos:  107,
+				},
+			},
+		},
 		// TODO: Add tokens for the following test cases.
-		//{path: "../../testdata/quiet/lexer/l04.c"},
 		//{path: "../../testdata/quiet/lexer/l05.c"},
 		//{path: "../../testdata/quiet/lexer/l06.c"},
 	}
