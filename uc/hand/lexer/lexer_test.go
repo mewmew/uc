@@ -846,8 +846,172 @@ func TestLexer(t *testing.T) {
 				},
 			},
 		},
+		{
+			path: "../../testdata/quiet/lexer/l03.c",
+			toks: []token.Token{
+				{
+					Kind: token.Ident,
+					Val:  "int",
+					Pos:  0,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "main",
+					Pos:  4,
+				},
+				{
+					Kind: token.Lparen,
+					Val:  "(",
+					Pos:  8,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "void",
+					Pos:  9,
+				},
+				{
+					Kind: token.Rparen,
+					Val:  ")",
+					Pos:  13,
+				},
+				{
+					Kind: token.Lbrace,
+					Val:  "{",
+					Pos:  15,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "int",
+					Pos:  19,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "i",
+					Pos:  23,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  24,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "i",
+					Pos:  28,
+				},
+				{
+					Kind: token.Assign,
+					Val:  "=",
+					Pos:  30,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "123456789",
+					Pos:  32,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  41,
+				},
+				{
+					Kind: token.Comment,
+					Val:  " Was:   i = 1234567890;",
+					Pos:  43,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "i",
+					Pos:  71,
+				},
+				{
+					Kind: token.Assign,
+					Val:  "=",
+					Pos:  73,
+				},
+				{
+					Kind: token.CharLit,
+					Val:  "'0'",
+					Pos:  75,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  78,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "i",
+					Pos:  82,
+				},
+				{
+					Kind: token.Assign,
+					Val:  "=",
+					Pos:  84,
+				},
+				{
+					Kind: token.CharLit,
+					Val:  "'a'",
+					Pos:  86,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  89,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "i",
+					Pos:  93,
+				},
+				{
+					Kind: token.Assign,
+					Val:  "=",
+					Pos:  95,
+				},
+				{
+					Kind: token.CharLit,
+					Val:  "' '",
+					Pos:  97,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  100,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "i",
+					Pos:  104,
+				},
+				{
+					Kind: token.Assign,
+					Val:  "=",
+					Pos:  106,
+				},
+				{
+					Kind: token.CharLit,
+					Val:  `'\n'`,
+					Pos:  108,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  112,
+				},
+				{
+					Kind: token.Rbrace,
+					Val:  "}",
+					Pos:  114,
+				},
+				{
+					Kind: token.EOF,
+					Val:  "",
+					Pos:  117,
+				},
+			},
+		},
 		// TODO: Add tokens for the following test cases.
-		//{path: "../../testdata/quiet/lexer/l03.c"},
 		//{path: "../../testdata/quiet/lexer/l04.c"},
 		//{path: "../../testdata/quiet/lexer/l05.c"},
 		//{path: "../../testdata/quiet/lexer/l06.c"},
