@@ -1526,8 +1526,101 @@ func TestLexer(t *testing.T) {
 				},
 			},
 		},
-		// TODO: Add tokens for the following test cases.
-		//{path: "../../testdata/quiet/lexer/l06.c"},
+		{
+			path: "../../testdata/quiet/lexer/l06.c",
+			toks: []token.Token{
+				{
+					Kind: token.Comment,
+					Val:  " This file contains examples of various types of white space and comments. ",
+					Pos:  0,
+				},
+				{
+					Kind: token.Comment,
+					Val:  " A blank (32)",
+					Pos:  80,
+				},
+				{
+					Kind: token.Comment,
+					Val:  " A new-line (10)",
+					Pos:  98,
+				},
+				{
+					Kind: token.Comment,
+					Val:  " a carriage-return (13)",
+					Pos:  118,
+				},
+				{
+					Kind: token.Comment,
+					Val:  " form-feed (12)",
+					Pos:  146,
+				},
+				{
+					Kind: token.Comment,
+					Val:  " tab(9)",
+					Pos:  166,
+				},
+				{
+					Kind: token.Comment,
+					Val:  " In uC, each file must contain at least one declaration ",
+					Pos:  178,
+				},
+				{
+					Kind: token.Comment,
+					Val:  " a comment... ",
+					Pos:  240,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "int",
+					Pos:  259,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "main",
+					Pos:  263,
+				},
+				{
+					Kind: token.Lparen,
+					Val:  "(",
+					Pos:  267,
+				},
+				{
+					Kind: token.Comment,
+					Val:  " ...and another ",
+					Pos:  269,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "void",
+					Pos:  297,
+				},
+				{
+					Kind: token.Rparen,
+					Val:  ")",
+					Pos:  302,
+				},
+				{
+					Kind: token.Lbrace,
+					Val:  "{",
+					Pos:  304,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  306,
+				},
+				{
+					Kind: token.Rbrace,
+					Val:  "}",
+					Pos:  308,
+				},
+				{
+					Kind: token.EOF,
+					Val:  "",
+					Pos:  313,
+				},
+			},
+		},
 	}
 
 	for _, g := range golden {
