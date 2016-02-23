@@ -1226,8 +1226,307 @@ func TestLexer(t *testing.T) {
 				},
 			},
 		},
+		{
+			path: "../../testdata/quiet/lexer/l05.c",
+			toks: []token.Token{
+				{
+					Kind: token.Ident,
+					Val:  "int",
+					Pos:  0,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "main",
+					Pos:  4,
+				},
+				{
+					Kind: token.Lparen,
+					Val:  "(",
+					Pos:  8,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "void",
+					Pos:  9,
+				},
+				{
+					Kind: token.Rparen,
+					Val:  ")",
+					Pos:  13,
+				},
+				{
+					Kind: token.Lbrace,
+					Val:  "{",
+					Pos:  15,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "int",
+					Pos:  19,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "i",
+					Pos:  23,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  24,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "1",
+					Pos:  28,
+				},
+				{
+					Kind: token.Ne,
+					Val:  "!=",
+					Pos:  29,
+				},
+				{
+					Kind: token.Not,
+					Val:  "!",
+					Pos:  31,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "3",
+					Pos:  32,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  33,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "4",
+					Pos:  37,
+				},
+				{
+					Kind: token.Land,
+					Val:  "&&",
+					Pos:  38,
+				},
+				{
+					Kind: token.Lparen,
+					Val:  "(",
+					Pos:  40,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "6",
+					Pos:  41,
+				},
+				{
+					Kind: token.Rparen,
+					Val:  ")",
+					Pos:  42,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  43,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "7",
+					Pos:  47,
+				},
+				{
+					Kind: token.Mul,
+					Val:  "*",
+					Pos:  48,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "8",
+					Pos:  50,
+				},
+				{
+					Kind: token.Add,
+					Val:  "+",
+					Pos:  51,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "10",
+					Pos:  52,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  54,
+				},
+				{
+					Kind: token.Lparen,
+					Val:  "(",
+					Pos:  58,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "11",
+					Pos:  59,
+				},
+				{
+					Kind: token.Sub,
+					Val:  "-",
+					Pos:  61,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "12",
+					Pos:  62,
+				},
+				{
+					Kind: token.Rparen,
+					Val:  ")",
+					Pos:  64,
+				},
+				{
+					Kind: token.Add,
+					Val:  "+",
+					Pos:  65,
+				},
+				{
+					Kind: token.Lparen,
+					Val:  "(",
+					Pos:  66,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "12",
+					Pos:  67,
+				},
+				{
+					Kind: token.Div,
+					Val:  "/",
+					Pos:  69,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "16",
+					Pos:  70,
+				},
+				{
+					Kind: token.Rparen,
+					Val:  ")",
+					Pos:  72,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  73,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "17",
+					Pos:  77,
+				},
+				{
+					Kind: token.Le,
+					Val:  "<=",
+					Pos:  79,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "18",
+					Pos:  81,
+				},
+				{
+					Kind: token.Lt,
+					Val:  "<",
+					Pos:  84,
+				},
+				{
+					Kind: token.Sub,
+					Val:  "-",
+					Pos:  85,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "20",
+					Pos:  86,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  88,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "i",
+					Pos:  92,
+				},
+				{
+					Kind: token.Assign,
+					Val:  "=",
+					Pos:  93,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "21",
+					Pos:  94,
+				},
+				{
+					Kind: token.Eq,
+					Val:  "==",
+					Pos:  96,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "22",
+					Pos:  98,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  100,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "25",
+					Pos:  104,
+				},
+				{
+					Kind: token.Ge,
+					Val:  ">=",
+					Pos:  107,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "27",
+					Pos:  109,
+				},
+				{
+					Kind: token.Gt,
+					Val:  ">",
+					Pos:  111,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "28",
+					Pos:  112,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  114,
+				},
+				{
+					Kind: token.Rbrace,
+					Val:  "}",
+					Pos:  116,
+				},
+				{
+					Kind: token.EOF,
+					Val:  "",
+					Pos:  118,
+				},
+			},
+		},
 		// TODO: Add tokens for the following test cases.
-		//{path: "../../testdata/quiet/lexer/l05.c"},
 		//{path: "../../testdata/quiet/lexer/l06.c"},
 	}
 
