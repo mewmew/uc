@@ -655,16 +655,16 @@ func TestLexer(t *testing.T) {
 			},
 		},
 		// TODO: Add tokens for the following test cases.
-		{path: "../../testdata/incorrect/lexer/ugly.c"},
-		{path: "../../testdata/quiet/lexer/l01.c"},
-		{path: "../../testdata/quiet/lexer/l02.c"},
-		{path: "../../testdata/quiet/lexer/l03.c"},
-		{path: "../../testdata/quiet/lexer/l04.c"},
-		{path: "../../testdata/quiet/lexer/l05.c"},
-		{path: "../../testdata/quiet/lexer/l06.c"},
+		//{path: "../../testdata/incorrect/lexer/ugly.c"},
+		//{path: "../../testdata/quiet/lexer/l01.c"},
+		//{path: "../../testdata/quiet/lexer/l02.c"},
+		//{path: "../../testdata/quiet/lexer/l03.c"},
+		//{path: "../../testdata/quiet/lexer/l04.c"},
+		//{path: "../../testdata/quiet/lexer/l05.c"},
+		//{path: "../../testdata/quiet/lexer/l06.c"},
 	}
 
-	for looprun, g := range golden {
+	for _, g := range golden {
 		log.Println("path:", g.path)
 		tokens, err := lexer.ParseFile(g.path)
 		if err != nil {
@@ -690,9 +690,6 @@ func TestLexer(t *testing.T) {
 				}
 				break
 			}
-		}
-		if looprun >= 2 {
-			break // TODO: Remove this break to test all test cases and not just the first.
 		}
 	}
 }
