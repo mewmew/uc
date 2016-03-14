@@ -1,0 +1,51 @@
+\documentclass[12pt, a4paper]{article}
+
+\usepackage{preamble}
+
+\title{µC Compiler Design}
+\author{Alexander Andersson \and Robin Eklind}
+\date{\today}
+
+% Document
+
+\begin{document}
+
+% === [ Front matter ] =========================================================
+
+\pagenumbering{roman}
+
+% --- [ Title page ] -----------------------------------------------------------
+
+\maketitle
+
+\clearpage
+
+% --- [ Table of contents ] ----------------------------------------------------
+
+\tableofcontents
+
+\clearpage
+
+% === [ Main matter ] ==========================================================
+
+\pagenumbering{arabic}
+
+\include{sections/1_introduction}
+\include{sections/2_lexical_analysis}
+\include{sections/3_syntactic_analysis}
+\include{sections/4_semantic_analysis}
+\include{sections/5_intermediate_representation}
+\include{sections/6_ir_generation}
+\include{sections/7_conclusion}
+
+% === [ Back matter ] ==========================================================
+
+% --- [ References ] -----------------------------------------------------------
+
+\bibliography{references}
+
+% --- [ Appendices ] -----------------------------------------------------------
+
+\include{sections/appendices}
+
+\end{document}

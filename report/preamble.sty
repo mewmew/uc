@@ -1,0 +1,72 @@
+\ProvidesPackage{preamble}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[margin=1in]{geometry}
+\usepackage[parfill]{parskip}
+
+% Centre verbatim text.
+%
+% Example:
+%    \begin{figure}
+%    \centering
+%    \begin{BVerbatim}
+%    foo
+%    \end{BVerbatim}
+%    \end{figure}
+\usepackage{fancyvrb}
+
+% Encode < and > correctly.
+\usepackage[T1]{fontenc}
+
+% Include bibliography in the table of contents.
+%
+% Options:
+%    nottoc: don't include the table of contents in the table of contents.
+\usepackage[nottoc]{tocbibind}
+
+% Use IEEE-style references.
+\bibliographystyle{ieeetr}
+
+% Add support for links.
+%
+% Options:
+%    hidelinks: don't show red boxes around links.
+%
+% Examples:
+%    \url{http://example.org/}
+\usepackage[hidelinks]{hyperref}
+
+% Import images.
+%
+% Examples:
+%    \includegraphics[width=\textwidth]{foo.png}
+\usepackage[dvipdfmx]{graphicx}
+\usepackage{bmpsize}
+
+% Source code listings, language definitions and styles.
+%
+% Examples:
+%    \lstinputlisting[language=llvm, style=nasm]{foo.ll}
+\usepackage{listings}
+\usepackage{latex/go/lang}
+\usepackage{latex/go/style}
+\usepackage{latex/c/style}
+\usepackage{latex/llvm/lang}
+\usepackage{latex/diff/lang}
+\usepackage{latex/diff/style}
+
+% Sub figures.
+%
+% Examples:
+%    \begin{figure}[htbp]
+%       \centering
+%       \begin{subfigure}[ht]{0.50\textwidth}
+%          foo
+%       \end{subfigure}
+%       \begin{subfigure}[ht]{0.50\textwidth}
+%          foo
+%       \end{subfigure}
+%       \caption{foo}
+%    \end{figure}
+\usepackage{subcaption}
