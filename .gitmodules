@@ -1,0 +1,3 @@
+[submodule "report/latex"]
+	path = report/latex
+	url = https://github.com/mewpaper/latex.git
