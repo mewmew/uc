@@ -84,8 +84,19 @@ func (l *lexer) lex() {
 // TODO: Decide which emit functions should stay (based on usage) after the
 // implementation is mature.
 
-// errorf appends an error token at the current position.
+// errorf appends an error token at the current token start position.
 func (l *lexer) errorf(format string, args ...interface{}) {
+	err := fmt.Sprintf(format, args...)
+	tok := token.Token{
+		Kind: token.Error,
+		Val:  err,
+		Pos:  l.start,
+	}
+	l.tokens = append(l.tokens, tok)
+}
+
+// errorfCur appends an error token at the current position.
+func (l *lexer) errorfCur(format string, args ...interface{}) {
 	err := fmt.Sprintf(format, args...)
 	_, width := utf8.DecodeLastRuneInString(l.input[:l.cur])
 	tok := token.Token{
@@ -96,10 +107,17 @@ func (l *lexer) errorf(format string, args ...interface{}) {
 	l.tokens = append(l.tokens, tok)
 }
 
-// emitErrorf emits an error token at the current position and advances the
-// token start position.
+// emitErrorf emits an error token at the current token start position and
+// advances the token start position.
 func (l *lexer) emitErrorf(format string, args ...interface{}) {
 	l.errorf(format, args...)
+	l.ignore()
+}
+
+// emitErrorfCur emits an error token at the current position and advances the
+// token start position.
+func (l *lexer) emitErrorfCur(format string, args ...interface{}) {
+	l.errorfCur(format, args...)
 	l.ignore()
 }
 
@@ -107,7 +125,7 @@ func (l *lexer) emitErrorf(format string, args ...interface{}) {
 // "unexpected EOF" error token if there exists unhandled input.
 func (l *lexer) emitEOF() {
 	if l.start < len(l.input) {
-		l.emitErrorf("unexpected EOF; unhandled input %q", l.input[l.start:l.cur])
+		l.emitErrorf("unexpected EOF; unhandled input %q", l.input[l.start:])
 	}
 	l.emit(token.EOF)
 }

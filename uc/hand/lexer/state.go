@@ -1,6 +1,7 @@
 // Sections from the public committee draft of the C11 ISO standard [1] have
-// referenced throughout the source code (e.g. §6.4).
+// been referenced throughout the source code (e.g. §6.4).
 //
+// References:
 //    [1]: http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf
 
 package lexer
@@ -45,7 +46,7 @@ func lexToken(l *lexer) stateFn {
 	// Special tokens.
 	case utf8.RuneError:
 		// Emit error token but continue lexing next token.
-		l.emitErrorf("illegal UTF-8 encoding")
+		l.emitErrorf("illegal UTF-8 encoding") // TODO: Check if we ever hit this case.
 		return lexToken
 	case eof:
 		l.emitEOF()
@@ -113,7 +114,7 @@ func lexToken(l *lexer) stateFn {
 	}
 
 	// Emit error token but continue lexing next token.
-	l.emitErrorf("unexpected %q", r)
+	l.emitErrorf("unexpected %#U", r)
 	return lexToken
 }
 
@@ -142,9 +143,11 @@ func lexSlash(l *lexer) stateFn {
 func lexLineComment(l *lexer) stateFn {
 	for {
 		switch l.next() {
+		// TODO: Remove the utf8.RuneError case as comments should be able to
+		// include other encodings than UTF-8, such as ISO-8859-1
 		case utf8.RuneError:
 			// Append error but continue lexing line comment.
-			l.errorf("illegal UTF-8 encoding")
+			l.errorfCur("illegal UTF-8 encoding")
 		case eof:
 			s := l.input[l.start+2 : l.cur] // skip leading slashes (//)
 			s = strings.TrimRight(s, "\r")  // skip trailing carriage returns.
@@ -168,9 +171,11 @@ func lexLineComment(l *lexer) stateFn {
 func lexBlockComment(l *lexer) stateFn {
 	for !strings.HasSuffix(l.input[l.start+2:l.cur], "*/") {
 		switch l.next() {
+		// TODO: Remove the utf8.RuneError case as comments should be able to
+		// include other encodings than UTF-8, such as ISO-8859-1
 		case utf8.RuneError:
 			// Append error but continue lexing line comment.
-			l.errorf("illegal UTF-8 encoding")
+			l.errorfCur("illegal UTF-8 encoding")
 		case eof:
 			l.emitErrorf("unexpected eof in block comment")
 			l.emitEOF()
@@ -194,7 +199,7 @@ func lexAmpersand(l *lexer) stateFn {
 	} else {
 		// Emit error token but continue lexing next token.
 		l.backup()
-		l.emitErrorf("expected '&' after '&', got %q", r)
+		l.emitErrorf("expected '&' after '&', got %#U", r)
 	}
 	return lexToken
 }
@@ -246,22 +251,36 @@ func lexExclaim(l *lexer) stateFn {
 	return lexToken
 }
 
+// TODO: if r > utf8.SelfRune { error. }
+
 // lexCharLit lexes a character literal (e.g. 'a', '\n'). An apostrophe (') has
 // already been consumed.
 //
 //    CharLit = "'" ([^'] | "\n" ) "'"
 func lexCharLit(l *lexer) stateFn {
+	// Store position directly after the token prefix, i.e. after the apostrophe.
+	cur := l.cur
 	// Consume character or escape sequence.
 	if r := l.next(); r == '\\' {
 		if !l.accept("n") {
-			l.emitErrorf(`unknown escape sequence '\%c'`, r)
+			// TODO: Evaluate if errorCur is always used before restoring the
+			// posision to the one directly after the token prefix. If that should
+			// be the case, rewrite errorCur to take another arugment cur, and let
+			// it restore the position.
+			l.errorfCur(`unknown escape sequence '\%c'`, r)
+			// Continue lexing directly after the token prefix.
+			l.cur = cur
+			l.ignore()
 			return lexToken
 		}
 	}
 
 	// Consume apostrophe.
 	if !l.accept("'") {
-		l.emitErrorf("unterminated character literal")
+		l.errorf("unterminated character literal")
+		// Continue lexing directly after the token prefix.
+		l.cur = cur
+		l.ignore()
 		return lexToken
 	}
 
