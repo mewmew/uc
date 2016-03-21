@@ -3,4 +3,49 @@
 \section{Lexical Analysis}
 \label{sec:lexical_analysis}
 
+\subsection{Notes}
+\subsubsection{Extentions}
+Using real C specification for following things, extending uC:
+\begin{itemize}
+	\item Add char Vertical tab (ASCII VT $11_{10}$) as extention whitespace
+\end{itemize}
+
+\subsubsection{Design decisions}
+\begin{itemize}
+	\item Return lexer to start of failing token to print error, continue lexing from following token.
+	Sentiment: block comment errors, and potential later block token extention errors, will be easier to find by print out of start position of offending token
+	\item The content in comments is not validated and may be of any charset, this is to allow for the common practice of using the current locale as character encoding in source file, and non-ASCII characters in comments.
+\end{itemize}
+
+\begin{verbatim}
+'a'     // Ok
+   ^ // Next token
+
+'aa'x   // error
+ ^ // Next token
+
+'\a'    // error
+ ^ // Next token
+
+''              // error
+ ^ // Next token
+
+'\' // error
+ ^ // Next token
+
+"aa" // ok
+    ^// Next token
+
+"a\a"   //
+
+"aa\" //
+
+"aaEOF  // error
+
+
+"\q/*" "\q*/"     // failing escape -> failing first quote,
+ ^ // Next tokken // starting and ending block comment,
+                  // starting new eventually failing quote
+
+\end{verbatim}
 foo \cite{lexical_scanning_in_go}
