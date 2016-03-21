@@ -6,7 +6,8 @@ import (
 	"github.com/mewmew/uc/uc/hand/token"
 )
 
-// keywords is the set of valid keywords in the µC programming language
+// keywords is the set of valid keywords in the µC programming language, sorted
+// alphabetically.
 var keywords []string
 
 func init() {

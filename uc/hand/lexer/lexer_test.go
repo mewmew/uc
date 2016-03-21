@@ -70,17 +70,16 @@ func TestLexer(t *testing.T) {
 				{
 					Kind: token.Error,
 					Val:  "unexpected eof in block comment",
-					// TODO: Figure out how to handle the offset in error cases.
-					Pos: 220,
+					Pos:  143,
 				},
 				{
 					Kind: token.EOF,
 					Val:  "",
-					// TODO: Figure out how to handle the offset in error cases.
-					Pos: 221,
+					Pos:  221,
 				},
 			},
 		},
+
 		{
 			path: "../../testdata/incorrect/lexer/good.c",
 			toks: []token.Token{
@@ -537,6 +536,7 @@ func TestLexer(t *testing.T) {
 				},
 			},
 		},
+
 		{
 			path: "../../testdata/incorrect/lexer/long-char.c",
 			toks: []token.Token{
@@ -623,19 +623,22 @@ func TestLexer(t *testing.T) {
 				{
 					Kind: token.Error,
 					Val:  "unterminated character literal",
-					// TODO: Figure out how to handle position of errors.
-					Pos: 51,
+					Pos:  50,
 				},
 				{
 					Kind: token.Ident,
-					Val:  "c",
-					Pos:  52,
+					Val:  "cc",
+					Pos:  51,
 				},
 				{
 					Kind: token.Error,
 					Val:  "unterminated character literal",
-					// TODO: Figure out how to handle position of errors.
-					Pos: 54,
+					Pos:  53,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  54,
 				},
 				{
 					Kind: token.Comment,
@@ -654,8 +657,1535 @@ func TestLexer(t *testing.T) {
 				},
 			},
 		},
-		// TODO: Add tokens for the following test cases.
-		//{path: "../../testdata/incorrect/lexer/ugly.c"},
+
+		{
+			path: "../../testdata/incorrect/lexer/ugly.c",
+			toks: []token.Token{
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+007C '|'",
+					Pos:  0,
+				},
+				{
+					Kind: token.Add,
+					Val:  "+",
+					Pos:  1,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+0001",
+					Pos:  2,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+0002",
+					Pos:  3,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+0003",
+					Pos:  4,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+0004",
+					Pos:  5,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+0005",
+					Pos:  6,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+0006",
+					Pos:  7,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+0007",
+					Pos:  8,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+0008",
+					Pos:  9,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+000E",
+					Pos:  15,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+000F",
+					Pos:  16,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+0010",
+					Pos:  17,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+0011",
+					Pos:  18,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+0012",
+					Pos:  19,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+0013",
+					Pos:  20,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+0014",
+					Pos:  21,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+0015",
+					Pos:  22,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+0016",
+					Pos:  23,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+0017",
+					Pos:  24,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+0018",
+					Pos:  25,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+0019",
+					Pos:  26,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+001A",
+					Pos:  27,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+001B",
+					Pos:  28,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+001C",
+					Pos:  29,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+001D",
+					Pos:  30,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+001E",
+					Pos:  31,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+001F",
+					Pos:  32,
+				},
+				{
+					Kind: token.Not,
+					Val:  "!",
+					Pos:  34,
+				},
+				{
+					Kind: token.Error,
+					Val:  `unexpected U+0022 '"'`,
+					Pos:  35,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+0023 '#'",
+					Pos:  36,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+0024 '$'",
+					Pos:  37,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+0025 '%'",
+					Pos:  38,
+				},
+				{
+					Kind: token.Error,
+					Val:  "expected '&' after '&', got U+0027 '''",
+					Pos:  39,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unterminated character literal",
+					Pos:  40,
+				},
+				{
+					Kind: token.Lparen,
+					Val:  "(",
+					Pos:  41,
+				},
+				{
+					Kind: token.Rparen,
+					Val:  ")",
+					Pos:  42,
+				},
+				{
+					Kind: token.Mul,
+					Val:  "*",
+					Pos:  43,
+				},
+				{
+					Kind: token.Add,
+					Val:  "+",
+					Pos:  44,
+				},
+				{
+					Kind: token.Comma,
+					Val:  ",",
+					Pos:  46,
+				},
+				{
+					Kind: token.Sub,
+					Val:  "-",
+					Pos:  47,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+002E '.'",
+					Pos:  48,
+				},
+				{
+					Kind: token.Div,
+					Val:  "/",
+					Pos:  49,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "0123456789", // TODO: When octal integer literals have been implemented, fail accordingly.
+					Pos:  50,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+003A ':'",
+					Pos:  60,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  61,
+				},
+				{
+					Kind: token.Le,
+					Val:  "<=",
+					Pos:  62,
+				},
+				{
+					Kind: token.Gt,
+					Val:  ">",
+					Pos:  64,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+003F '?'",
+					Pos:  65,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+0040 '@'",
+					Pos:  66,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+					Pos:  67,
+				},
+				{
+					Kind: token.Lbracket,
+					Val:  "[",
+					Pos:  93,
+				},
+				{
+					Kind: token.Error,
+					Val:  `unexpected U+005C '\'`,
+					Pos:  94,
+				},
+				{
+					Kind: token.Rbracket,
+					Val:  "]",
+					Pos:  95,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+005E '^'",
+					Pos:  96,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "_",
+					Pos:  97,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+0060 '`'",
+					Pos:  98,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "abcdefghijklmnopqrstuvwxyz",
+					Pos:  99,
+				},
+				{
+					Kind: token.Lbrace,
+					Val:  "{",
+					Pos:  125,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+007C '|'",
+					Pos:  126,
+				},
+				{
+					Kind: token.Rbrace,
+					Val:  "}",
+					Pos:  127,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+007E '~'",
+					Pos:  128,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+007F",
+					Pos:  129,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  130,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  131,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  132,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  133,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  134,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  135,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  136,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  137,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  138,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  139,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  140,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  141,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  142,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  143,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  144,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  145,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  146,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  147,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  148,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  149,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  150,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  151,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  152,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  153,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  154,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  155,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  156,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  157,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  158,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  159,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  160,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  161,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  162,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  163,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  164,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  165,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  166,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  167,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  168,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  169,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  170,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  171,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  172,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  173,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  174,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  175,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  176,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  177,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  178,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  179,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  180,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  181,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  182,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  183,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  184,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  185,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  186,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  187,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  188,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  189,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  190,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  191,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  192,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  193,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  194,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  195,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  196,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  197,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  198,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  199,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  200,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  201,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  202,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  203,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  204,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  205,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  206,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  207,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  208,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  209,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  210,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  211,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  212,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  213,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  214,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  215,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  216,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  217,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  218,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  219,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  220,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  221,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  222,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  223,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  224,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  225,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  226,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  227,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  228,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  229,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  230,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  231,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  232,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  233,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  234,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  235,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  236,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  237,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  238,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  239,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  240,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  241,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  242,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  243,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  244,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  245,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  246,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  247,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  248,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  249,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  250,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  251,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  252,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  253,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  254,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  255,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  256,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  257,
+				},
+
+				// TODO: broken doom.
+				{
+					Kind: token.Add,
+					Val:  "+",
+					Pos:  258,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+007C '|'",
+					Pos:  259,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "int",
+					Pos:  261,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "a",
+					Pos:  265,
+				},
+				{
+					Kind: token.Comma,
+					Val:  ",",
+					Pos:  267,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "b",
+					Pos:  269,
+				},
+				{
+					Kind: token.Comma,
+					Val:  ",",
+					Pos:  271,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "c",
+					Pos:  273,
+				},
+				{
+					Kind: token.Comma,
+					Val:  ",",
+					Pos:  275,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "d",
+					Pos:  277,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  279,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "BEGIN",
+					Pos:  281,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "a",
+					Pos:  287,
+				},
+				{
+					Kind: token.Assign,
+					Val:  "=",
+					Pos:  289,
+				},
+				{
+					Kind: token.Lparen,
+					Val:  "(",
+					Pos:  291,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "4711",
+					Pos:  293,
+				},
+				{
+					Kind: token.Add,
+					Val:  "+",
+					Pos:  298,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "17",
+					Pos:  300,
+				},
+				{
+					Kind: token.Sub,
+					Val:  "-",
+					Pos:  303,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "2001",
+					Pos:  305,
+				},
+				{
+					Kind: token.Rparen,
+					Val:  ")",
+					Pos:  310,
+				},
+				{
+					Kind: token.Div,
+					Val:  "/",
+					Pos:  312,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "100",
+					Pos:  314,
+				},
+				{
+					Kind: token.Sub,
+					Val:  "-",
+					Pos:  318,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "17",
+					Pos:  320,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  323,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "b",
+					Pos:  325,
+				},
+				{
+					Kind: token.Assign,
+					Val:  "=",
+					Pos:  327,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "a",
+					Pos:  329,
+				},
+				{
+					Kind: token.Div,
+					Val:  "/",
+					Pos:  331,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "5",
+					Pos:  333,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  335,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "c",
+					Pos:  337,
+				},
+				{
+					Kind: token.Assign,
+					Val:  "=",
+					Pos:  339,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "a",
+					Pos:  341,
+				},
+				{
+					Kind: token.Mul,
+					Val:  "*",
+					Pos:  343,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "b",
+					Pos:  345,
+				},
+				{
+					Kind: token.Mul,
+					Val:  "*",
+					Pos:  347,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "b",
+					Pos:  349,
+				},
+				{
+					Kind: token.Mul,
+					Val:  "*",
+					Pos:  351,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "a",
+					Pos:  353,
+				},
+				{
+					Kind: token.Mul,
+					Val:  "*",
+					Pos:  355,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "b",
+					Pos:  357,
+				},
+				{
+					Kind: token.Mul,
+					Val:  "*",
+					Pos:  359,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "b",
+					Pos:  361,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  363,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "d",
+					Pos:  365,
+				},
+				{
+					Kind: token.Assign,
+					Val:  "=",
+					Pos:  367,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "c",
+					Pos:  369,
+				},
+				{
+					Kind: token.Add,
+					Val:  "+",
+					Pos:  371,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "c",
+					Pos:  373,
+				},
+				{
+					Kind: token.Div,
+					Val:  "/",
+					Pos:  375,
+				},
+				{
+					Kind: token.Lparen,
+					Val:  "(",
+					Pos:  377,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "100",
+					Pos:  379,
+				},
+				{
+					Kind: token.Div,
+					Val:  "/",
+					Pos:  383,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "2",
+					Pos:  385,
+				},
+				{
+					Kind: token.Rparen,
+					Val:  ")",
+					Pos:  387,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  389,
+				},
+				{
+					Kind: token.KwIf,
+					Val:  "if",
+					Pos:  391,
+				},
+				{
+					Kind: token.Lparen,
+					Val:  "(",
+					Pos:  394,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "a",
+					Pos:  396,
+				},
+				{
+					Kind: token.Gt,
+					Val:  ">",
+					Pos:  398,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "3",
+					Pos:  400,
+				},
+				{
+					Kind: token.Mul,
+					Val:  "*",
+					Pos:  402,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "b",
+					Pos:  404,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "or",
+					Pos:  406,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "not",
+					Pos:  409,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "a",
+					Pos:  413,
+				},
+				{
+					Kind: token.Eq,
+					Val:  "==",
+					Pos:  415,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "c",
+					Pos:  418,
+				},
+				{
+					Kind: token.Div,
+					Val:  "/",
+					Pos:  420,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "2",
+					Pos:  422,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "and",
+					Pos:  424,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "c",
+					Pos:  428,
+				},
+				{
+					Kind: token.Gt,
+					Val:  ">",
+					Pos:  430,
+				},
+				{
+					Kind: token.Lparen,
+					Val:  "(",
+					Pos:  432,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "d",
+					Pos:  434,
+				},
+				{
+					Kind: token.Sub,
+					Val:  "-",
+					Pos:  436,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "3",
+					Pos:  438,
+				},
+				{
+					Kind: token.Rparen,
+					Val:  ")",
+					Pos:  440,
+				},
+				{
+					Kind: token.Mul,
+					Val:  "*",
+					Pos:  442,
+				},
+				{
+					Kind: token.Lparen,
+					Val:  "(",
+					Pos:  444,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "a",
+					Pos:  446,
+				},
+				{
+					Kind: token.Sub,
+					Val:  "-",
+					Pos:  448,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "b",
+					Pos:  450,
+				},
+				{
+					Kind: token.Rparen,
+					Val:  ")",
+					Pos:  452,
+				},
+				{
+					Kind: token.Rparen,
+					Val:  ")",
+					Pos:  454,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "and",
+					Pos:  456,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "a",
+					Pos:  460,
+				},
+				{
+					Kind: token.Lt,
+					Val:  "<",
+					Pos:  462,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "0",
+					Pos:  464,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "then",
+					Pos:  466,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "begin",
+					Pos:  471,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "a",
+					Pos:  477,
+				},
+				{
+					Kind: token.Assign,
+					Val:  "=",
+					Pos:  479,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "1",
+					Pos:  481,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  483,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "read",
+					Pos:  485,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "b",
+					Pos:  490,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  492,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "end",
+					Pos:  494,
+				},
+				{
+					Kind: token.KwElse,
+					Val:  "else",
+					Pos:  498,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "begin",
+					Pos:  503,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "a",
+					Pos:  509,
+				},
+				{
+					Kind: token.Assign,
+					Val:  "=",
+					Pos:  511,
+				},
+				{
+					Kind: token.IntLit,
+					Val:  "0",
+					Pos:  513,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  515,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "read",
+					Pos:  517,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "c",
+					Pos:  522,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  524,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "end",
+					Pos:  526,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "END",
+					Pos:  530,
+				},
+				{
+					Kind: token.EOF,
+					Val:  "",
+					Pos:  533,
+				},
+			},
+		},
+
 		{
 			path: "../../testdata/quiet/lexer/l01.c",
 			toks: []token.Token{
@@ -706,6 +2236,7 @@ func TestLexer(t *testing.T) {
 				},
 			},
 		},
+
 		{
 			path: "../../testdata/quiet/lexer/l02.c",
 			toks: []token.Token{
@@ -846,6 +2377,7 @@ func TestLexer(t *testing.T) {
 				},
 			},
 		},
+
 		{
 			path: "../../testdata/quiet/lexer/l03.c",
 			toks: []token.Token{
@@ -1011,6 +2543,7 @@ func TestLexer(t *testing.T) {
 				},
 			},
 		},
+
 		{
 			path: "../../testdata/quiet/lexer/l04.c",
 			toks: []token.Token{
@@ -1226,6 +2759,7 @@ func TestLexer(t *testing.T) {
 				},
 			},
 		},
+
 		{
 			path: "../../testdata/quiet/lexer/l05.c",
 			toks: []token.Token{
@@ -1526,6 +3060,7 @@ func TestLexer(t *testing.T) {
 				},
 			},
 		},
+
 		{
 			path: "../../testdata/quiet/lexer/l06.c",
 			toks: []token.Token{
@@ -1632,12 +3167,12 @@ func TestLexer(t *testing.T) {
 		}
 		for j := 0; ; j++ {
 			if j >= len(tokens) {
-				t.Errorf("%s: invalid number of tokens; expected %d tokens, got %d", g.path, len(tokens), j)
+				t.Errorf("%s: invalid number of tokens; expected %d tokens, got %d", g.path, len(g.toks), len(tokens))
 				break
 			}
 			got := tokens[j]
 			if j >= len(g.toks) {
-				t.Errorf("%s: invalid number of tokens; expected %d tokens, got %d", g.path, len(g.toks), j)
+				t.Errorf("%s: invalid number of tokens; expected %d tokens, got %d", g.path, len(g.toks), len(tokens))
 				break
 			}
 			if want := g.toks[j]; got != want {
