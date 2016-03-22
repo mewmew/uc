@@ -19,7 +19,7 @@ func TestLexer(t *testing.T) {
 			toks: []token.Token{
 				{
 					Kind: token.Comment,
-					Val:  "\t\t\t\t\t\t\t||\n**\tFile for testing lexical analysis\t\t||\n**\t\t\t\t\t\t\t||\n**\tThis file is 'lexically incorrect'.\t\t||\n",
+					Val:  "/*\t\t\t\t\t\t\t||\n**\tFile for testing lexical analysis\t\t||\n**\t\t\t\t\t\t\t||\n**\tThis file is 'lexically incorrect'.\t\t||\n*/",
 					Pos:  0,
 				},
 				{
@@ -85,17 +85,17 @@ func TestLexer(t *testing.T) {
 			toks: []token.Token{
 				{
 					Kind: token.Comment,
-					Val:  "\t\t\t\t\t\t\t||\n**\tFile for testing lexical analysis\t\t||\n**\t\t\t\t\t\t\t||\n**\tThis file would confuse a parser, but\n        is 'lexically correct'.\t\t                ||\n",
+					Val:  "/*\t\t\t\t\t\t\t||\n**\tFile for testing lexical analysis\t\t||\n**\t\t\t\t\t\t\t||\n**\tThis file would confuse a parser, but\n        is 'lexically correct'.\t\t                ||\n*/",
 					Pos:  1,
 				},
 				{
 					Kind: token.Comment,
-					Val:  " ** / ** ",
+					Val:  "/* ** / ** */",
 					Pos:  163,
 				},
 				{
 					Kind: token.Comment,
-					Val:  " Simple tokens and single characters:",
+					Val:  "// Simple tokens and single characters:",
 					Pos:  179,
 				},
 				{
@@ -110,7 +110,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Comment,
-					Val:  " until end-of-line comment",
+					Val:  "// until end-of-line comment",
 					Pos:  248,
 				},
 				{
@@ -130,7 +130,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Comment,
-					Val:  " normal comment ",
+					Val:  "/* normal comment */",
 					Pos:  311,
 				},
 				{
@@ -260,17 +260,17 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Comment,
-					Val:  " Comment with bad tokens: _ || | ++ # @ ...  ",
+					Val:  "/* Comment with bad tokens: _ || | ++ # @ ...  */",
 					Pos:  406,
 				},
 				{
 					Kind: token.Comment,
-					Val:  " Ditto */ /* : _ || | ++ # @ ...  ",
+					Val:  "// Ditto */ /* : _ || | ++ # @ ...  ",
 					Pos:  456,
 				},
 				{
 					Kind: token.Comment,
-					Val:  " Identifiers and numbers:",
+					Val:  "// Identifiers and numbers:",
 					Pos:  493,
 				},
 				{
@@ -290,7 +290,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Comment,
-					Val:  " No floats? -17.17e17 -17.17E-17  ",
+					Val:  "// No floats? -17.17e17 -17.17E-17  ",
 					Pos:  529,
 				},
 				{
@@ -405,7 +405,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Comment,
-					Val:  " The following 'trap' should be correctly handled:\n\n\t\t* \"2die4U\" consists of the number '2' and the\n\t\t  identifier 'die4U'.\n",
+					Val:  "/* The following 'trap' should be correctly handled:\n\n\t\t* \"2die4U\" consists of the number '2' and the\n\t\t  identifier 'die4U'.\n*/",
 					Pos:  714,
 				},
 				{
@@ -420,7 +420,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Comment,
-					Val:  "|| The following should all be regarded as identifiers:",
+					Val:  "//|| The following should all be regarded as identifiers:",
 					Pos:  860,
 				},
 				{
@@ -525,7 +525,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Comment,
-					Val:  " It is legal to end the code like this, without an ending newline.",
+					Val:  "// It is legal to end the code like this, without an ending newline.",
 					Pos:  1031,
 				},
 				{
@@ -607,7 +607,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Comment,
-					Val:  " OK",
+					Val:  "// OK",
 					Pos:  38,
 				},
 				{
@@ -642,7 +642,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Comment,
-					Val:  " Not OK",
+					Val:  "// Not OK",
 					Pos:  56,
 				},
 				{
@@ -2448,7 +2448,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Comment,
-					Val:  " Was:   i = 1234567890;",
+					Val:  "// Was:   i = 1234567890;",
 					Pos:  43,
 				},
 				{
@@ -3066,42 +3066,42 @@ func TestLexer(t *testing.T) {
 			toks: []token.Token{
 				{
 					Kind: token.Comment,
-					Val:  " This file contains examples of various types of white space and comments. ",
+					Val:  "/* This file contains examples of various types of white space and comments. */",
 					Pos:  0,
 				},
 				{
 					Kind: token.Comment,
-					Val:  " A blank (32)",
+					Val:  "// A blank (32)",
 					Pos:  80,
 				},
 				{
 					Kind: token.Comment,
-					Val:  " A new-line (10)",
+					Val:  "// A new-line (10)",
 					Pos:  98,
 				},
 				{
 					Kind: token.Comment,
-					Val:  " a carriage-return (13)",
+					Val:  "// a carriage-return (13)",
 					Pos:  118,
 				},
 				{
 					Kind: token.Comment,
-					Val:  " form-feed (12)",
+					Val:  "// form-feed (12)",
 					Pos:  146,
 				},
 				{
 					Kind: token.Comment,
-					Val:  " tab(9)",
+					Val:  "// tab(9)",
 					Pos:  166,
 				},
 				{
 					Kind: token.Comment,
-					Val:  " In uC, each file must contain at least one declaration ",
+					Val:  "/* In uC, each file must contain at least one declaration */",
 					Pos:  178,
 				},
 				{
 					Kind: token.Comment,
-					Val:  " a comment... ",
+					Val:  "/* a comment... */",
 					Pos:  240,
 				},
 				{
@@ -3121,7 +3121,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Comment,
-					Val:  " ...and another ",
+					Val:  "/* ...and another */",
 					Pos:  269,
 				},
 				{
