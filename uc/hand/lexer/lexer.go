@@ -15,7 +15,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/mewmew/uc/uc/hand/token"
+	"github.com/mewmew/uc/uc/token"
 )
 
 // Parse lexes the input read from r into a slice of tokens. Potential errors

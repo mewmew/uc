@@ -3,7 +3,7 @@ package lexer
 import (
 	"sort"
 
-	"github.com/mewmew/uc/uc/hand/token"
+	"github.com/mewmew/uc/uc/token"
 )
 
 // keywords is the set of valid keywords in the µC programming language, sorted
