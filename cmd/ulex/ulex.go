@@ -26,6 +26,12 @@ If FILE is -, read standard input.`
 }
 
 func main() {
+	// Command line flags.
+	var (
+		// n specifies the number of tokens to lex.
+		n int
+	)
+	flag.IntVar(&n, "n", 0, "number of tokens to lex")
 	flag.Usage = usage
 	flag.Parse()
 	paths := flag.Args()
@@ -34,32 +40,37 @@ func main() {
 		os.Exit(1)
 	}
 	for _, path := range paths {
-		err := lexFile(path)
+		err := lexFile(path, n)
 		if err != nil {
 			log.Print(err)
 		}
 	}
 }
 
-// lexFile lexes the given file and pretty-prints its tokens to standard output.
-func lexFile(path string) (err error) {
+// lexFile lexes the given file and pretty-prints the n first tokens to standard
+// output.
+func lexFile(path string, n int) (err error) {
 	var toks []token.Token
 	if path == "-" {
 		fmt.Println("Lexing from standard input")
 		toks, err = lexer.Parse(os.Stdin)
-		if err != nil {
-			return err
-		}
 	} else {
 		fmt.Printf("Lexing %q\n", path)
 		toks, err = lexer.ParseFile(path)
-		if err != nil {
-			return err
-		}
 	}
-	fmt.Println()
-	pad := int(math.Ceil(math.Log10(float64(len(toks)))))
+	if err != nil {
+		return err
+	}
+
+	ntoks := len(toks)
+	if n > ntoks {
+		ntoks = n
+	}
+	pad := int(math.Ceil(math.Log10(float64(ntoks))))
 	for i, tok := range toks {
+		if n != 0 && i == n {
+			break
+		}
 		if tok.Kind == token.Error {
 			elog.Printf("ERROR %*d:   %v\n", pad, i, tok)
 		} else {
