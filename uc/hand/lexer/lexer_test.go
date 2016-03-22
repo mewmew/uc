@@ -531,8 +531,7 @@ func TestLexer(t *testing.T) {
 				{
 					Kind: token.EOF,
 					Val:  "",
-					// TODO: Figure out how to handle the offset in error cases.
-					Pos: 1100,
+					Pos:  1099,
 				},
 			},
 		},
@@ -1616,8 +1615,6 @@ func TestLexer(t *testing.T) {
 					Val:  "illegal UTF-8 encoding",
 					Pos:  257,
 				},
-
-				// TODO: broken doom.
 				{
 					Kind: token.Add,
 					Val:  "+",
