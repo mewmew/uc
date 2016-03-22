@@ -2,6 +2,8 @@
 // output.
 //
 // Usage: ulex FILE...
+//
+// If FILE is -, read standard input.
 package main
 
 import (
@@ -15,11 +17,21 @@ import (
 	"github.com/mewmew/uc/uc/hand/token"
 )
 
+func usage() {
+	const use = `
+Usage: ulex FILE...
+
+If FILE is -, read standard input.`
+	fmt.Fprintln(os.Stderr, use[1:])
+}
+
 func main() {
+	flag.Usage = usage
 	flag.Parse()
 	paths := flag.Args()
 	if flag.NArg() == 0 {
-		paths = append(paths, "-")
+		flag.Usage()
+		os.Exit(1)
 	}
 	for _, path := range paths {
 		err := lexFile(path)
@@ -49,7 +61,7 @@ func lexFile(path string) (err error) {
 	pad := int(math.Ceil(math.Log10(float64(len(toks)))))
 	for i, tok := range toks {
 		if tok.Kind == token.Error {
-			fmt.Printf("ERROR %*d:   %v\n", pad, i, tok)
+			elog.Printf("ERROR %*d:   %v\n", pad, i, tok)
 		} else {
 			fmt.Printf("token %*d:   %v\n", pad, i, tok)
 		}
@@ -57,3 +69,7 @@ func lexFile(path string) (err error) {
 	fmt.Println()
 	return nil
 }
+
+// elog represents a logger with no prefix or flags, which logs errors to
+// standard error.
+var elog = log.New(os.Stderr, "", 0)
