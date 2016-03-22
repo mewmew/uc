@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/kr/pretty"
 	"github.com/mewmew/uc/uc/hand/lexer"
 )
 
@@ -20,14 +19,12 @@ func main() {
 }
 
 func lexFile(path string) error {
-	tokens, err := lexer.ParseFile(path)
+	toks, err := lexer.ParseFile(path)
 	if err != nil {
 		return err
 	}
-	for _, token := range tokens {
-		fmt.Printf("=== [ %s ] ===\n", token.Kind)
-		pretty.Println(token)
-		fmt.Println()
+	for _, tok := range toks {
+		fmt.Println(tok)
 	}
 	return nil
 }

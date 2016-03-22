@@ -2,6 +2,8 @@
 // programming language.
 package token
 
+import "fmt"
+
 // A Token represents a lexical token of the µC programming language.
 type Token struct {
 	// The token type.
@@ -13,10 +15,7 @@ type Token struct {
 }
 
 func (tok Token) String() string {
-	if tok.Kind == EOF {
-		return "EOF"
-	}
-	return tok.Val
+	return fmt.Sprintf(`token.Token{Kind:token.%v, Val:%q, Pos:%v}`, tok.Kind, tok.Val, tok.Pos)
 }
 
 //go:generate stringer -type Kind
