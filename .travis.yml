@@ -20,7 +20,7 @@ before_install:
   - make -C $HOME/gopath/src/github.com/mewmew/uc/uc/gocc gen
 
 install:
-  - go install $(go list -e ./... | grep -v "/latex/")
+  - go get ./...
 
 before_script:
   - wget https://gist.github.com/mewmew/379014c9a2e6885e238d/raw/goclean.sh
