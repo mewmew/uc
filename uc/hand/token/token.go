@@ -15,7 +15,7 @@ type Token struct {
 }
 
 func (tok Token) String() string {
-	return fmt.Sprintf(`token.Token{Kind:token.%v, Val:%q, Pos:%v}`, tok.Kind, tok.Val, tok.Pos)
+	return fmt.Sprintf(`token.Token{Kind: token.%v, Val: %q, Pos: %v}`, tok.Kind, tok.Val, tok.Pos)
 }
 
 //go:generate stringer -type Kind

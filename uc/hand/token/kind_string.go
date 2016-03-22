@@ -4,9 +4,9 @@ package token
 
 import "fmt"
 
-const _Kind_name = "EOFErrorCommentliteralStartIdentIntCharliteralEndoperatorStartAddSubMulDivAssignEqNeLtLeGtGeLandNotLparenRparenLbracketRbracketLbraceRbraceCommaSemicolonoperatorEndkeywordStartKwElseKwIfKwReturnKwWhilekeywordEnd"
+const _Kind_name = "EOFErrorCommentliteralStartIdentIntLitCharLitliteralEndoperatorStartAddSubMulDivAssignEqNeLtLeGtGeLandNotLparenRparenLbracketRbracketLbraceRbraceCommaSemicolonoperatorEndkeywordStartKwElseKwIfKwReturnKwWhilekeywordEnd"
 
-var _Kind_index = [...]uint8{0, 3, 8, 15, 27, 32, 35, 39, 49, 62, 65, 68, 71, 74, 80, 82, 84, 86, 88, 90, 92, 96, 99, 105, 111, 119, 127, 133, 139, 144, 153, 164, 176, 182, 186, 194, 201, 211}
+var _Kind_index = [...]uint8{0, 3, 8, 15, 27, 32, 38, 45, 55, 68, 71, 74, 77, 80, 86, 88, 90, 92, 94, 96, 98, 102, 105, 111, 117, 125, 133, 139, 145, 150, 159, 170, 182, 188, 192, 200, 207, 217}
 
 func (i Kind) String() string {
 	if i >= Kind(len(_Kind_index)-1) {
