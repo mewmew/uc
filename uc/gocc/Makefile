@@ -19,10 +19,11 @@ clean:
 	rm -f token/token.go
 	rm -f util/litconv.go
 	rm -f util/rune.go
-	-rmdir errors
-	-rmdir lexer
-	-rmdir parser
-	-rmdir token
-	-rmdir util
+	-rmdir --ignore-fail-on-non-empty errors
+	-rmdir --ignore-fail-on-non-empty lexer
+	-rmdir --ignore-fail-on-non-empty parser
+	-rmdir --ignore-fail-on-non-empty token
+	-rmdir --ignore-fail-on-non-empty util
+	rm -f terminals.txt LR1_conflicts.txt LR1_sets.txt first.txt lexer_sets.txt
 
 .PHONY: gen debug clean
