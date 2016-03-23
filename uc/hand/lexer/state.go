@@ -252,7 +252,7 @@ func lexCharLit(l *lexer) stateFn {
 	switch r := l.next(); {
 	case r == utf8.RuneError:
 		// Emit error token but continue lexing next token.
-		l.errorf("illegal UTF-8 encoding")
+		l.errorfCur("illegal UTF-8 encoding")
 		// Continue lexing directly after the token prefix.
 		l.cur = cur
 		l.ignore()

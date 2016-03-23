@@ -3385,6 +3385,56 @@ func TestLexer(t *testing.T) {
 				},
 			},
 		},
+		{
+			path: "../../testdata/extra/lexer/illegal-utf8-char-lit.c",
+			toks: []token.Token{
+				{
+					Kind: token.Comment,
+					Val:  "// Illegal UTF-8 encoding in character literal.",
+					Pos:  0,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "char",
+					Pos:  48,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "c",
+					Pos:  53,
+				},
+				{
+					Kind: token.Assign,
+					Val:  "=",
+					Pos:  55,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  58,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  58,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unterminated character literal",
+					Pos:  59,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  60,
+				},
+				{
+					Kind: token.EOF,
+					Val:  "",
+					Pos:  62,
+				},
+			},
+		},
 	}
 
 	for _, g := range golden {
