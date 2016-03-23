@@ -51,10 +51,11 @@ comment        : _line_comment | _block_comment ;
 // ## Tokens
 //
 
-// White space, formed from spaces (0x20), horizontal tabs (0x09), form feeds
-// (0x0C), carriage returns (0x0D), and new lines (0x0A), is ignored except as
-// it separates tokens that would otherwise combine into a single token.
-!whitespace : ' ' | '\t' | '\f' | '\r' | '\n' ;
+// White space, formed from spaces (0x20), horizontal tabs (0x09), new line
+// (line-feed (0x0A) or carriage-return (0x0D)), vertical tabs (0x0B), and form-
+// feeds (0x0C) (§6.4), is ignored except as it separates tokens that would
+// otherwise combine into a single token.
+!whitespace : ' ' | '\t' | '\v' | '\f' | '\r' | '\n' ;
 
 // ## Identifiers
 //
