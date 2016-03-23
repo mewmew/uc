@@ -15,8 +15,8 @@ import (
 
 const (
 	// whitespace specifies the white-space characters: space (0x20), horizontal
-	// tab (0x09), line-feed (0x0A), vertical tab (0x0B), and form-feed (0x0C)
-	// (§6.4).
+	// tab (0x09), new line (line-feed (0x0A) or carriage-return (0x0D)),
+	// vertical tab (0x0B), and form-feed (0x0C) (§6.4).
 	//
 	// Note: Even though not explicitly mentioned in the C11 specification,
 	// carriage return (0x0D) is treated as a white-space character by the lexer,

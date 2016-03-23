@@ -71,7 +71,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected eof in block comment"),
+					Lit:  []byte("/*\n\tIt is not legal to end the code like this, \n\twithout a comment terminator\n"),
 					Pos:  token.Pos{Offset: 143},
 				},
 				{
@@ -97,7 +97,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// Simple tokens and single characters:"),
+					Lit:  []byte("// Simple tokens and single characters:\n"),
 					Pos:  token.Pos{Offset: 179},
 				},
 				{
@@ -112,7 +112,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// until end-of-line comment"),
+					Lit:  []byte("// until end-of-line comment\n"),
 					Pos:  token.Pos{Offset: 248},
 				},
 				{
@@ -267,12 +267,12 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// Ditto */ /* : _ || | ++ # @ ...  "),
+					Lit:  []byte("// Ditto */ /* : _ || | ++ # @ ...  \n"),
 					Pos:  token.Pos{Offset: 456},
 				},
 				{
 					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// Identifiers and numbers:"),
+					Lit:  []byte("// Identifiers and numbers:\n"),
 					Pos:  token.Pos{Offset: 493},
 				},
 				{
@@ -292,7 +292,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// No floats? -17.17e17 -17.17E-17  "),
+					Lit:  []byte("// No floats? -17.17e17 -17.17E-17  \n"),
 					Pos:  token.Pos{Offset: 529},
 				},
 				{
@@ -422,7 +422,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("//|| The following should all be regarded as identifiers:"),
+					Lit:  []byte("//|| The following should all be regarded as identifiers:\n"),
 					Pos:  token.Pos{Offset: 860},
 				},
 				{
@@ -527,7 +527,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// It is legal to end the code like this, without an ending newline."),
+					Lit:  []byte("// It is legal to end the code like this, without an ending newline."), // TODO: Figure out how to handle line comments, ending with EOF.
 					Pos:  token.Pos{Offset: 1031},
 				},
 				{
@@ -597,7 +597,7 @@ func TestLexer(t *testing.T) {
 					Pos:  token.Pos{Offset: 31},
 				},
 				{
-					Type: token.TokMap.Type("char_lit"),
+					Type: token.TokMap.Type("int_lit"), // TODO: Figure out if char_lit and int_lit should be separate tokens.
 					Lit:  []byte("'c'"),
 					Pos:  token.Pos{Offset: 33},
 				},
@@ -608,7 +608,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// OK"),
+					Lit:  []byte("// OK\n"),
 					Pos:  token.Pos{Offset: 38},
 				},
 				{
@@ -623,27 +623,17 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unterminated character literal"),
+					Lit:  []byte("'cc"),
 					Pos:  token.Pos{Offset: 50},
 				},
 				{
-					Type: token.TokMap.Type("ident"),
-					Lit:  []byte("cc"),
-					Pos:  token.Pos{Offset: 51},
-				},
-				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unterminated character literal"),
+					Lit:  []byte("'; "),
 					Pos:  token.Pos{Offset: 53},
 				},
 				{
-					Type: token.TokMap.Type(";"),
-					Lit:  []byte(";"),
-					Pos:  token.Pos{Offset: 54},
-				},
-				{
 					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// Not OK"),
+					Lit:  []byte("// Not OK\n"),
 					Pos:  token.Pos{Offset: 56},
 				},
 				{
@@ -664,7 +654,7 @@ func TestLexer(t *testing.T) {
 			toks: []*token.Token{
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+007C '|'"),
+					Lit:  []byte("|"),
 					Pos:  token.Pos{Offset: 0},
 				},
 				{
@@ -674,132 +664,132 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+0001"),
+					Lit:  []byte("\x01"),
 					Pos:  token.Pos{Offset: 2},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+0002"),
+					Lit:  []byte("\x02"),
 					Pos:  token.Pos{Offset: 3},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+0003"),
+					Lit:  []byte("\x03"),
 					Pos:  token.Pos{Offset: 4},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+0004"),
+					Lit:  []byte("\x04"),
 					Pos:  token.Pos{Offset: 5},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+0005"),
+					Lit:  []byte("\x05"),
 					Pos:  token.Pos{Offset: 6},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+0006"),
+					Lit:  []byte("\x06"),
 					Pos:  token.Pos{Offset: 7},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+0007"),
+					Lit:  []byte("\x07"),
 					Pos:  token.Pos{Offset: 8},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+0008"),
+					Lit:  []byte("\x08"),
 					Pos:  token.Pos{Offset: 9},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+000E"),
+					Lit:  []byte("\x0E"),
 					Pos:  token.Pos{Offset: 15},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+000F"),
+					Lit:  []byte("\x0F"),
 					Pos:  token.Pos{Offset: 16},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+0010"),
+					Lit:  []byte("\x10"),
 					Pos:  token.Pos{Offset: 17},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+0011"),
+					Lit:  []byte("\x11"),
 					Pos:  token.Pos{Offset: 18},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+0012"),
+					Lit:  []byte("\x12"),
 					Pos:  token.Pos{Offset: 19},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+0013"),
+					Lit:  []byte("\x13"),
 					Pos:  token.Pos{Offset: 20},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+0014"),
+					Lit:  []byte("\x14"),
 					Pos:  token.Pos{Offset: 21},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+0015"),
+					Lit:  []byte("\x15"),
 					Pos:  token.Pos{Offset: 22},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+0016"),
+					Lit:  []byte("\x16"),
 					Pos:  token.Pos{Offset: 23},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+0017"),
+					Lit:  []byte("\x17"),
 					Pos:  token.Pos{Offset: 24},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+0018"),
+					Lit:  []byte("\x18"),
 					Pos:  token.Pos{Offset: 25},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+0019"),
+					Lit:  []byte("\x19"),
 					Pos:  token.Pos{Offset: 26},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+001A"),
+					Lit:  []byte("\x1A"),
 					Pos:  token.Pos{Offset: 27},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+001B"),
+					Lit:  []byte("\x1B"),
 					Pos:  token.Pos{Offset: 28},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+001C"),
+					Lit:  []byte("\x1C"),
 					Pos:  token.Pos{Offset: 29},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+001D"),
+					Lit:  []byte("\x1D"),
 					Pos:  token.Pos{Offset: 30},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+001E"),
+					Lit:  []byte("\x1E"),
 					Pos:  token.Pos{Offset: 31},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+001F"),
+					Lit:  []byte("\x1F"),
 					Pos:  token.Pos{Offset: 32},
 				},
 				{
@@ -809,33 +799,28 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte(`unexpected U+0022 '"'`),
+					Lit:  []byte(`"`),
 					Pos:  token.Pos{Offset: 35},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+0023 '#'"),
+					Lit:  []byte("#"),
 					Pos:  token.Pos{Offset: 36},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+0024 '$'"),
+					Lit:  []byte("$"),
 					Pos:  token.Pos{Offset: 37},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+0025 '%'"),
+					Lit:  []byte("%"),
 					Pos:  token.Pos{Offset: 38},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("expected '&' after '&', got U+0027 '''"),
+					Lit:  []byte("&'"),
 					Pos:  token.Pos{Offset: 39},
-				},
-				{
-					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unterminated character literal"),
-					Pos:  token.Pos{Offset: 40},
 				},
 				{
 					Type: token.TokMap.Type("("),
@@ -869,7 +854,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+002E '.'"),
+					Lit:  []byte("."),
 					Pos:  token.Pos{Offset: 48},
 				},
 				{
@@ -884,7 +869,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+003A ':'"),
+					Lit:  []byte(":"),
 					Pos:  token.Pos{Offset: 60},
 				},
 				{
@@ -904,12 +889,12 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+003F '?'"),
+					Lit:  []byte("?"),
 					Pos:  token.Pos{Offset: 65},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+0040 '@'"),
+					Lit:  []byte("@"),
 					Pos:  token.Pos{Offset: 66},
 				},
 				{
@@ -924,7 +909,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte(`unexpected U+005C '\'`),
+					Lit:  []byte(`\`),
 					Pos:  token.Pos{Offset: 94},
 				},
 				{
@@ -934,7 +919,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+005E '^'"),
+					Lit:  []byte("^"),
 					Pos:  token.Pos{Offset: 96},
 				},
 				{
@@ -944,7 +929,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+0060 '`'"),
+					Lit:  []byte("`"),
 					Pos:  token.Pos{Offset: 98},
 				},
 				{
@@ -959,7 +944,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+007C '|'"),
+					Lit:  []byte("|"),
 					Pos:  token.Pos{Offset: 126},
 				},
 				{
@@ -969,652 +954,652 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+007E '~'"),
+					Lit:  []byte("~"),
 					Pos:  token.Pos{Offset: 128},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+007F"),
+					Lit:  []byte("\x7F"),
 					Pos:  token.Pos{Offset: 129},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x80"),
 					Pos:  token.Pos{Offset: 130},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x81"),
 					Pos:  token.Pos{Offset: 131},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x82"),
 					Pos:  token.Pos{Offset: 132},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x83"),
 					Pos:  token.Pos{Offset: 133},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x84"),
 					Pos:  token.Pos{Offset: 134},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x85"),
 					Pos:  token.Pos{Offset: 135},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x86"),
 					Pos:  token.Pos{Offset: 136},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x87"),
 					Pos:  token.Pos{Offset: 137},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x88"),
 					Pos:  token.Pos{Offset: 138},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x89"),
 					Pos:  token.Pos{Offset: 139},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x8A"),
 					Pos:  token.Pos{Offset: 140},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x8B"),
 					Pos:  token.Pos{Offset: 141},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x8C"),
 					Pos:  token.Pos{Offset: 142},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x8D"),
 					Pos:  token.Pos{Offset: 143},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x8E"),
 					Pos:  token.Pos{Offset: 144},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x8F"),
 					Pos:  token.Pos{Offset: 145},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x90"),
 					Pos:  token.Pos{Offset: 146},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x91"),
 					Pos:  token.Pos{Offset: 147},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x92"),
 					Pos:  token.Pos{Offset: 148},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x93"),
 					Pos:  token.Pos{Offset: 149},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x94"),
 					Pos:  token.Pos{Offset: 150},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x95"),
 					Pos:  token.Pos{Offset: 151},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x96"),
 					Pos:  token.Pos{Offset: 152},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x97"),
 					Pos:  token.Pos{Offset: 153},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x98"),
 					Pos:  token.Pos{Offset: 154},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x99"),
 					Pos:  token.Pos{Offset: 155},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x9A"),
 					Pos:  token.Pos{Offset: 156},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x9B"),
 					Pos:  token.Pos{Offset: 157},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x9C"),
 					Pos:  token.Pos{Offset: 158},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x9D"),
 					Pos:  token.Pos{Offset: 159},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x9E"),
 					Pos:  token.Pos{Offset: 160},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\x9F"),
 					Pos:  token.Pos{Offset: 161},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xA0"),
 					Pos:  token.Pos{Offset: 162},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xA1"),
 					Pos:  token.Pos{Offset: 163},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xA2"),
 					Pos:  token.Pos{Offset: 164},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xA3"),
 					Pos:  token.Pos{Offset: 165},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xA4"),
 					Pos:  token.Pos{Offset: 166},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xA5"),
 					Pos:  token.Pos{Offset: 167},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xA6"),
 					Pos:  token.Pos{Offset: 168},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xA7"),
 					Pos:  token.Pos{Offset: 169},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xA8"),
 					Pos:  token.Pos{Offset: 170},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xA9"),
 					Pos:  token.Pos{Offset: 171},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xAA"),
 					Pos:  token.Pos{Offset: 172},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xAB"),
 					Pos:  token.Pos{Offset: 173},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xAC"),
 					Pos:  token.Pos{Offset: 174},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xAD"),
 					Pos:  token.Pos{Offset: 175},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xAE"),
 					Pos:  token.Pos{Offset: 176},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xAF"),
 					Pos:  token.Pos{Offset: 177},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xB0"),
 					Pos:  token.Pos{Offset: 178},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xB1"),
 					Pos:  token.Pos{Offset: 179},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xB2"),
 					Pos:  token.Pos{Offset: 180},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xB3"),
 					Pos:  token.Pos{Offset: 181},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xB4"),
 					Pos:  token.Pos{Offset: 182},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xB5"),
 					Pos:  token.Pos{Offset: 183},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xB6"),
 					Pos:  token.Pos{Offset: 184},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xB7"),
 					Pos:  token.Pos{Offset: 185},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xB8"),
 					Pos:  token.Pos{Offset: 186},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xB9"),
 					Pos:  token.Pos{Offset: 187},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xBA"),
 					Pos:  token.Pos{Offset: 188},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xBB"),
 					Pos:  token.Pos{Offset: 189},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xBC"),
 					Pos:  token.Pos{Offset: 190},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xBD"),
 					Pos:  token.Pos{Offset: 191},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xBE"),
 					Pos:  token.Pos{Offset: 192},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xBF"),
 					Pos:  token.Pos{Offset: 193},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xC0"),
 					Pos:  token.Pos{Offset: 194},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xC1"),
 					Pos:  token.Pos{Offset: 195},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xC2"),
 					Pos:  token.Pos{Offset: 196},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xC3"),
 					Pos:  token.Pos{Offset: 197},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xC4"),
 					Pos:  token.Pos{Offset: 198},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xC5"),
 					Pos:  token.Pos{Offset: 199},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xC6"),
 					Pos:  token.Pos{Offset: 200},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xC7"),
 					Pos:  token.Pos{Offset: 201},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xC8"),
 					Pos:  token.Pos{Offset: 202},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xC9"),
 					Pos:  token.Pos{Offset: 203},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xCA"),
 					Pos:  token.Pos{Offset: 204},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xCB"),
 					Pos:  token.Pos{Offset: 205},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xCC"),
 					Pos:  token.Pos{Offset: 206},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xCD"),
 					Pos:  token.Pos{Offset: 207},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xCE"),
 					Pos:  token.Pos{Offset: 208},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xCF"),
 					Pos:  token.Pos{Offset: 209},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xD0"),
 					Pos:  token.Pos{Offset: 210},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xD1"),
 					Pos:  token.Pos{Offset: 211},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xD2"),
 					Pos:  token.Pos{Offset: 212},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xD3"),
 					Pos:  token.Pos{Offset: 213},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xD4"),
 					Pos:  token.Pos{Offset: 214},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xD5"),
 					Pos:  token.Pos{Offset: 215},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xD6"),
 					Pos:  token.Pos{Offset: 216},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xD7"),
 					Pos:  token.Pos{Offset: 217},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xD8"),
 					Pos:  token.Pos{Offset: 218},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xD9"),
 					Pos:  token.Pos{Offset: 219},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xDA"),
 					Pos:  token.Pos{Offset: 220},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xDB"),
 					Pos:  token.Pos{Offset: 221},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xDC"),
 					Pos:  token.Pos{Offset: 222},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xDD"),
 					Pos:  token.Pos{Offset: 223},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xDE"),
 					Pos:  token.Pos{Offset: 224},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xDF"),
 					Pos:  token.Pos{Offset: 225},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xE0"),
 					Pos:  token.Pos{Offset: 226},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xE1"),
 					Pos:  token.Pos{Offset: 227},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xE2"),
 					Pos:  token.Pos{Offset: 228},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xE3"),
 					Pos:  token.Pos{Offset: 229},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xE4"),
 					Pos:  token.Pos{Offset: 230},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xE5"),
 					Pos:  token.Pos{Offset: 231},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xE6"),
 					Pos:  token.Pos{Offset: 232},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xE7"),
 					Pos:  token.Pos{Offset: 233},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xE8"),
 					Pos:  token.Pos{Offset: 234},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xE9"),
 					Pos:  token.Pos{Offset: 235},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xEA"),
 					Pos:  token.Pos{Offset: 236},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xEB"),
 					Pos:  token.Pos{Offset: 237},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xEC"),
 					Pos:  token.Pos{Offset: 238},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xED"),
 					Pos:  token.Pos{Offset: 239},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xEE"),
 					Pos:  token.Pos{Offset: 240},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xEF"),
 					Pos:  token.Pos{Offset: 241},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xF0"),
 					Pos:  token.Pos{Offset: 242},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xF1"),
 					Pos:  token.Pos{Offset: 243},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xF2"),
 					Pos:  token.Pos{Offset: 244},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xF3"),
 					Pos:  token.Pos{Offset: 245},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xF4"),
 					Pos:  token.Pos{Offset: 246},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xF5"),
 					Pos:  token.Pos{Offset: 247},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xF6"),
 					Pos:  token.Pos{Offset: 248},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xF7"),
 					Pos:  token.Pos{Offset: 249},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xF8"),
 					Pos:  token.Pos{Offset: 250},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xF9"),
 					Pos:  token.Pos{Offset: 251},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xFA"),
 					Pos:  token.Pos{Offset: 252},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xFB"),
 					Pos:  token.Pos{Offset: 253},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xFC"),
 					Pos:  token.Pos{Offset: 254},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xFD"),
 					Pos:  token.Pos{Offset: 255},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xFE"),
 					Pos:  token.Pos{Offset: 256},
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("illegal UTF-8 encoding"),
+					Lit:  []byte("\xFF"),
 					Pos:  token.Pos{Offset: 257},
 				},
 				{
@@ -1624,7 +1609,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Type: token.TokMap.Type("INVALID"),
-					Lit:  []byte("unexpected U+007C '|'"),
+					Lit:  []byte("|"),
 					Pos:  token.Pos{Offset: 259},
 				},
 				{
@@ -2447,7 +2432,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// Was:   i = 1234567890;"),
+					Lit:  []byte("// Was:   i = 1234567890;\n"),
 					Pos:  token.Pos{Offset: 43},
 				},
 				{
@@ -2461,7 +2446,7 @@ func TestLexer(t *testing.T) {
 					Pos:  token.Pos{Offset: 73},
 				},
 				{
-					Type: token.TokMap.Type("char_lit"),
+					Type: token.TokMap.Type("int_lit"), // TODO: Figure out if char_lit and int_lit should be separate tokens.
 					Lit:  []byte("'0'"),
 					Pos:  token.Pos{Offset: 75},
 				},
@@ -2481,7 +2466,7 @@ func TestLexer(t *testing.T) {
 					Pos:  token.Pos{Offset: 84},
 				},
 				{
-					Type: token.TokMap.Type("char_lit"),
+					Type: token.TokMap.Type("int_lit"), // TODO: Figure out if char_lit and int_lit should be separate tokens.
 					Lit:  []byte("'a'"),
 					Pos:  token.Pos{Offset: 86},
 				},
@@ -2501,7 +2486,7 @@ func TestLexer(t *testing.T) {
 					Pos:  token.Pos{Offset: 95},
 				},
 				{
-					Type: token.TokMap.Type("char_lit"),
+					Type: token.TokMap.Type("int_lit"), // TODO: Figure out if char_lit and int_lit should be separate tokens.
 					Lit:  []byte("' '"),
 					Pos:  token.Pos{Offset: 97},
 				},
@@ -2521,7 +2506,7 @@ func TestLexer(t *testing.T) {
 					Pos:  token.Pos{Offset: 106},
 				},
 				{
-					Type: token.TokMap.Type("char_lit"),
+					Type: token.TokMap.Type("int_lit"), // TODO: Figure out if char_lit and int_lit should be separate tokens.
 					Lit:  []byte(`'\n'`),
 					Pos:  token.Pos{Offset: 108},
 				},
@@ -3070,27 +3055,27 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// A blank (32)"),
+					Lit:  []byte("// A blank (32)\n"),
 					Pos:  token.Pos{Offset: 80},
 				},
 				{
 					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// A new-line (10)"),
+					Lit:  []byte("// A new-line (10)\n"),
 					Pos:  token.Pos{Offset: 98},
 				},
 				{
 					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// a carriage-return (13)"),
+					Lit:  []byte("// a carriage-return (13)\n"),
 					Pos:  token.Pos{Offset: 118},
 				},
 				{
 					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// form-feed (12)"),
+					Lit:  []byte("// form-feed (12)\n"),
 					Pos:  token.Pos{Offset: 146},
 				},
 				{
 					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// tab(9)"),
+					Lit:  []byte("// tab(9)\n"),
 					Pos:  token.Pos{Offset: 166},
 				},
 				{
@@ -3172,7 +3157,7 @@ func TestLexer(t *testing.T) {
 			}
 			if want := g.toks[j]; !tokenEqual(got, want) {
 				t.Errorf("%s: token %d mismatch; expected %#v, got %#v", g.path, j, want, got)
-				fmt.Printf("gocc token: %q\n", string(got.Lit)) // TODO: Remove.
+				fmt.Printf("gocc token at %d: %q\n", got.Pos.Offset, string(got.Lit)) // TODO: Remove.
 			}
 			if got.Type == token.EOF {
 				if j != len(g.toks)-1 {
