@@ -257,6 +257,8 @@ func lexCharLit(l *lexer) stateFn {
 			// posision to the one directly after the token prefix. If that should
 			// be the case, rewrite errorCur to take another arugment cur, and let
 			// it restore the position.
+			r := l.next()
+			l.backup()
 			l.errorfCur(`unknown escape sequence '\%c'`, r)
 			// Continue lexing directly after the token prefix.
 			l.cur = cur

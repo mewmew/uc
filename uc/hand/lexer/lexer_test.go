@@ -3278,6 +3278,63 @@ func TestLexer(t *testing.T) {
 			path: "../../testdata/encoding/lexer/utf-16le_bom.c",
 			toks: encTokens,
 		},
+
+		// Extra tests.
+		{
+			path: "../../testdata/extra/lexer/invalid-esc.c",
+			toks: []token.Token{
+				{
+					Kind: token.Comment,
+					Val:  "// Test invalid escape sequence.",
+					Pos:  0,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "char",
+					Pos:  33,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "c",
+					Pos:  38,
+				},
+				{
+					Kind: token.Assign,
+					Val:  "=",
+					Pos:  40,
+				},
+				{
+					Kind: token.Error,
+					Val:  `unknown escape sequence '\q'`,
+					Pos:  43,
+				},
+				{
+					Kind: token.Error,
+					Val:  `unexpected U+005C '\'`,
+					Pos:  43,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "q",
+					Pos:  44,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unterminated character literal",
+					Pos:  45,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  46,
+				},
+				{
+					Kind: token.EOF,
+					Val:  "",
+					Pos:  48,
+				},
+			},
+		},
 	}
 
 	for _, g := range golden {
