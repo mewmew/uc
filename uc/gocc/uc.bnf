@@ -64,7 +64,7 @@ ident : _letter { _letter | _decimal_digit } ;
 // ## Integer literals
 //
 
-int_lit : _char_lit ;
+int_lit : digits | _char_lit ;
 
 // ## Character literals
 //
