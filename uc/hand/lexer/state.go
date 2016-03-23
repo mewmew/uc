@@ -46,7 +46,7 @@ func lexToken(l *lexer) stateFn {
 	// Special tokens.
 	case utf8.RuneError:
 		// Emit error token but continue lexing next token.
-		l.emitErrorf("illegal UTF-8 encoding") // TODO: Check if we ever hit this case.
+		l.emitErrorf("illegal UTF-8 encoding")
 		return lexToken
 	case eof:
 		l.emitEOF()
@@ -241,8 +241,6 @@ func lexExclaim(l *lexer) stateFn {
 	return lexToken
 }
 
-// TODO: if r > utf8.SelfRune { error. }
-
 // lexCharLit lexes a character literal (e.g. 'a', '\n'). An apostrophe (') has
 // already been consumed.
 //
@@ -251,11 +249,29 @@ func lexCharLit(l *lexer) stateFn {
 	// Store position directly after the token prefix, i.e. after the apostrophe.
 	cur := l.cur
 	// Consume character or escape sequence.
-	if r := l.next(); r == '\\' {
-		if !l.accept("n") {
-			// TODO: Evaluate if errorCur is always used before restoring the
+	switch r := l.next(); {
+	case r == utf8.RuneError:
+		// Emit error token but continue lexing next token.
+		l.errorf("illegal UTF-8 encoding")
+		// Continue lexing directly after the token prefix.
+		l.cur = cur
+		l.ignore()
+		return lexToken
+	case utf8.RuneLen(r) > 1:
+		// Emit error token but continue lexing next token.
+		l.errorfCur("character %#U too large for enclosing character literal type", r)
+		// Continue lexing directly after the token prefix.
+		l.cur = cur
+		l.ignore()
+		return lexToken
+	case r == '\\':
+		switch {
+		case l.accept("n"):
+			// Valid escape sequence.
+		default:
+			// TODO: Evaluate if errorfCur is always used before restoring the
 			// posision to the one directly after the token prefix. If that should
-			// be the case, rewrite errorCur to take another arugment cur, and let
+			// be the case, rewrite errorfCur to take another arugment cur, and let
 			// it restore the position.
 			r := l.next()
 			l.backup()
@@ -267,7 +283,7 @@ func lexCharLit(l *lexer) stateFn {
 		}
 	}
 
-	// Consume apostrophe.
+	// Consume closing apostrophe.
 	if !l.accept("'") {
 		l.errorf("unterminated character literal")
 		// Continue lexing directly after the token prefix.

@@ -3335,6 +3335,56 @@ func TestLexer(t *testing.T) {
 				},
 			},
 		},
+		{
+			path: "../../testdata/extra/lexer/multibyte-char-lit.c",
+			toks: []token.Token{
+				{
+					Kind: token.Comment,
+					Val:  "// Invalid use of multibyte character literal.",
+					Pos:  0,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "char",
+					Pos:  47,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "c",
+					Pos:  52,
+				},
+				{
+					Kind: token.Assign,
+					Val:  "=",
+					Pos:  54,
+				},
+				{
+					Kind: token.Error,
+					Val:  "character U+00B5 'µ' too large for enclosing character literal type",
+					Pos:  57,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+00B5 'µ'",
+					Pos:  57,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unterminated character literal",
+					Pos:  59,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  60,
+				},
+				{
+					Kind: token.EOF,
+					Val:  "",
+					Pos:  62,
+				},
+			},
+		},
 	}
 
 	for _, g := range golden {

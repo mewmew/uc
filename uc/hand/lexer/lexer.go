@@ -54,8 +54,11 @@ func ParseFile(path string) ([]token.Token, error) {
 func ParseString(s string) []token.Token {
 	l := &lexer{
 		input: s,
-		// TODO: Calculate the average token size of µC programs.
-		tokens: make([]token.Token, 0, len(s)/4),
+		// The average token size is roughly 2.5 for the quiet and noisy uC test
+		// cases and 3.5 for the quiet, noisy and incorrect uC test cases.
+		// Therefore pre-allocate a slice of tokens capable of holding all tokens
+		// with the smallest average size.
+		tokens: make([]token.Token, 0, len(s)/2),
 	}
 
 	// Tokenize the input.
@@ -124,7 +127,7 @@ func (l *lexer) emitErrorf(format string, args ...interface{}) {
 // "unexpected EOF" error token if there exists unhandled input.
 func (l *lexer) emitEOF() {
 	if l.start < len(l.input) {
-		l.emitErrorf("unexpected EOF; unhandled input %q", l.input[l.start:])
+		panic(fmt.Sprintf("unexpected EOF; unhandled input %q", l.input[l.start:]))
 	}
 	l.emit(token.EOF)
 }
