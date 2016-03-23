@@ -44,7 +44,11 @@ _decimals      : _decimal_digit { _decimal_digit } ;
 // ## Comments
 //
 
-_line_comment  : '/' '/' { . } '\n' ;
+_line_comment
+	: '/' '/' { . } '\n'
+	|  '/' '/' { . } // line comment ending with EOF
+;
+
 _block_comment : '/' '*' { . | '*' } '*' '/' ;
 comment        : _line_comment | _block_comment ;
 
