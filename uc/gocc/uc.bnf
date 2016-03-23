@@ -104,13 +104,16 @@ ArrayDecl
 ;
 
 TypeName
-	: "int"
-	| "char"
+	: ident // "char" | "int"
 ;
 
 FuncType
-	: TypeName
-	| "void"
+	: VoidType
+	| TypeName
+;
+
+VoidType
+	: ident // "void"
 ;
 
 FuncBody
@@ -119,7 +122,7 @@ FuncBody
 ;
 
 Formals
-	: "void"
+	: VoidType
 	| FormalList
 ;
 
