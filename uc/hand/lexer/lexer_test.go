@@ -10,6 +10,53 @@ import (
 )
 
 func TestLexer(t *testing.T) {
+	encTokens := []token.Token{
+		{
+			Kind: token.Comment,
+			Val:  "/* 世界您好 */",
+			Pos:  0,
+		},
+		{
+			Kind: token.Ident,
+			Val:  "int",
+			Pos:  19,
+		},
+		{
+			Kind: token.Ident,
+			Val:  "a",
+			Pos:  23,
+		},
+		{
+			Kind: token.Semicolon,
+			Val:  ";",
+			Pos:  24,
+		},
+		{
+			Kind: token.Comment,
+			Val:  "// Hej världen!",
+			Pos:  26,
+		},
+		{
+			Kind: token.Ident,
+			Val:  "int",
+			Pos:  43,
+		},
+		{
+			Kind: token.Ident,
+			Val:  "b",
+			Pos:  47,
+		},
+		{
+			Kind: token.Semicolon,
+			Val:  ";",
+			Pos:  48,
+		},
+		{
+			Kind: token.EOF,
+			Val:  "",
+			Pos:  50,
+		},
+	}
 	var golden = []struct {
 		path string
 		toks []token.Token
@@ -3152,6 +3199,84 @@ func TestLexer(t *testing.T) {
 					Pos:  313,
 				},
 			},
+		},
+
+		// Test encodings.
+		{
+			path: "../../testdata/encoding/lexer/big5.c",
+			toks: []token.Token{
+				{
+					Kind: token.Comment,
+					Val:  "/* \xA5\x40\xAC\xC9\xB1\x7A\xA6\x6E */",
+					Pos:  0,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "int",
+					Pos:  15,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "a",
+					Pos:  19,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  20,
+				},
+				{
+					Kind: token.EOF,
+					Val:  "",
+					Pos:  22,
+				},
+			},
+		},
+		{
+			path: "../../testdata/encoding/lexer/iso-8859-1.c",
+			toks: []token.Token{
+				{
+					Kind: token.Comment,
+					Val:  "// Hej v\xE4rlden!",
+					Pos:  0,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "int",
+					Pos:  16,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "b",
+					Pos:  20,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  21,
+				},
+				{
+					Kind: token.EOF,
+					Val:  "",
+					Pos:  23,
+				},
+			},
+		},
+		{
+			path: "../../testdata/encoding/lexer/utf-8.c",
+			toks: encTokens,
+		},
+		{
+			path: "../../testdata/encoding/lexer/utf-8_bom.c",
+			toks: encTokens,
+		},
+		{
+			path: "../../testdata/encoding/lexer/utf-16be_bom.c",
+			toks: encTokens,
+		},
+		{
+			path: "../../testdata/encoding/lexer/utf-16le_bom.c",
+			toks: encTokens,
 		},
 	}
 

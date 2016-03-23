@@ -143,11 +143,6 @@ func lexSlash(l *lexer) stateFn {
 func lexLineComment(l *lexer) stateFn {
 	for {
 		switch l.next() {
-		// TODO: Remove the utf8.RuneError case as comments should be able to
-		// include other encodings than UTF-8, such as ISO-8859-1
-		case utf8.RuneError:
-			// Append error but continue lexing line comment.
-			l.errorfCur("illegal UTF-8 encoding")
 		case eof:
 			s := l.input[l.start:l.cur]
 			s = strings.TrimRight(s, "\r") // skip trailing carriage returns.
@@ -171,11 +166,6 @@ func lexLineComment(l *lexer) stateFn {
 func lexBlockComment(l *lexer) stateFn {
 	for !strings.HasSuffix(l.input[l.start+2:l.cur], "*/") {
 		switch l.next() {
-		// TODO: Remove the utf8.RuneError case as comments should be able to
-		// include other encodings than UTF-8, such as ISO-8859-1
-		case utf8.RuneError:
-			// Append error but continue lexing line comment.
-			l.errorfCur("illegal UTF-8 encoding")
 		case eof:
 			l.emitErrorf("unexpected eof in block comment")
 			l.emitEOF()

@@ -9,20 +9,26 @@
 package lexer
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"os"
 	"strings"
 	"unicode/utf8"
 
 	"github.com/mewmew/uc/uc/token"
+	"golang.org/x/text/encoding/unicode"
+	"golang.org/x/text/transform"
 )
 
 // Parse lexes the input read from r into a slice of tokens. Potential errors
 // related to lexing are recorded as error tokens with relevant position
 // information.
 func Parse(r io.Reader) ([]token.Token, error) {
-	buf, err := ioutil.ReadAll(r)
+	br := bufio.NewReader(r)
+	ur := newUnicodeReader(br)
+	buf, err := ioutil.ReadAll(ur)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +40,14 @@ func Parse(r io.Reader) ([]token.Token, error) {
 // errors related to lexing are recorded as error tokens with relevant position
 // information.
 func ParseFile(path string) ([]token.Token, error) {
-	buf, err := ioutil.ReadFile(path)
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	br := bufio.NewReader(f)
+	ur := newUnicodeReader(br)
+	buf, err := ioutil.ReadAll(ur)
+	f.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -208,4 +221,11 @@ func (l *lexer) ignoreRun(valid string) {
 	if l.acceptRun(valid) {
 		l.ignore()
 	}
+}
+
+// newUnicodeReader wraps r to decode Unicode to UTF-8 as its reads.
+func newUnicodeReader(r io.Reader) io.Reader {
+	// fallback to r if no BOM sequence is located in the source text.
+	t := unicode.BOMOverride(transform.Nop)
+	return transform.NewReader(r, t)
 }
