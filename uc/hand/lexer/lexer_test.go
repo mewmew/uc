@@ -3359,7 +3359,7 @@ func TestLexer(t *testing.T) {
 			}
 			if got.Kind == token.EOF {
 				if j != len(g.toks)-1 {
-					t.Errorf("%s: invalid number of tokens; expected %d tokens, got %d", g.path, len(g.toks), j)
+					t.Errorf("%s: invalid number of tokens; expected %d tokens, got %d", g.path, len(g.toks), j+1)
 				}
 				break
 			}

@@ -49,8 +49,6 @@ func (s *scanner) Scan() *token.Token {
 	case uctoken.IntLit:
 		typ = token.TokMap.Type("int_lit")
 	case uctoken.CharLit:
-		// TODO: Make sure that char_lit is a valid token used by the production
-		// rules of the grammar.
 		typ = token.TokMap.Type("char_lit")
 	default:
 		typ = token.TokMap.Type(tok.Val)
