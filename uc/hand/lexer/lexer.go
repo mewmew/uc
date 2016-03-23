@@ -44,15 +44,8 @@ func ParseFile(path string) ([]token.Token, error) {
 	if err != nil {
 		return nil, err
 	}
-	br := bufio.NewReader(f)
-	ur := newUnicodeReader(br)
-	buf, err := ioutil.ReadAll(ur)
-	f.Close()
-	if err != nil {
-		return nil, err
-	}
-	input := string(buf)
-	return ParseString(input), nil
+	defer f.Close()
+	return Parse(f)
 }
 
 // ParseString lexes the input string into a slice of tokens. Potential errors
@@ -124,13 +117,6 @@ func (l *lexer) errorfCur(format string, args ...interface{}) {
 // advances the token start position.
 func (l *lexer) emitErrorf(format string, args ...interface{}) {
 	l.errorf(format, args...)
-	l.ignore()
-}
-
-// emitErrorfCur emits an error token at the current position and advances the
-// token start position.
-func (l *lexer) emitErrorfCur(format string, args ...interface{}) {
-	l.errorfCur(format, args...)
 	l.ignore()
 }
 
