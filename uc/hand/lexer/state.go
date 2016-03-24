@@ -10,13 +10,13 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/mewmew/uc/uc/hand/token"
+	"github.com/mewmew/uc/uc/token"
 )
 
 const (
 	// whitespace specifies the white-space characters: space (0x20), horizontal
-	// tab (0x09), line-feed (0x0A), vertical tab (0x0B), and form-feed (0x0C)
-	// (§6.4).
+	// tab (0x09), new line (line-feed (0x0A) or carriage-return (0x0D)),
+	// vertical tab (0x0B), and form-feed (0x0C) (§6.4).
 	//
 	// Note: Even though not explicitly mentioned in the C11 specification,
 	// carriage return (0x0D) is treated as a white-space character by the lexer,
@@ -46,7 +46,7 @@ func lexToken(l *lexer) stateFn {
 	// Special tokens.
 	case utf8.RuneError:
 		// Emit error token but continue lexing next token.
-		l.emitErrorf("illegal UTF-8 encoding") // TODO: Check if we ever hit this case.
+		l.emitErrorf("illegal UTF-8 encoding")
 		return lexToken
 	case eof:
 		l.emitEOF()
@@ -143,20 +143,15 @@ func lexSlash(l *lexer) stateFn {
 func lexLineComment(l *lexer) stateFn {
 	for {
 		switch l.next() {
-		// TODO: Remove the utf8.RuneError case as comments should be able to
-		// include other encodings than UTF-8, such as ISO-8859-1
-		case utf8.RuneError:
-			// Append error but continue lexing line comment.
-			l.errorfCur("illegal UTF-8 encoding")
 		case eof:
-			s := l.input[l.start+2 : l.cur] // skip leading slashes (//)
-			s = strings.TrimRight(s, "\r")  // skip trailing carriage returns.
+			s := l.input[l.start:l.cur]
+			s = strings.TrimRight(s, "\r") // skip trailing carriage returns.
 			l.emitCustom(token.Comment, s)
 			l.emitEOF()
 			// Terminate the lexer with a nil state function.
 			return nil
 		case '\n':
-			s := l.input[l.start+2 : l.cur]  // skip leading slashes (//)
+			s := l.input[l.start:l.cur]
 			s = strings.TrimRight(s, "\r\n") // skip trailing carriage returns and newlines.
 			l.emitCustom(token.Comment, s)
 			return lexToken
@@ -171,11 +166,6 @@ func lexLineComment(l *lexer) stateFn {
 func lexBlockComment(l *lexer) stateFn {
 	for !strings.HasSuffix(l.input[l.start+2:l.cur], "*/") {
 		switch l.next() {
-		// TODO: Remove the utf8.RuneError case as comments should be able to
-		// include other encodings than UTF-8, such as ISO-8859-1
-		case utf8.RuneError:
-			// Append error but continue lexing line comment.
-			l.errorfCur("illegal UTF-8 encoding")
 		case eof:
 			l.emitErrorf("unexpected eof in block comment")
 			l.emitEOF()
@@ -185,7 +175,7 @@ func lexBlockComment(l *lexer) stateFn {
 	}
 
 	// Strip carriage returns.
-	s := strings.Replace(l.input[l.start+2:l.cur-2], "\r", "", -1)
+	s := strings.Replace(l.input[l.start:l.cur], "\r", "", -1)
 	l.emitCustom(token.Comment, s)
 
 	return lexToken
@@ -251,8 +241,6 @@ func lexExclaim(l *lexer) stateFn {
 	return lexToken
 }
 
-// TODO: if r > utf8.SelfRune { error. }
-
 // lexCharLit lexes a character literal (e.g. 'a', '\n'). An apostrophe (') has
 // already been consumed.
 //
@@ -261,12 +249,32 @@ func lexCharLit(l *lexer) stateFn {
 	// Store position directly after the token prefix, i.e. after the apostrophe.
 	cur := l.cur
 	// Consume character or escape sequence.
-	if r := l.next(); r == '\\' {
-		if !l.accept("n") {
-			// TODO: Evaluate if errorCur is always used before restoring the
+	switch r := l.next(); {
+	case r == utf8.RuneError:
+		// Emit error token but continue lexing next token.
+		l.errorfCur("illegal UTF-8 encoding")
+		// Continue lexing directly after the token prefix.
+		l.cur = cur
+		l.ignore()
+		return lexToken
+	case utf8.RuneLen(r) > 1:
+		// Emit error token but continue lexing next token.
+		l.errorfCur("character %#U too large for enclosing character literal type", r)
+		// Continue lexing directly after the token prefix.
+		l.cur = cur
+		l.ignore()
+		return lexToken
+	case r == '\\':
+		switch {
+		case l.accept("n"):
+			// Valid escape sequence.
+		default:
+			// TODO: Evaluate if errorfCur is always used before restoring the
 			// posision to the one directly after the token prefix. If that should
-			// be the case, rewrite errorCur to take another arugment cur, and let
+			// be the case, rewrite errorfCur to take another arugment cur, and let
 			// it restore the position.
+			r := l.next()
+			l.backup()
 			l.errorfCur(`unknown escape sequence '\%c'`, r)
 			// Continue lexing directly after the token prefix.
 			l.cur = cur
@@ -275,7 +283,7 @@ func lexCharLit(l *lexer) stateFn {
 		}
 	}
 
-	// Consume apostrophe.
+	// Consume closing apostrophe.
 	if !l.accept("'") {
 		l.errorf("unterminated character literal")
 		// Continue lexing directly after the token prefix.

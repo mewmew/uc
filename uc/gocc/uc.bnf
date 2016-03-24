@@ -1,6 +1,4 @@
-// A grammar for the µC programming language [1], with the following extensions:
-//
-// * Character literals extended to support those of K&R C.
+// A grammar for the µC programming language [1].
 //
 // The content and structure of this document is heavily influenced by the Go
 // Programming Language Specification [2] and some parts are therefore governed
@@ -38,6 +36,7 @@ _ascii_digit  : '0' - '9' ;
 
 _letter        : _ascii_letter | '_' ;
 _decimal_digit : _ascii_digit ;
+_decimals      : _decimal_digit { _decimal_digit } ;
 
 // # Lexical elements
 //
@@ -45,17 +44,22 @@ _decimal_digit : _ascii_digit ;
 // ## Comments
 //
 
-_line_comment  : '/' '/' { . } '\n' ;
+_line_comment
+	: '/' '/' { . } '\n'
+	|  '/' '/' { . } // line comment ending with EOF
+;
+
 _block_comment : '/' '*' { . | '*' } '*' '/' ;
 comment        : _line_comment | _block_comment ;
 
 // ## Tokens
 //
 
-// White space, formed from spaces (0x20), horizontal tabs (0x09), form feeds
-// (0x0C), carriage returns (0x0D), and new lines (0x0A), is ignored except as
-// it separates tokens that would otherwise combine into a single token.
-!whitespace : ' ' | '\t' | '\f' | '\r' | '\n' ;
+// White space, formed from spaces (0x20), horizontal tabs (0x09), new line
+// (line-feed (0x0A) or carriage-return (0x0D)), vertical tabs (0x0B), and form-
+// feeds (0x0C) (§6.4), is ignored except as it separates tokens that would
+// otherwise combine into a single token.
+!whitespace : ' ' | '\t' | '\v' | '\f' | '\r' | '\n' ;
 
 // ## Identifiers
 //
@@ -65,13 +69,14 @@ ident : _letter { _letter | _decimal_digit } ;
 // ## Integer literals
 //
 
-int_lit : _decimal_digit { _decimal_digit } ;
+int_lit : _decimals | _char_lit ;
 
 // ## Character literals
 //
 
-_escaped_char : '\\' ( 'a' | 'b' | 'f' | 'n' | 'r' | 't' | 'v' | '\\' | '\'' | '"' ) ;
-char_lit      : '\'' ( _ascii_char | '"' | _escaped_char ) '\'' ;
+_escaped_char : '\\' 'n' ;
+_char_lit     : '\'' ( _ascii_char | '"' | _escaped_char ) '\'' ;
+
 
 // # Syntaxic production rules
 //
@@ -104,13 +109,16 @@ ArrayDecl
 ;
 
 TypeName
-	: "int"
-	| "char"
+	: ident // "char" | "int"
 ;
 
 FuncType
-	: TypeName
-	| "void"
+	: VoidType
+	| TypeName
+;
+
+VoidType
+	: ident // "void"
 ;
 
 FuncBody
@@ -119,7 +127,7 @@ FuncBody
 ;
 
 Formals
-	: "void"
+	: VoidType
 	| FormalList
 ;
 

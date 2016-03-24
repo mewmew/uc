@@ -6,10 +6,57 @@ import (
 	"testing"
 
 	"github.com/mewmew/uc/uc/hand/lexer"
-	"github.com/mewmew/uc/uc/hand/token"
+	"github.com/mewmew/uc/uc/token"
 )
 
 func TestLexer(t *testing.T) {
+	encTokens := []token.Token{
+		{
+			Kind: token.Comment,
+			Val:  "/* 世界您好 */",
+			Pos:  0,
+		},
+		{
+			Kind: token.Ident,
+			Val:  "int",
+			Pos:  19,
+		},
+		{
+			Kind: token.Ident,
+			Val:  "a",
+			Pos:  23,
+		},
+		{
+			Kind: token.Semicolon,
+			Val:  ";",
+			Pos:  24,
+		},
+		{
+			Kind: token.Comment,
+			Val:  "// Hej världen!",
+			Pos:  26,
+		},
+		{
+			Kind: token.Ident,
+			Val:  "int",
+			Pos:  43,
+		},
+		{
+			Kind: token.Ident,
+			Val:  "b",
+			Pos:  47,
+		},
+		{
+			Kind: token.Semicolon,
+			Val:  ";",
+			Pos:  48,
+		},
+		{
+			Kind: token.EOF,
+			Val:  "",
+			Pos:  50,
+		},
+	}
 	var golden = []struct {
 		path string
 		toks []token.Token
@@ -19,7 +66,7 @@ func TestLexer(t *testing.T) {
 			toks: []token.Token{
 				{
 					Kind: token.Comment,
-					Val:  "\t\t\t\t\t\t\t||\n**\tFile for testing lexical analysis\t\t||\n**\t\t\t\t\t\t\t||\n**\tThis file is 'lexically incorrect'.\t\t||\n",
+					Val:  "/*\t\t\t\t\t\t\t||\n**\tFile for testing lexical analysis\t\t||\n**\t\t\t\t\t\t\t||\n**\tThis file is 'lexically incorrect'.\t\t||\n*/",
 					Pos:  0,
 				},
 				{
@@ -85,17 +132,17 @@ func TestLexer(t *testing.T) {
 			toks: []token.Token{
 				{
 					Kind: token.Comment,
-					Val:  "\t\t\t\t\t\t\t||\n**\tFile for testing lexical analysis\t\t||\n**\t\t\t\t\t\t\t||\n**\tThis file would confuse a parser, but\n        is 'lexically correct'.\t\t                ||\n",
+					Val:  "/*\t\t\t\t\t\t\t||\n**\tFile for testing lexical analysis\t\t||\n**\t\t\t\t\t\t\t||\n**\tThis file would confuse a parser, but\n        is 'lexically correct'.\t\t                ||\n*/",
 					Pos:  1,
 				},
 				{
 					Kind: token.Comment,
-					Val:  " ** / ** ",
+					Val:  "/* ** / ** */",
 					Pos:  163,
 				},
 				{
 					Kind: token.Comment,
-					Val:  " Simple tokens and single characters:",
+					Val:  "// Simple tokens and single characters:",
 					Pos:  179,
 				},
 				{
@@ -110,7 +157,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Comment,
-					Val:  " until end-of-line comment",
+					Val:  "// until end-of-line comment",
 					Pos:  248,
 				},
 				{
@@ -130,7 +177,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Comment,
-					Val:  " normal comment ",
+					Val:  "/* normal comment */",
 					Pos:  311,
 				},
 				{
@@ -260,17 +307,17 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Comment,
-					Val:  " Comment with bad tokens: _ || | ++ # @ ...  ",
+					Val:  "/* Comment with bad tokens: _ || | ++ # @ ...  */",
 					Pos:  406,
 				},
 				{
 					Kind: token.Comment,
-					Val:  " Ditto */ /* : _ || | ++ # @ ...  ",
+					Val:  "// Ditto */ /* : _ || | ++ # @ ...  ",
 					Pos:  456,
 				},
 				{
 					Kind: token.Comment,
-					Val:  " Identifiers and numbers:",
+					Val:  "// Identifiers and numbers:",
 					Pos:  493,
 				},
 				{
@@ -290,7 +337,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Comment,
-					Val:  " No floats? -17.17e17 -17.17E-17  ",
+					Val:  "// No floats? -17.17e17 -17.17E-17  ",
 					Pos:  529,
 				},
 				{
@@ -405,7 +452,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Comment,
-					Val:  " The following 'trap' should be correctly handled:\n\n\t\t* \"2die4U\" consists of the number '2' and the\n\t\t  identifier 'die4U'.\n",
+					Val:  "/* The following 'trap' should be correctly handled:\n\n\t\t* \"2die4U\" consists of the number '2' and the\n\t\t  identifier 'die4U'.\n*/",
 					Pos:  714,
 				},
 				{
@@ -420,7 +467,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Comment,
-					Val:  "|| The following should all be regarded as identifiers:",
+					Val:  "//|| The following should all be regarded as identifiers:",
 					Pos:  860,
 				},
 				{
@@ -525,14 +572,13 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Comment,
-					Val:  " It is legal to end the code like this, without an ending newline.",
+					Val:  "// It is legal to end the code like this, without an ending newline.",
 					Pos:  1031,
 				},
 				{
 					Kind: token.EOF,
 					Val:  "",
-					// TODO: Figure out how to handle the offset in error cases.
-					Pos: 1100,
+					Pos:  1099,
 				},
 			},
 		},
@@ -607,7 +653,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Comment,
-					Val:  " OK",
+					Val:  "// OK",
 					Pos:  38,
 				},
 				{
@@ -642,7 +688,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Comment,
-					Val:  " Not OK",
+					Val:  "// Not OK",
 					Pos:  56,
 				},
 				{
@@ -1616,8 +1662,6 @@ func TestLexer(t *testing.T) {
 					Val:  "illegal UTF-8 encoding",
 					Pos:  257,
 				},
-
-				// TODO: broken doom.
 				{
 					Kind: token.Add,
 					Val:  "+",
@@ -2448,7 +2492,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Comment,
-					Val:  " Was:   i = 1234567890;",
+					Val:  "// Was:   i = 1234567890;",
 					Pos:  43,
 				},
 				{
@@ -3066,42 +3110,42 @@ func TestLexer(t *testing.T) {
 			toks: []token.Token{
 				{
 					Kind: token.Comment,
-					Val:  " This file contains examples of various types of white space and comments. ",
+					Val:  "/* This file contains examples of various types of white space and comments. */",
 					Pos:  0,
 				},
 				{
 					Kind: token.Comment,
-					Val:  " A blank (32)",
+					Val:  "// A blank (32)",
 					Pos:  80,
 				},
 				{
 					Kind: token.Comment,
-					Val:  " A new-line (10)",
+					Val:  "// A new-line (10)",
 					Pos:  98,
 				},
 				{
 					Kind: token.Comment,
-					Val:  " a carriage-return (13)",
+					Val:  "// a carriage-return (13)",
 					Pos:  118,
 				},
 				{
 					Kind: token.Comment,
-					Val:  " form-feed (12)",
+					Val:  "// form-feed (12)",
 					Pos:  146,
 				},
 				{
 					Kind: token.Comment,
-					Val:  " tab(9)",
+					Val:  "// tab(9)",
 					Pos:  166,
 				},
 				{
 					Kind: token.Comment,
-					Val:  " In uC, each file must contain at least one declaration ",
+					Val:  "/* In uC, each file must contain at least one declaration */",
 					Pos:  178,
 				},
 				{
 					Kind: token.Comment,
-					Val:  " a comment... ",
+					Val:  "/* a comment... */",
 					Pos:  240,
 				},
 				{
@@ -3121,7 +3165,7 @@ func TestLexer(t *testing.T) {
 				},
 				{
 					Kind: token.Comment,
-					Val:  " ...and another ",
+					Val:  "/* ...and another */",
 					Pos:  269,
 				},
 				{
@@ -3156,6 +3200,241 @@ func TestLexer(t *testing.T) {
 				},
 			},
 		},
+
+		// Test encodings.
+		{
+			path: "../../testdata/encoding/lexer/big5.c",
+			toks: []token.Token{
+				{
+					Kind: token.Comment,
+					Val:  "/* \xA5\x40\xAC\xC9\xB1\x7A\xA6\x6E */",
+					Pos:  0,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "int",
+					Pos:  15,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "a",
+					Pos:  19,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  20,
+				},
+				{
+					Kind: token.EOF,
+					Val:  "",
+					Pos:  22,
+				},
+			},
+		},
+		{
+			path: "../../testdata/encoding/lexer/iso-8859-1.c",
+			toks: []token.Token{
+				{
+					Kind: token.Comment,
+					Val:  "// Hej v\xE4rlden!",
+					Pos:  0,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "int",
+					Pos:  16,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "b",
+					Pos:  20,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  21,
+				},
+				{
+					Kind: token.EOF,
+					Val:  "",
+					Pos:  23,
+				},
+			},
+		},
+		{
+			path: "../../testdata/encoding/lexer/utf-8.c",
+			toks: encTokens,
+		},
+		{
+			path: "../../testdata/encoding/lexer/utf-8_bom.c",
+			toks: encTokens,
+		},
+		{
+			path: "../../testdata/encoding/lexer/utf-16be_bom.c",
+			toks: encTokens,
+		},
+		{
+			path: "../../testdata/encoding/lexer/utf-16le_bom.c",
+			toks: encTokens,
+		},
+
+		// Extra tests.
+		{
+			path: "../../testdata/extra/lexer/invalid-esc.c",
+			toks: []token.Token{
+				{
+					Kind: token.Comment,
+					Val:  "// Test invalid escape sequence.",
+					Pos:  0,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "char",
+					Pos:  33,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "c",
+					Pos:  38,
+				},
+				{
+					Kind: token.Assign,
+					Val:  "=",
+					Pos:  40,
+				},
+				{
+					Kind: token.Error,
+					Val:  `unknown escape sequence '\q'`,
+					Pos:  43,
+				},
+				{
+					Kind: token.Error,
+					Val:  `unexpected U+005C '\'`,
+					Pos:  43,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "q",
+					Pos:  44,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unterminated character literal",
+					Pos:  45,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  46,
+				},
+				{
+					Kind: token.EOF,
+					Val:  "",
+					Pos:  48,
+				},
+			},
+		},
+		{
+			path: "../../testdata/extra/lexer/multibyte-char-lit.c",
+			toks: []token.Token{
+				{
+					Kind: token.Comment,
+					Val:  "// Invalid use of multibyte character literal.",
+					Pos:  0,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "char",
+					Pos:  47,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "c",
+					Pos:  52,
+				},
+				{
+					Kind: token.Assign,
+					Val:  "=",
+					Pos:  54,
+				},
+				{
+					Kind: token.Error,
+					Val:  "character U+00B5 'µ' too large for enclosing character literal type",
+					Pos:  57,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unexpected U+00B5 'µ'",
+					Pos:  57,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unterminated character literal",
+					Pos:  59,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  60,
+				},
+				{
+					Kind: token.EOF,
+					Val:  "",
+					Pos:  62,
+				},
+			},
+		},
+		{
+			path: "../../testdata/extra/lexer/illegal-utf8-char-lit.c",
+			toks: []token.Token{
+				{
+					Kind: token.Comment,
+					Val:  "// Illegal UTF-8 encoding in character literal.",
+					Pos:  0,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "char",
+					Pos:  48,
+				},
+				{
+					Kind: token.Ident,
+					Val:  "c",
+					Pos:  53,
+				},
+				{
+					Kind: token.Assign,
+					Val:  "=",
+					Pos:  55,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  58,
+				},
+				{
+					Kind: token.Error,
+					Val:  "illegal UTF-8 encoding",
+					Pos:  58,
+				},
+				{
+					Kind: token.Error,
+					Val:  "unterminated character literal",
+					Pos:  59,
+				},
+				{
+					Kind: token.Semicolon,
+					Val:  ";",
+					Pos:  60,
+				},
+				{
+					Kind: token.EOF,
+					Val:  "",
+					Pos:  62,
+				},
+			},
+		},
 	}
 
 	for _, g := range golden {
@@ -3180,7 +3459,7 @@ func TestLexer(t *testing.T) {
 			}
 			if got.Kind == token.EOF {
 				if j != len(g.toks)-1 {
-					t.Errorf("%s: invalid number of tokens; expected %d tokens, got %d", g.path, len(g.toks), j)
+					t.Errorf("%s: invalid number of tokens; expected %d tokens, got %d", g.path, len(g.toks), j+1)
 				}
 				break
 			}

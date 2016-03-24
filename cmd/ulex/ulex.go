@@ -14,7 +14,7 @@ import (
 	"os"
 
 	"github.com/mewmew/uc/uc/hand/lexer"
-	"github.com/mewmew/uc/uc/hand/token"
+	"github.com/mewmew/uc/uc/token"
 )
 
 func usage() {

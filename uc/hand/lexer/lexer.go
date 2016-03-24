@@ -9,20 +9,26 @@
 package lexer
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"os"
 	"strings"
 	"unicode/utf8"
 
-	"github.com/mewmew/uc/uc/hand/token"
+	"github.com/mewmew/uc/uc/token"
+	"golang.org/x/text/encoding/unicode"
+	"golang.org/x/text/transform"
 )
 
 // Parse lexes the input read from r into a slice of tokens. Potential errors
 // related to lexing are recorded as error tokens with relevant position
 // information.
 func Parse(r io.Reader) ([]token.Token, error) {
-	buf, err := ioutil.ReadAll(r)
+	br := bufio.NewReader(r)
+	ur := newUnicodeReader(br)
+	buf, err := ioutil.ReadAll(ur)
 	if err != nil {
 		return nil, err
 	}
@@ -34,12 +40,12 @@ func Parse(r io.Reader) ([]token.Token, error) {
 // errors related to lexing are recorded as error tokens with relevant position
 // information.
 func ParseFile(path string) ([]token.Token, error) {
-	buf, err := ioutil.ReadFile(path)
+	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
-	input := string(buf)
-	return ParseString(input), nil
+	defer f.Close()
+	return Parse(f)
 }
 
 // ParseString lexes the input string into a slice of tokens. Potential errors
@@ -48,8 +54,11 @@ func ParseFile(path string) ([]token.Token, error) {
 func ParseString(s string) []token.Token {
 	l := &lexer{
 		input: s,
-		// TODO: Calculate the average token size of µC programs.
-		tokens: make([]token.Token, 0, len(s)/4),
+		// The average token size is roughly 2.5 for the quiet and noisy uC test
+		// cases and 3.5 for the quiet, noisy and incorrect uC test cases.
+		// Therefore pre-allocate a slice of tokens capable of holding all tokens
+		// with the smallest average size.
+		tokens: make([]token.Token, 0, len(s)/2),
 	}
 
 	// Tokenize the input.
@@ -114,18 +123,11 @@ func (l *lexer) emitErrorf(format string, args ...interface{}) {
 	l.ignore()
 }
 
-// emitErrorfCur emits an error token at the current position and advances the
-// token start position.
-func (l *lexer) emitErrorfCur(format string, args ...interface{}) {
-	l.errorfCur(format, args...)
-	l.ignore()
-}
-
 // emitEOF emits an EOF token at the current token start position. It emits an
 // "unexpected EOF" error token if there exists unhandled input.
 func (l *lexer) emitEOF() {
 	if l.start < len(l.input) {
-		l.emitErrorf("unexpected EOF; unhandled input %q", l.input[l.start:])
+		panic(fmt.Sprintf("unexpected EOF; unhandled input %q", l.input[l.start:]))
 	}
 	l.emit(token.EOF)
 }
@@ -208,4 +210,11 @@ func (l *lexer) ignoreRun(valid string) {
 	if l.acceptRun(valid) {
 		l.ignore()
 	}
+}
+
+// newUnicodeReader wraps r to decode Unicode to UTF-8 as its reads.
+func newUnicodeReader(r io.Reader) io.Reader {
+	// fallback to r if no BOM sequence is located in the source text.
+	t := unicode.BOMOverride(transform.Nop)
+	return transform.NewReader(r, t)
 }
