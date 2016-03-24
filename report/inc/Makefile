@@ -1,7 +1,32 @@
+.SECONDARY:
+TESTDATA=../../uc/testdata
+TESTOUTDIR=testoutput
+VPATH=$(TESTDATA):$(TESTOUTDIR)
+
 all: 2_lexical_analysis
 
-2_lexical_analysis:
-	ulex -n 10 ../../uc/testdata/quiet/lexer/*.c > 2_lexical_analysis/3_validation/quiet.txt 2>&1
-	ulex -n 10 ../../uc/testdata/incorrect/lexer/*.c > 2_lexical_analysis/3_validation/incorrect.txt 2>&1
+LEXSOURCEDIRS=$(wildcard $(TESTDATA)/*/lexer)
+LEXSOURCE=$(wildcard $(LEXSOURCEDIRS:=/*.c))
+LEXOBJECTDIRS=$(LEXSOURCEDIRS:$(TESTDATA)/%=$(TESTOUTDIR)/%)
+LEXOBJECTS=$(LEXSOURCE:$(TESTDATA)/%.c=$(TESTOUTDIR)/%.txt)
 
-.PHONY: 2_lexical_analysis
+#%.tex: $(LEXOBJECTS)
+#	ls $(LEXOBJECTS) | awk '{printf "\\lstinputlisting[style=go]{inc/%s}\n", $$1}' >> $@
+
+$(LEXOBJECTDIRS):
+	-mkdir -p $@
+
+2_lexical_analysis: $(LEXSOURCEDIRS:$(TESTDATA)/%=$(TESTOUTDIR)/%/listing.tex)
+
+%/listing.tex: | $(LEXOBJECTS) #%/*.txt  #$(filter %,$(LEXOBJECTS))
+	ls $(@D)/*.txt | awk '{printf "\\lstinputlisting[style=go]{inc/%s}\n", $$1}' >> $@
+
+$(TESTOUTDIR)/%.txt: $(TESTDATA)/%.c
+	-mkdir -p $(@D)
+	ulex -n 10 $< > $@ 2>&1
+	#ls "$@" | awk '{printf "\\lstinputlisting[style=go]{inc/%s}\n", $$1}' >> $(TESTOUTDIR)/list.tex
+
+clean:
+	rm -rf $(TESTOUTDIR)
+
+.PHONY: all 2_lexical_analysis clean $(LEXOBJECTDIRS)
