@@ -10,21 +10,18 @@ LEXSOURCE=$(wildcard $(LEXSOURCEDIRS:=/*.c))
 LEXOBJECTDIRS=$(LEXSOURCEDIRS:$(TESTDATA)/%=$(TESTOUTDIR)/%)
 LEXOBJECTS=$(LEXSOURCE:$(TESTDATA)/%.c=$(TESTOUTDIR)/%.txt)
 
-#%.tex: $(LEXOBJECTS)
-#	ls $(LEXOBJECTS) | awk '{printf "\\lstinputlisting[style=go]{inc/%s}\n", $$1}' >> $@
-
 $(LEXOBJECTDIRS):
 	-mkdir -p $@
 
-2_lexical_analysis: $(LEXSOURCEDIRS:$(TESTDATA)/%=$(TESTOUTDIR)/%/listing.tex)
+$(LEXOBJECTS): | $(LEXOBJECTDIRS)
 
-%/listing.tex: | $(LEXOBJECTS) #%/*.txt  #$(filter %,$(LEXOBJECTS))
-	ls $(@D)/*.txt | awk '{printf "\\lstinputlisting[style=go]{inc/%s}\n", $$1}' >> $@
+2_lexical_analysis: $(LEXOBJECTDIRS:%=%/listing.tex)
 
-$(TESTOUTDIR)/%.txt: $(TESTDATA)/%.c
-	-mkdir -p $(@D)
-	ulex -n 10 $< > $@ 2>&1
-	#ls "$@" | awk '{printf "\\lstinputlisting[style=go]{inc/%s}\n", $$1}' >> $(TESTOUTDIR)/list.tex
+%/listing.tex: $(LEXOBJECTS) #%/*.txt  #$(filter %,$(LEXOBJECTS))
+	ls $(@D)/*.txt | awk '{printf "\\lstinputlisting[style=go]{inc/%s}\n\n", $$1}' >> $@
+
+$(TESTOUTDIR)/%.txt: $(TESTDATA)/%.c | $(LEXOBJECTDIRS)
+	cd $(CURDIR)/$(TESTDATA); ulex -n 10 $(<:$(TESTDATA)/%=%) > $(CURDIR:$(TESTDATA)/%=%)/$@ 2>&1
 
 clean:
 	rm -rf $(TESTOUTDIR)

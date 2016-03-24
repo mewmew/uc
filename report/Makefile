@@ -13,9 +13,10 @@ PDF = $(TEX:.tex=.pdf)
 .PHONY: clean inc
 
 inc:
-	make -s -C $@/
+	make -C $@/
 
 clean:
+	make -C inc/ clean
 	rm -f *.aux *.log *.out *.toc *.bbl *.blg *.dvi *.rtf *.bcf *-blx.bib *.run.xml sections/*.aux
 
 # TODO: Remove temporary sections from Makefile when the report is finalized.
