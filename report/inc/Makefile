@@ -10,6 +10,9 @@ LEXSOURCE=$(wildcard $(LEXSOURCEDIRS:=/*.c))
 LEXOBJECTDIRS=$(LEXSOURCEDIRS:$(TESTDATA)/%=$(TESTOUTDIR)/%)
 LEXOBJECTS=$(LEXSOURCE:$(TESTDATA)/%.c=$(TESTOUTDIR)/%.txt)
 
+UCFLAGS=
+REDIRECTS=2>&1
+
 $(LEXOBJECTDIRS):
 	-mkdir -p $@
 
@@ -20,8 +23,13 @@ $(LEXOBJECTS): | $(LEXOBJECTDIRS)
 %/listing.tex: $(LEXOBJECTS) #%/*.txt  #$(filter %,$(LEXOBJECTS))
 	ls $(@D)/*.txt | awk '{printf "\\lstinputlisting[style=go]{inc/%s}\n\n", $$1}' >> $@
 
+
+$(TESTOUTDIR)/incorrect/lexer/ugly.txt: UCFLAGS=-n 10
+
+$(TESTOUTDIR)/incorrect/lexer/%.txt: REDIRECTS=2>&1 1>/dev/null
+
 $(TESTOUTDIR)/%.txt: $(TESTDATA)/%.c | $(LEXOBJECTDIRS)
-	cd $(CURDIR)/$(TESTDATA); ulex -n 10 $(<:$(TESTDATA)/%=%) > $(CURDIR:$(TESTDATA)/%=%)/$@ 2>&1
+	cd $(CURDIR)/$(TESTDATA); ulex $(UCFLAGS) $(<:$(TESTDATA)/%=%) > $(CURDIR:$(TESTDATA)/%=%)/$@ $(REDIRECTS)
 
 clean:
 	rm -rf $(TESTOUTDIR)
