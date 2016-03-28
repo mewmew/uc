@@ -52,10 +52,10 @@ func main() {
 func lexFile(path string, n int) (err error) {
 	var toks []token.Token
 	if path == "-" {
-		fmt.Println("Lexing from standard input")
+		fmt.Fprintln(os.Stderr, "Lexing from standard input")
 		toks, err = lexer.Parse(os.Stdin)
 	} else {
-		fmt.Printf("Lexing %q\n", path)
+		fmt.Fprintf(os.Stderr, "Lexing %q\n", path)
 		toks, err = lexer.ParseFile(path)
 	}
 	if err != nil {
@@ -77,7 +77,7 @@ func lexFile(path string, n int) (err error) {
 			fmt.Printf("token %*d:   %v\n", pad, i, tok)
 		}
 	}
-	fmt.Println()
+	fmt.Fprintln(os.Stderr)
 	return nil
 }
 
