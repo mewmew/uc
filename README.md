@@ -6,6 +6,21 @@
 
 A compiler for the [µC programming language](https://www.it.uu.se/katalog/aleji304/CompilersProject/uc.html).
 
+## Installation
+
+1. [Install Go](https://golang.org/doc/install).
+2. Install Gocc `go get github.com/goccmack/gocc`.
+
+```
+$ go get -u github.com/mewmew/uc
+$ cd ${GOPATH}/src/github.com/mewmew/uc/uc/gocc
+$ make gen
+$ go get github.com/mewmew/uc/...
+$ go test github.com/mewmew/uc/uc/hand/lexer
+$ go test github.com/mewmew/uc/uc/gocc/lexer
+$ go install github.com/mewmew/uc/cmd/ulex
+```
+
 ## Public domain
 
 The source code and any original content of this repository is hereby released into the [public domain].
