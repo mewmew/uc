@@ -1,0 +1,212 @@
+// A grammar for the uC programming language [1].
+//
+// The content and structure of this document is heavily influenced by
+// the Go Programming Language Specification [2] and some parts are
+// therefore governed by a BSD-style license [3]. Any original content
+// of this document is hereby released into the public domain [4].
+//
+// References:
+// [1]: https://www.it.uu.se/katalog/aleji304/CompilersProject/uc.html
+// [2]: http://golang.org/ref/spec
+// [3]: http://golang.org/LICENSE
+// [4]: https://creativecommons.org/publicdomain/zero/1.0/
+
+// # Source code representation
+//
+
+// ## Characters
+//
+
+// An arbitrary ASCII character except null (0x00), new line (0x0A),
+// carriage return (0x0D), apostrophe (0x27), double quote (0x22) and
+// backslash (0x5C).
+_ascii_char
+	: '\x01' - '\x09'
+	| '\x0B' - '\x0C'
+	| '\x0E' - '\x21'
+	| '\x23' - '\x26'
+	| '\x28' - '\x5B'
+	| '\x5D' - '\x7F'
+;
+
+_ascii_letter : 'a' - 'z' | 'A' - 'Z' ;
+_ascii_digit  : '0' - '9' ;
+
+// ## Letters and digits
+//
+
+_letter        : _ascii_letter | '_' ;
+_decimal_digit : _ascii_digit ;
+_decimals      : _decimal_digit { _decimal_digit } ;
+
+// # Lexical elements
+//
+
+// ## Comments
+//
+
+_line_comment
+	: '/' '/' { . } '\n'
+	|  '/' '/' { . } // line comment ending with EOF
+;
+
+_block_comment : '/' '*' { . | '*' } '*' '/' ;
+comment        : _line_comment | _block_comment ;
+
+// ## Tokens
+//
+
+// White space, formed from spaces (0x20), horizontal tabs (0x09), new
+// line (line-feed (0x0A) or carriage-return (0x0D)), vertical tabs
+// (0x0B), and form- feeds (0x0C) ($6.4), is ignored except as it
+// separates tokens that would otherwise combine into a single token.
+!whitespace : ' ' | '\t' | '\v' | '\f' | '\r' | '\n' ;
+
+// ## Identifiers
+//
+
+ident : _letter { _letter | _decimal_digit } ;
+
+// ## Integer literals
+//
+
+int_lit : _decimals | _char_lit ;
+
+// ## Character literals
+//
+
+_escaped_char : '\\' 'n' ;
+_char_lit     : '\'' ( _ascii_char | '"' | _escaped_char ) '\'' ;
+
+
+// # Syntaxic production rules
+//
+
+Program
+	: TopLevelDeclList
+;
+
+TopLevelDeclList
+	: empty
+	| TopLevelDecl TopLevelDeclList
+;
+
+TopLevelDecl
+	: VarDecl ";"
+	| FuncType ident "(" Formals ")" FuncBody
+;
+
+VarDecl
+	: ScalarDecl
+	| ArrayDecl
+;
+
+ScalarDecl
+	: TypeName ident
+;
+
+ArrayDecl
+	: TypeName ident "[" int_lit "]"
+;
+
+TypeName
+	: ident // "char" | "int"
+;
+
+FuncType
+	: VoidType
+	| TypeName
+;
+
+VoidType
+	: ident // "void"
+;
+
+FuncBody
+	: "{" Locals Stmts "}"
+	| ";"
+;
+
+Formals
+	: VoidType
+	| FormalList
+;
+
+FormalList
+	: FormalDecl
+	| FormalDecl "," FormalList
+;
+
+FormalDecl
+	: ScalarDecl
+	| TypeName ident "[" "]"
+;
+
+Locals
+	: empty
+	| VarDecl ";" Locals
+;
+
+Stmts
+	: empty
+	| Stmt Stmts
+;
+
+Stmt
+	: Expr ";"
+	| "return" Expr ";"
+	| "return" ";"
+	| "while" Condition Stmt
+	| "if" Condition Stmt ElsePart
+	| "{" Stmts "}"
+	| ";"
+;
+
+ElsePart
+	: empty
+	| "else" Stmt
+;
+
+Condition
+	: "(" Expr ")"
+;
+
+Expr
+	: int_lit
+	| ident
+	| ident "[" Expr "]"
+	| UnaryOp Expr
+	| Expr BinaryOp Expr
+	| ident "(" Actuals ")"
+	| "(" Expr ")"
+;
+
+UnaryOp
+	: "-"
+	| "!"
+;
+
+BinaryOp
+	: "+"
+	| "-"
+	| "*"
+	| "/"
+	| "<"
+	| ">"
+	| "<="
+	| ">="
+	| "!="
+	| "=="
+	| "&&"
+	| "="
+;
+
+Actuals
+	: empty
+	| ExprList
+;
+
+ExprList
+	: Expr
+	| Expr "," ExprList
+;
