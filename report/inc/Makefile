@@ -21,7 +21,12 @@ $(LEXOBJECTS): | $(LEXOBJECTDIRS)
 2_lexical_analysis: $(LEXOBJECTDIRS:%=%/listing.tex)
 
 %/listing.tex: $(LEXOBJECTS) #%/*.txt  #$(filter %,$(LEXOBJECTS))
-	ls $(@D)/*.txt | awk '{printf "\\lstinputlisting[style=go]{inc/%s}\n\n", $$1}' >> $@
+	ls $(@D)/*.txt | awk '{name=$$1;sub(/$(TESTOUTDIR)\//,"",name);\
+		sub(/.txt/,".c",name); printf "\\lstinputlisting[style=go,\
+		caption=%s,label=lst:%s]{inc/%s}\n\n", name, name, $$1}' > $@
+	ls $(@D)/*.txt | awk '{name=$$1;sub(/$(TESTOUTDIR)\//,"",name);\
+		sub(/.txt/,".c",name); printf "\nListing~\\ref{lst:%s}:~\\nameref{lst:%s}\n",\
+		name, name}' > $(@D)/listref.tex
 
 
 $(TESTOUTDIR)/incorrect/lexer/ugly.txt: UCFLAGS+=-n 10
