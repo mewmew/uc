@@ -14,6 +14,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"sort"
 	"strings"
 	"unicode/utf8"
 
@@ -67,6 +68,53 @@ func ParseString(s string) []token.Token {
 	return l.tokens
 }
 
+// Temporary test function for Position function
+func UlexParse(r io.Reader) (Lexer, error) {
+	br := bufio.NewReader(r)
+	ur := newUnicodeReader(br)
+	buf, err := ioutil.ReadAll(ur)
+	if err != nil {
+		return nil, err
+	}
+	input := string(buf)
+	return UlexParseString(input), nil
+}
+
+// Temporary test function for Position function
+func UlexParseFile(path string) (Lexer, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	return UlexParse(f)
+}
+
+// Temporary test function for Position function
+func UlexParseString(s string) Lexer {
+	l := &lexer{
+		input: s,
+		// The average token size is roughly 2.5 for the quiet and noisy uC test
+		// cases and 3.5 for the quiet, noisy and incorrect uC test cases.
+		// Therefore pre-allocate a slice of tokens capable of holding all tokens
+		// with the smallest average size.
+		tokens: make([]token.Token, 0, len(s)/2),
+		lines:  []int{0},
+	}
+
+	// Tokenize the input.
+	l.lex()
+
+	return l
+}
+
+// A Lexer gives access to lexed tokens and their positions whitin the input
+// stream.
+type Lexer interface {
+	Tokens() []token.Token
+	Position(pos int) (line int, col int)
+}
+
 // A lexer lexes an input string into a slice of tokens.
 type lexer struct {
 	// The input string.
@@ -79,6 +127,24 @@ type lexer struct {
 	width int
 	// A slice of scanned tokens.
 	tokens []token.Token
+	// lines tracks the start positions of lines within the input stream.
+	lines []int
+}
+
+// Tokens returns the lexed tokens.
+func (l *lexer) Tokens() []token.Token {
+	return l.tokens
+}
+
+// Position returns the corresponding line:column pair of the given position
+// in the input stream.
+func (l *lexer) Position(pos int) (line, column int) {
+	// Implemented using binary search, lines should be sorted in ascending
+	// order.
+	index := sort.SearchInts(l.lines, pos+1) - 1
+	line = index + 1
+	column = pos - l.lines[index] + 1
+	return line, column
 }
 
 // lex lexes the input by repeatedly executing the active state function until
@@ -162,6 +228,12 @@ func (l *lexer) next() (r rune) {
 	}
 	r, l.width = utf8.DecodeRuneInString(l.input[l.cur:])
 	l.cur += l.width
+	if r == '\n' {
+		// Append start position of line if not already present.
+		if l.lines[len(l.lines)-1] != l.cur {
+			l.lines = append(l.lines, l.cur)
+		}
+	}
 	return r
 }
 

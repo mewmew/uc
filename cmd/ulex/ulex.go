@@ -50,18 +50,18 @@ func main() {
 // lexFile lexes the given file and pretty-prints the n first tokens to standard
 // output.
 func lexFile(path string, n int) (err error) {
-	var toks []token.Token
+	var l lexer.Lexer
 	if path == "-" {
 		fmt.Fprintln(os.Stderr, "Lexing from standard input")
-		toks, err = lexer.Parse(os.Stdin)
+		l, err = lexer.UlexParse(os.Stdin)
 	} else {
 		fmt.Fprintf(os.Stderr, "Lexing %q\n", path)
-		toks, err = lexer.ParseFile(path)
+		l, err = lexer.UlexParseFile(path)
 	}
 	if err != nil {
 		return err
 	}
-
+	toks := l.Tokens()
 	ntoks := len(toks)
 	if n > ntoks {
 		ntoks = n
@@ -73,8 +73,12 @@ func lexFile(path string, n int) (err error) {
 		}
 		if tok.Kind == token.Error {
 			elog.Printf("ERROR %*d:   %v\n", pad, i, tok)
+			line, col := l.Position(tok.Pos)
+			elog.Printf("%*s   line:%v, col:%v\n", col, "^", line, col)
 		} else {
 			fmt.Printf("token %*d:   %v\n", pad, i, tok)
+			line, col := l.Position(tok.Pos)
+			fmt.Printf("%*s   line:%v, col:%v\n", col, "^", line, col)
 		}
 	}
 	fmt.Fprintln(os.Stderr)
