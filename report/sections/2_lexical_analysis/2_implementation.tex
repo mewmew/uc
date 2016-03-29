@@ -1,30 +1,23 @@
 \subsection{Implementation}
 
 % TODO: handle end-of-file
-\subsubsection{Handwritten lexer}
-The handling of end-of-file(EOF) in our handwritten lexer is in primarily done through the state function.
+\subsubsection{Handwritten Lexer}
+
+The implementation of the handwritten lexer is heavily inspired by Rob Pike's talk titled ``Lexical Scanning in Go'' \cite{lexical_scanning_in_go}, which introduces the concept of a state function, which is a function returning a state function. The handling of end-of-file (EOF) in the handwritten lexer is primarily done through a state function.
+
 \begin{itemize}
-
-\item In the normal case of EOF outside of lexemes, the state function emits an EOF token and returns a nil state function, terminating the lexer.
-
-\item If an EOF is encountered during any partial lexeme other than line or block comments, it is treated as any other wrong continuation of the partial lexeme and will either emit the token for the lexeme up to that point if any, or emit an error token with the first character, and try to continue lexing from the next character.
-
-\item In the event of an EOF in a line comment, the state function emits a comment token with the lexeme ending before the EOF, emits an EOF token and returns a nil state function.
-
-\item In the event of an EOF in a block comment, the state function emits an error token containing everything between the start of the block comment and the EOF, then emits an EOF token, before terminating the lexer with the return of a nil state function.
-
+	\item In the normal case of EOF outside of lexemes, the state function emits an EOF token and returns a \texttt{nil} state function, thus terminating the lexer.
+	\item If an EOF is encountered during any partial lexeme (except line and block comments), it is treated as any other token separator for the given lexeme and will either emit the token for the lexeme up to that point if valid, or emit an error token (see section \ref{sec:error_handling}).
+	\item In the event of an EOF in a line comment, the state function emits a comment token with the lexeme ending before the EOF, emits an EOF token and returns a \texttt{nil} state function, thus terminating the lexer.
+	\item In the event of an EOF in a block comment, the state function emits an error token containing everything between the start of the block comment and the EOF, then emits an EOF token, before terminating the lexer with the return of a \texttt{nil} state function.
 \end{itemize}
 
-Using real C specification for following things, extending uC:
+The lexer have extended support for the following C11 features:
+
 \begin{itemize}
 	\item Add char Vertical tab (ASCII VT $11_{10}$) as extension whitespace
 \end{itemize}
 
+\subsubsection{Gocc Lexer}
 
-
-The implementation of the lexical analysis library is heavily inspired by Rob Pike's amazing talk titled ``Lexical Scanning in Go'' \cite{lexical_scanning_in_go}.
-
-
-\subsubsection{gocc lexer}
-The gocc lexer takes a .bnf file in a variant of Backus–Naur Form.
-A small modification was done from the original form to make EOF in end of line comments legal, as seen on line 49 of Listing~\ref{lst:bnflisting} in Appendix~\ref{app:lex/gocc}
+Analogously to the functionality of Lex, Gocc is capable of generating lexers from a language grammar described using a variant of Backus–Naur Form. The original µC grammar was made Gocc compatible and extended to specify the lexical elements of µC, and is presented in Listing~\ref{lst:bnflisting} in Appendix~\ref{app:lex/gocc}.
