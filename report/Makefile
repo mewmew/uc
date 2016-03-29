@@ -24,8 +24,11 @@ clean: clean_aux
 
 # TODO: Remove temporary sections from Makefile when the report is finalized.
 
+lex: 2_lex.pdf clean_aux
+
 %.pdf: %.tex
 	pdflatex $<
+	bibtex $*
 	pdflatex $<
 	pdflatex $<
 

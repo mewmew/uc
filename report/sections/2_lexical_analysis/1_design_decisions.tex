@@ -46,18 +46,12 @@ The content within comments is intentionally not validated and may be encoded in
 	\label{fig:invalid_lexemes}
 \end{figure}
 
-\subsubsection{lexer: Lex type tokens as identifiers}
+\subsubsection{The Lexer Hack}
 
-% ref: https://github.com/mewmew/uc/issues/21
+The ANSI C language contains a set of context sensitive production rules, which give rise to
+
+To handle \textit{the lexer hack} \cite{the_lexer_hack}.
+
+\footnote{Lex type tokens as identifiers: \url{https://github.com/mewmew/uc/issues/21}}
 
 Lex type tokens as identifiers to solve the lexer hack, similar to how Clang handles this issue.
-
-\subsubsection{lexer: New line should not be part of line comment lexemes}
-
-% ref: https://github.com/mewmew/uc/issues/22
-
-Currently the Gocc generated lexer and the hand-written lexer do not agree on whether trailing new line characters should be part of line comment lexemes.
-
-After discussing the manner and evaluating how other projects handle this issue (e.g. the scanner package in Go), we've decided to not include trailing new line characters in the lexeme of line comments.
-
-% It remains an open question whether the Gocc lexer should be patched to conform to this behaviour.
