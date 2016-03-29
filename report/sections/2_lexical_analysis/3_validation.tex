@@ -9,41 +9,13 @@
 For listings, see Appendix~\ref{app:lex/quiet}: \nameref{app:lex/quiet}:
 \input{inc/testoutput/quiet/lexer/listref.tex}
 
-
 \subsubsection{Incorrect Test Cases}
 
-lexer: Trailing newline in test case incorrect/lexer/good.c
+The test cases \nameref{lst:incorrect/lexer/good.c} unintentionally included a trailing new line, as indicated by the final line comment of the file (see listing \ref{lst:last_line_comment_of_good_c}). This trailing new line has been removed from the test suite against which \texttt{ulex} is validated.
 
-% ref: https://github.com/mewmew/uc/issues/16
-
-NOTE: The test case incorrect/lexer/good.c
-
-\begin{verbatim}
-u@x1 ~/D/g/s/g/m/u/u/testdata> tail incorrect/lexer/good.c | hexdump -C
-00000000  0a 20 20 20 20 20 20 20  20 32 64 69 65 34 55 0a  |.        2die4U.|
-00000010  0a 2f 2f 7c 7c 20 54 68  65 20 66 6f 6c 6c 6f 77  |.//|| The follow|
-00000020  69 6e 67 20 73 68 6f 75  6c 64 20 61 6c 6c 20 62  |ing should all b|
-00000030  65 20 72 65 67 61 72 64  65 64 20 61 73 20 69 64  |e regarded as id|
-00000040  65 6e 74 69 66 69 65 72  73 3a 0a 0a 09 46 75 6e  |entifiers:...Fun|
-00000050  63 74 69 6f 6e 20 50 72  4f 63 65 44 75 52 45 20  |ction PrOceDuRE |
-00000060  62 65 67 49 4e 20 65 4e  64 20 50 72 69 6e 54 20  |begIN eNd PrinT |
-00000070  72 45 61 64 20 69 46 20  54 48 65 6e 20 53 74 61  |rEad iF THen Sta|
-00000080  54 69 63 0a 09 45 6c 53  65 20 77 48 69 6c 45 20  |Tic..ElSe wHilE |
-00000090  44 6f 20 72 65 54 75 72  4e 20 6e 6f 54 20 41 6e  |Do reTurN noT An|
-000000a0  44 20 4f 52 20 54 72 55  45 20 62 4f 4f 6c 20 46  |D OR TrUE bOOl F|
-000000b0  61 6c 73 45 20 73 69 7a  45 0a 0a 0a 2f 2f 20 49  |alsE sizE...// I|
-000000c0  74 20 69 73 20 6c 65 67  61 6c 20 74 6f 20 65 6e  |t is legal to en|
-000000d0  64 20 74 68 65 20 63 6f  64 65 20 6c 69 6b 65 20  |d the code like |
-000000e0  74 68 69 73 2c 20 77 69  74 68 6f 75 74 20 61 6e  |this, without an|
-000000f0  20 65 6e 64 69 6e 67 20  6e 65 77 6c 69 6e 65 2e  | ending newline.|
-00000100  0a                                                |.|
-\end{verbatim}
-
-Notice the trailing newline in the test case, directly succeeding the comment stating that no such new line character should be present.
-
-\begin{verbatim}
+\begin{lstlisting}[language=C,style=c,caption={Last line comment within \texttt{incorrect/lexer/good.c}.},label={lst:last_line_comment_of_good_c}]
 // It is legal to end the code like this, without an ending newline.
-\end{verbatim}
+\end{lstlisting}
 
-For listings, see Appendix~\ref{app:lex/incorrect}: \nameref{app:lex/incorrect}
+For listings, see Appendix~\ref{app:lex/incorrect}: \nameref{app:lex/incorrect}:
 \input{inc/testoutput/incorrect/lexer/listref.tex}
