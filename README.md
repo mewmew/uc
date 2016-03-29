@@ -21,6 +21,10 @@ $ go test github.com/mewmew/uc/uc/gocc/lexer
 $ go install github.com/mewmew/uc/cmd/ulex
 ```
 
+## Usage
+
+* [ulex](https://godoc.org/github.com/mewmew/uc/cmd/ulex): a lexer for the µC language which pretty-prints tokens to standard output.
+
 ## Public domain
 
 The source code and any original content of this repository is hereby released into the [public domain].
