@@ -3,7 +3,7 @@ TESTDATA=../../uc/testdata
 TESTOUTDIR=testoutput
 VPATH=$(TESTDATA):$(TESTOUTDIR)
 
-all: 2_lexical_analysis
+all: clean 2_lexical_analysis
 
 LEXSOURCEDIRS=$(wildcard $(TESTDATA)/*/lexer)
 LEXSOURCE=$(wildcard $(LEXSOURCEDIRS:=/*.c))
@@ -24,9 +24,9 @@ $(LEXOBJECTS): | $(LEXOBJECTDIRS)
 	ls $(@D)/*.txt | awk '{printf "\\lstinputlisting[style=go]{inc/%s}\n\n", $$1}' >> $@
 
 
-$(TESTOUTDIR)/incorrect/lexer/ugly.txt: UCFLAGS=-n 10
+$(TESTOUTDIR)/incorrect/lexer/ugly.txt: UCFLAGS+=-n 10
 
-$(TESTOUTDIR)/incorrect/lexer/%.txt: REDIRECTS=2>&1 1>/dev/null
+$(TESTOUTDIR)/incorrect/lexer/%.txt: REDIRECTS+=1>/dev/null
 
 $(TESTOUTDIR)/%.txt: $(TESTDATA)/%.c | $(LEXOBJECTDIRS)
 	cd $(CURDIR)/$(TESTDATA); ulex $(UCFLAGS) $(<:$(TESTDATA)/%=%) > $(CURDIR:$(TESTDATA)/%=%)/$@ $(REDIRECTS)
