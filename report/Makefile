@@ -1,4 +1,4 @@
-all: uc.pdf
+all: uc.pdf clean_aux
 
 uc.pdf: inc
 	pdflatex uc.tex
@@ -15,8 +15,10 @@ PDF = $(TEX:.tex=.pdf)
 inc:
 	make -C $@/
 
-clean:
+clean_aux:
 	rm -f *.aux *.log *.out *.toc *.bbl *.blg *.dvi *.rtf *.bcf *-blx.bib *.run.xml sections/*.aux
+
+clean: clean_aux
 	rm -f uc.pdf 1_intro.pdf 2_lex.pdf 3_parse.pdf 4_sem.pdf 5_ir.pdf 6_ir_gen.pdf 7_con.pdf app.pdf
 	make -C inc/ clean
 
