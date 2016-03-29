@@ -1,10 +1,35 @@
 \subsection{Implementation}
 
 % TODO: handle end-of-file
+\subsubsection{Handwritten lexer}
+The handling of end-of-file(EOF) in our handwritten lexer is in primarily done through the state function.
+\begin{itemize}
+
+\item In the normal case of EOF outside of lexemes, the state function emits an EOF token and returns a nil state function, terminating the lexer.
+
+\item If an EOF is encountered during any partial lexeme other than line or block comments, it is treated as any other wrong continuation of the partial lexeme and will either emit the token for the lexeme up to that point if any, or emit an error token with the first character, and try to continue lexing from the next character.
+
+\item In the event of an EOF in a line comment, the state function emits a comment token with the lexeme ending before the EOF, emits an EOF token and returns a nil state function.
+
+\item In the event of an EOF in a block comment, the state function emits an error token containing everything between the start of the block comment and the EOF, then emits an EOF token, before terminating the lexer with the return of a nil state function.
+
+\end{itemize}
 
 Using real C specification for following things, extending uC:
 \begin{itemize}
-	\item Add char Vertical tab (ASCII VT $11_{10}$) as extention whitespace
+	\item Add char Vertical tab (ASCII VT $11_{10}$) as extension whitespace
 \end{itemize}
 
+
+
 The implementation of the lexical analysis library is heavily inspired by Rob Pike's amazing talk titled ``Lexical Scanning in Go'' \cite{lexical_scanning_in_go}.
+
+
+\subsubsection{gocc lexer}
+The gocc lexer takes a .bnf file in a variant of Backus–Naur Form.
+A small modification was done from the original form to make EOF in end of line comments legal, as seen on line 49 of Listing~\ref{lst:bnflisting}
+
+%TODO: fix use of § and µ (replaced with $ and u) in listings
+%TODO: include correct file.
+
+\lstinputlisting[language=go,style=go,caption={Backus-Naur Form},label=lst:bnflisting]{inc/sections/2_lexical_analysis/uc.bnf}
