@@ -48,10 +48,14 @@ The content within comments is intentionally not validated and may be encoded in
 
 \subsubsection{The Lexer Hack}
 
-The ANSI C language contains a set of context sensitive production rules, which give rise to
+To allow for future extensions of the lexer to support user-defined types, special precaution have been taken with regards to the \textit{typedef-name} problem, which has been described in great detail by Eli Bendersky \cite{typedef_name_problem}. In essence, the problem is that identifiers may not be distinguishable from user-defined types during lexical analysis, without additional context. An example by Eli is presented in listing \ref{lst:typedef_name_problem} which succinctly captures the context sensitivity of the problem, as \texttt{AA} on line 4 may refer to a user-defined character type or an integer identifier; therefore the size of \texttt{aa} is 1 byte, while the size of \texttt{bb} is the size of an integer.
 
-To handle \textit{the lexer hack} \cite{the_lexer_hack}.
+\begin{lstlisting}[language=C,style=c,caption={An example of the \textit{typedef-name} problem.},label={lst:typedef_name_problem}]
+typedef char AA;
 
-\footnote{Lex type tokens as identifiers: \url{https://github.com/mewmew/uc/issues/21}}
+void foo() {
+	int aa = sizeof(AA), AA, bb = sizeof(AA);
+}
+\end{lstlisting}
 
-Lex type tokens as identifiers to solve the lexer hack, similar to how Clang handles this issue.
+To handle types consistently throughout the subsequent stages of the compiler, all type lexemes (e.g. \texttt{char}, \texttt{int} and \texttt{void}) are emitted as \textit{identifier} tokens during the lexical analysis. The type checker, which has access to additional context, of the semantic analysis stage will later annotate the abstract syntax tree to distingush between identifiers and types\footnote{Lex type tokens as identifiers: \url{https://github.com/mewmew/uc/issues/21}}. This idea was taken from how Clang handles \textit{the lexer hack} \cite{the_lexer_hack,clang_no_lexer_hack}.
