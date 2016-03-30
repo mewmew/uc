@@ -59,7 +59,7 @@ func parseFile(path string) (err error) {
 	}
 
 	// Create debug scanner.
-	ds := NewDebugScanner(s)
+	ds := newDebugScanner(s)
 
 	// Parse input.
 	p := parser.NewParser()
@@ -77,9 +77,9 @@ type debugScanner struct {
 	s parser.Scanner
 }
 
-// NewDebugScanner returns a debug scanner which produces debug output while
+// newDebugScanner returns a debug scanner which produces debug output while
 // scanner from s.
-func NewDebugScanner(s parser.Scanner) *debugScanner {
+func newDebugScanner(s parser.Scanner) parser.Scanner {
 	return &debugScanner{s: s}
 }
 
