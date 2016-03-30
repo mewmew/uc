@@ -13,6 +13,7 @@ import (
 	"math"
 	"os"
 
+	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/hand/lexer"
 	"github.com/mewmew/uc/token"
 )
@@ -21,8 +22,10 @@ func usage() {
 	const use = `
 Usage: ulex FILE...
 
-If FILE is -, read standard input.`
+If FILE is -, read standard input.
+`
 	fmt.Fprintln(os.Stderr, use[1:])
+	flag.PrintDefaults()
 }
 
 func main() {
@@ -40,8 +43,7 @@ func main() {
 		os.Exit(1)
 	}
 	for _, path := range paths {
-		err := lexFile(path, n)
-		if err != nil {
+		if err := lexFile(path, n); err != nil {
 			log.Print(err)
 		}
 	}
@@ -59,7 +61,7 @@ func lexFile(path string, n int) (err error) {
 		toks, err = lexer.ParseFile(path)
 	}
 	if err != nil {
-		return err
+		return errutil.Err(err)
 	}
 
 	ntoks := len(toks)

@@ -157,7 +157,7 @@ type (
 	// A ReturnStmt node represents a return statement.
 	ReturnStmt struct {
 		// Result expression; or nil if void return.
-		Expr Expr
+		Result Expr
 	}
 )
 

@@ -2,8 +2,12 @@ gen:
 	gocc -a uc.bnf
 	find . -type f -name '*.go' | xargs goimports -w
 
-debug:
+debug_lexer:
 	gocc -debug_lexer -v -a uc.bnf
+	find . -type f -name '*.go' | xargs goimports -w
+
+debug_parser:
+	gocc -debug_parser -v -a uc.bnf
 	find . -type f -name '*.go' | xargs goimports -w
 
 clean:
