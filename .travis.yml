@@ -17,7 +17,7 @@ before_install:
   - go get github.com/golang/lint/golint
   - go get github.com/mattn/goveralls
   - go get github.com/goccmack/gocc
-  - make -C $HOME/gopath/src/github.com/mewmew/uc/uc/gocc gen
+  - make -C $HOME/gopath/src/github.com/mewmew/uc/gocc gen
 
 install:
   - go get ./...

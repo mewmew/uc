@@ -2,7 +2,7 @@
 // soure code.
 package ast
 
-import "github.com/mewmew/uc/uc/token"
+import "github.com/mewmew/uc/token"
 
 // A File represents a µC source file.
 type File struct {

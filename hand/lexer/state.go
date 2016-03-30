@@ -10,7 +10,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/mewmew/uc/uc/token"
+	"github.com/mewmew/uc/token"
 )
 
 const (

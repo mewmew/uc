@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/mewmew/uc/uc/hand/lexer"
+	"github.com/mewmew/uc/hand/lexer"
 )
 
 func ExampleParseFile() {

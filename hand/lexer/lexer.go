@@ -17,7 +17,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/mewmew/uc/uc/token"
+	"github.com/mewmew/uc/token"
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/transform"
 )

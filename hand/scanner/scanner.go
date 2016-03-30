@@ -4,9 +4,9 @@ package scanner
 import (
 	"io"
 
-	"github.com/mewmew/uc/uc/gocc/token"
-	"github.com/mewmew/uc/uc/hand/lexer"
-	uctoken "github.com/mewmew/uc/uc/token"
+	"github.com/mewmew/uc/gocc/token"
+	"github.com/mewmew/uc/hand/lexer"
+	uctoken "github.com/mewmew/uc/token"
 )
 
 // Scanner represents the lexer interface used by the Gocc parser.

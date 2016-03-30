@@ -5,8 +5,8 @@ import (
 	"log"
 	"testing"
 
-	"github.com/mewmew/uc/uc/hand/lexer"
-	"github.com/mewmew/uc/uc/token"
+	"github.com/mewmew/uc/hand/lexer"
+	"github.com/mewmew/uc/token"
 )
 
 func TestLexer(t *testing.T) {
