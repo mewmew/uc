@@ -37,11 +37,11 @@ func main() {
 	flag.IntVar(&n, "n", 0, "number of tokens to lex")
 	flag.Usage = usage
 	flag.Parse()
-	paths := flag.Args()
 	if flag.NArg() == 0 {
 		flag.Usage()
 		os.Exit(1)
 	}
+	paths := flag.Args()
 	for _, path := range paths {
 		if err := lexFile(path, n); err != nil {
 			log.Print(err)
