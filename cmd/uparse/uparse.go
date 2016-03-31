@@ -9,13 +9,15 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 
 	"github.com/mewkiz/pkg/errutil"
+	"github.com/mewmew/uc/gocc/lexer"
 	"github.com/mewmew/uc/gocc/parser"
 	"github.com/mewmew/uc/gocc/token"
-	"github.com/mewmew/uc/hand/scanner"
+	//"github.com/mewmew/uc/hand/scanner"
 )
 
 func usage() {
@@ -46,17 +48,16 @@ func main() {
 // standard output.
 func parseFile(path string) (err error) {
 	// Create lexer for the input.
-	var s parser.Scanner
-	if path == "-" {
-		fmt.Fprintln(os.Stderr, "Parsing from standard input")
-		s, err = scanner.New(os.Stdin)
-	} else {
-		fmt.Fprintf(os.Stderr, "Parsing %q\n", path)
-		s, err = scanner.Open(path)
-	}
+	buf, err := ioutil.ReadFile(path)
 	if err != nil {
 		return errutil.Err(err)
 	}
+	if path == "-" {
+		fmt.Fprintln(os.Stderr, "Parsing from standard input")
+	} else {
+		fmt.Fprintf(os.Stderr, "Parsing %q\n", path)
+	}
+	s := lexer.NewLexer(buf)
 
 	// Create debug scanner.
 	ds := newDebugScanner(s)
