@@ -92,7 +92,7 @@ TopLevelDeclList
 
 TopLevelDecl
 	: VarDecl ";"
-	| FuncType ident "(" Formals ")" FuncBody
+	| TypeName ident "(" Formals ")" FuncBody // TypeName : "char" | "int" | "void" ;
 ;
 
 VarDecl
@@ -101,24 +101,15 @@ VarDecl
 ;
 
 ScalarDecl
-	: TypeName ident
+	: TypeName ident // TypeName : "char" | "int" ;
 ;
 
 ArrayDecl
-	: TypeName ident "[" int_lit "]"
+	: TypeName ident "[" int_lit "]" // TypeName : "char" | "int" ;
 ;
 
 TypeName
-	: ident // "char" | "int"
-;
-
-FuncType
-	: VoidType
-	| TypeName
-;
-
-VoidType
-	: ident // "void"
+	: ident // TypeName : "char" | "int" | "void" ;
 ;
 
 FuncBody
@@ -127,7 +118,7 @@ FuncBody
 ;
 
 Formals
-	: VoidType
+	: TypeName   // TypeName : "void" ;
 	| FormalList
 ;
 
@@ -138,7 +129,7 @@ FormalList
 
 FormalDecl
 	: ScalarDecl
-	| TypeName ident "[" "]"
+	| TypeName ident "[" "]" // TypeName : "char" | "int" ;
 ;
 
 Locals
