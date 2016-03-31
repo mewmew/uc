@@ -109,7 +109,7 @@ ArrayDecl
 ;
 
 TypeName
-	: ident // TypeName : "char" | "int" | "void" ;
+	: "char" | "int" | "void" // TypeName : "char" | "int" | "void" ;
 ;
 
 FuncBody
