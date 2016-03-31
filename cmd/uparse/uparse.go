@@ -17,6 +17,8 @@ import (
 	"github.com/mewmew/uc/gocc/lexer"
 	"github.com/mewmew/uc/gocc/parser"
 	"github.com/mewmew/uc/gocc/token"
+	// TODO: Use hand-written scanner instead of Gocc-generated lexer once the
+	// grammar has matured.
 	//"github.com/mewmew/uc/hand/scanner"
 )
 
