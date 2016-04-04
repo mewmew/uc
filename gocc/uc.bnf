@@ -162,33 +162,82 @@ Condition
 ;
 
 Expr
+	: Expr14
+;
+
+// Unary expressions with precedence 14.
+//
+//    14: - !
+Expr14
+	: Expr13L
+	| "-" Expr13L
+	| "!" Expr13L
+;
+
+// TODO: Figure out how to represent left- and right-associativity. Perhaps this
+// may be done during the generation of the AST?
+
+// Left-associative binary expressions with precedence 13.
+//
+//    13L: * /
+Expr13L
+	: Expr12L
+	| Expr13L "*" Expr12L
+	| Expr13L "/" Expr12L
+;
+
+// Left-associative binary expressions with precedence 12.
+//
+//    12L: + -
+Expr12L
+	: Expr10L
+	| Expr12L "+" Expr10L
+	| Expr12L "-" Expr10L
+;
+
+// Left-associative binary expressions with precedence 10.
+//
+//    10L: < > <= >=
+Expr10L
+	: Expr9L
+	| Expr10L "<" Expr9L
+	| Expr10L ">" Expr9L
+	| Expr10L "<=" Expr9L
+	| Expr10L ">=" Expr9L
+;
+
+// Left-associative binary expressions with precedence 9.
+//
+//    9L: == !=
+Expr9L
+	: Expr5L
+	| Expr9L "==" Expr5L
+	| Expr9L "!=" Expr5L
+;
+
+// Left-associative binary expressions with precedence 5.
+//
+//    5L: &&
+Expr5L
+	: Expr2R
+	| Expr5L "&&" Expr2R
+;
+
+// Right-associative binary expressions with precedence 2.
+//
+//    2R: =
+Expr2R
+	: Expr1
+	| Expr2R "=" Expr1
+;
+
+// Expressions with precedence 1.
+Expr1
 	: int_lit
 	| ident
 	| ident "[" Expr "]"
-	| UnaryOp Expr
-	| Expr BinaryOp Expr
 	| ident "(" Actuals ")"
 	| "(" Expr ")"
-;
-
-UnaryOp
-	: "-"
-	| "!"
-;
-
-BinaryOp
-	: "+"
-	| "-"
-	| "*"
-	| "/"
-	| "<"
-	| ">"
-	| "<="
-	| ">="
-	| "!="
-	| "=="
-	| "&&"
-	| "="
 ;
 
 Actuals
