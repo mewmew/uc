@@ -205,20 +205,20 @@ type (
 		Val string
 	}
 
-	// An UnaryExpr node represents an unary expression; op B.
+	// An UnaryExpr node represents an unary expression; op X.
 	UnaryExpr struct {
 		// Operator, one of the following.
 		//    token.Sub   // -
 		//    token.Not   // !
 		Op token.Kind
 		// Operand.
-		B Expr
+		X Expr
 	}
 
-	// An BinaryExpr node represents a binary expression; A op B.
+	// An BinaryExpr node represents a binary expression; X op Y.
 	BinaryExpr struct {
 		// First operand.
-		A Expr
+		X Expr
 		// Operator, one of the following.
 		//    token.Add      // +
 		//    token.Sub      // -
@@ -234,7 +234,7 @@ type (
 		//    token.Assign   // =
 		Op token.Kind
 		// Second operand.
-		B Expr
+		Y Expr
 	}
 
 	// A CallExpr node represents a call expression.

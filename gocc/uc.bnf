@@ -190,7 +190,7 @@ Expr
 //    2R: =
 Expr2R
 	: Expr5L
-	| Expr2R "=" Expr5L                 << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Assign, B: $2.(ast.Expr)}, nil >>
+	| Expr2R "=" Expr5L                 << astx.NewBinaryExpr($0, token.Assign, $2) >>
 ;
 
 // Left-associative binary expressions with precedence 5.
@@ -198,7 +198,7 @@ Expr2R
 //    5L: &&
 Expr5L
 	: Expr9L
-	| Expr5L "&&" Expr9L                << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Land, B: $2.(ast.Expr)}, nil >>
+	| Expr5L "&&" Expr9L                << astx.NewBinaryExpr($0, token.Land, $2) >>
 ;
 
 // Left-associative binary expressions with precedence 9.
@@ -206,8 +206,8 @@ Expr5L
 //    9L: == !=
 Expr9L
 	: Expr10L
-	| Expr9L "==" Expr10L               << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Eq, B: $2.(ast.Expr)}, nil >>
-	| Expr9L "!=" Expr10L               << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Ne, B: $2.(ast.Expr)}, nil >>
+	| Expr9L "==" Expr10L               << astx.NewBinaryExpr($0, token.Eq, $2) >>
+	| Expr9L "!=" Expr10L               << astx.NewBinaryExpr($0, token.Ne, $2) >>
 ;
 
 // Left-associative binary expressions with precedence 10.
@@ -215,10 +215,10 @@ Expr9L
 //    10L: < > <= >=
 Expr10L
 	: Expr12L
-	| Expr10L "<" Expr12L               << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Lt, B: $2.(ast.Expr)}, nil >>
-	| Expr10L ">" Expr12L               << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Gt, B: $2.(ast.Expr)}, nil >>
-	| Expr10L "<=" Expr12L              << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Le, B: $2.(ast.Expr)}, nil >>
-	| Expr10L ">=" Expr12L              << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Ge, B: $2.(ast.Expr)}, nil >>
+	| Expr10L "<" Expr12L               << astx.NewBinaryExpr($0, token.Lt, $2) >>
+	| Expr10L ">" Expr12L               << astx.NewBinaryExpr($0, token.Gt, $2) >>
+	| Expr10L "<=" Expr12L              << astx.NewBinaryExpr($0, token.Le, $2) >>
+	| Expr10L ">=" Expr12L              << astx.NewBinaryExpr($0, token.Ge, $2) >>
 ;
 
 // Left-associative binary expressions with precedence 12.
@@ -226,8 +226,8 @@ Expr10L
 //    12L: + -
 Expr12L
 	: Expr13L
-	| Expr12L "+" Expr13L               << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Add, B: $2.(ast.Expr)}, nil >>
-	| Expr12L "-" Expr13L               << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Sub, B: $2.(ast.Expr)}, nil >>
+	| Expr12L "+" Expr13L               << astx.NewBinaryExpr($0, token.Add, $2) >>
+	| Expr12L "-" Expr13L               << astx.NewBinaryExpr($0, token.Sub, $2) >>
 ;
 
 // Left-associative binary expressions with precedence 13.
@@ -235,8 +235,8 @@ Expr12L
 //    13L: * /
 Expr13L
 	: Expr14
-	| Expr13L "*" Expr14                << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Mul, B: $2.(ast.Expr)}, nil >>
-	| Expr13L "/" Expr14                << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Div, B: $2.(ast.Expr)}, nil >>
+	| Expr13L "*" Expr14                << astx.NewBinaryExpr($0, token.Mul, $2) >>
+	| Expr13L "/" Expr14                << astx.NewBinaryExpr($0, token.Div, $2) >>
 ;
 
 // Unary expressions with precedence 14.
@@ -244,8 +244,8 @@ Expr13L
 //    14: - !
 Expr14
 	: Expr15
-	| "-" Expr15                        << &ast.UnaryExpr{Op: token.Sub, B: $1.(ast.Expr)}, nil >>
-	| "!" Expr15                        << &ast.UnaryExpr{Op: token.Not, B: $1.(ast.Expr)}, nil >>
+	| "-" Expr15                        << astx.NewUnaryExpr(token.Sub, $1) >>
+	| "!" Expr15                        << astx.NewUnaryExpr(token.Not, $1) >>
 ;
 
 // TODO: Check that integer litearls, identifiers, index expressions, call
@@ -255,8 +255,8 @@ Expr14
 
 // Expressions with precedence 15.
 Expr15
-	: int_lit                           << &ast.BasicLit{Kind: token.IntLit, Val: string($2.(*gocctoken.Token).Lit)}, nil >>
-	| ident                             << &ast.Ident{Name: string($0.(*gocctoken.Token).Lit)}, nil >>
+	: int_lit                           << astx.NewBasicLit($1, token.IntLit) >>
+	| ident                             << astx.NewIdent($0) >>
 	| ident "[" Expr "]"                << astx.NewIndexExpr($0, $2) >>
 	| ident "(" Actuals ")"             << astx.NewCallExpr($0, $2) >>
 	| ParenExpr

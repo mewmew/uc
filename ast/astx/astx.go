@@ -8,6 +8,7 @@ import (
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
 	gocctoken "github.com/mewmew/uc/gocc/token"
+	"github.com/mewmew/uc/token"
 	"github.com/mewmew/uc/types"
 )
 
@@ -51,6 +52,83 @@ func NewType(typ interface{}) (types.Type, error) {
 		return typ, nil
 	}
 	return nil, errutil.Newf("invalid type; expected types.Type, got %T", typ)
+}
+
+// NewBinaryExpr returns a new binary experssion node, based on the following
+// production rules.
+//
+//    Expr2R "=" Expr5L
+//    Expr5L "&&" Expr9L
+//    Expr9L "==" Expr10L
+//    Expr9L "!=" Expr10L
+//    Expr10L "<" Expr12L
+//    Expr10L ">" Expr12L
+//    Expr10L "<=" Expr12L
+//    Expr10L ">=" Expr12L
+//    Expr12L "+" Expr13L
+//    Expr12L "-" Expr13L
+//    Expr13L "*" Expr14
+//    Expr13L "/" Expr14
+func NewBinaryExpr(x interface{}, op token.Kind, y interface{}) (*ast.BinaryExpr, error) {
+	switch op {
+	case token.Assign,
+		token.Land,
+		token.Eq, token.Ne,
+		token.Lt, token.Gt, token.Le, token.Ge,
+		token.Add, token.Sub,
+		token.Mul, token.Div:
+		// Valid binary operator.
+	default:
+		return nil, errutil.Newf("invalid binary operator; expected Assign, Land, Eq, Ne, Lt, Gt, Le, Ge, Add, Sub, Mul or Div, got %v", op)
+	}
+	arg0, ok := x.(ast.Expr)
+	if !ok {
+		return nil, errutil.Newf("invalid first binary operand type; expected ast.Expr, got %T", x)
+	}
+	arg1, ok := y.(ast.Expr)
+	if !ok {
+		return nil, errutil.Newf("invalid second binary operand type; expected ast.Expr, got %T", y)
+	}
+	return &ast.BinaryExpr{X: arg0, Op: op, Y: arg1}, nil
+}
+
+// NewUnaryExpr returns a new unary experssion node, based on the following
+// production rules.
+//
+//    "-" Expr15
+//    "!" Expr15
+func NewUnaryExpr(op token.Kind, x interface{}) (*ast.UnaryExpr, error) {
+	switch op {
+	case token.Sub, token.Not:
+		// Valid unary operator.
+	default:
+		return nil, errutil.Newf("invalid unary operator; expected Sub or Not, got %v", op)
+	}
+	if x, ok := x.(ast.Expr); ok {
+		return &ast.UnaryExpr{Op: op, X: x}, nil
+	}
+	return nil, errutil.Newf("invalid unary operand type; expected ast.Expr, got %T", x)
+}
+
+// TODO: Add char_lit production rule to NewBasicLit doc comment once handled
+// explicitly in uc.bnf.
+
+// NewBasicLit returns a new basic literal experssion node of the given kind,
+// based on the following production rule.
+//
+//    int_lit
+func NewBasicLit(val interface{}, kind token.Kind) (*ast.BasicLit, error) {
+	s, err := tokenString(val)
+	if err != nil {
+		return nil, errutil.Newf("invalid basic literal value; %v", err)
+	}
+	switch kind {
+	case token.CharLit, token.IntLit:
+		// Valid kind.
+	default:
+		return nil, errutil.Newf("invalid basic literal kind; expected CharLit or IntLit, got %v", kind)
+	}
+	return &ast.BasicLit{Kind: kind, Val: s}, nil
 }
 
 // NewIdent returns a new identifier experssion node, based on the following
