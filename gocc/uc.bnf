@@ -159,13 +159,12 @@ Stmts
 ;
 
 Stmt
-	: Expr ";"                          << &ast.ExprStmt{X: $0.(ast.Expr)}, nil >>
-	| "return" Expr ";"                 << &ast.ReturnStmt{Result: $1.(ast.Expr)}, nil >>
+	: Expr ";"                          << astx.NewExprStmt($0) >>
+	| "return" Expr ";"                 << astx.NewReturnStmt($1) >>
 	| "return" ";"                      << &ast.ReturnStmt{}, nil >>
-	| "while" Condition Stmt            << &ast.WhileStmt{Cond: $1.(ast.Expr), Body: $2.(ast.Stmt)}, nil >>
-	// TODO: Figure out how to handle nil else body. Type assertion will cause panic.
-	| "if" Condition Stmt ElsePart      << &ast.IfStmt{Cond: $1.(ast.Expr), Body: $2.(ast.Stmt), Else: $3.(ast.Stmt)}, nil >>
-	| "{" Stmts "}"                     << &ast.BlockStmt{Stmts: $1.([]ast.Stmt)}, nil >>
+	| "while" Condition Stmt            << astx.NewWhileStmt($1, $2) >>
+	| "if" Condition Stmt ElsePart      << astx.NewIfStmt($1, $2, $3) >>
+	| "{" Stmts "}"                     << astx.NewBlockStmt($1) >>
 	| ";"                               << &ast.EmptyStmt{}, nil >>
 ;
 

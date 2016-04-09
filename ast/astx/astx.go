@@ -16,7 +16,7 @@ import (
 // production rule.
 //
 //    TypeName ident "[" int_lit "]"
-func NewArrayDecl(elem interface{}, name interface{}, length interface{}) (ast.Decl, error) {
+func NewArrayDecl(elem, name, length interface{}) (ast.Decl, error) {
 	typ, err := NewArrayType(elem, length)
 	if err != nil {
 		return nil, errutil.Newf("invalid array type; %v", err)
@@ -30,7 +30,7 @@ func NewArrayDecl(elem interface{}, name interface{}, length interface{}) (ast.D
 
 // NewArrayType returns a new array type based on the given element type and
 // length.
-func NewArrayType(elem interface{}, length interface{}) (*types.Array, error) {
+func NewArrayType(elem, length interface{}) (*types.Array, error) {
 	s, err := tokenString(length)
 	if err != nil {
 		return nil, errutil.Newf("invalid array length; %v", err)
@@ -52,6 +52,82 @@ func NewType(typ interface{}) (types.Type, error) {
 		return typ, nil
 	}
 	return nil, errutil.Newf("invalid type; expected types.Type, got %T", typ)
+}
+
+// NewExprStmt returns a new expression statement, based on the following
+// production rule.
+//
+//    Expr ";"
+func NewExprStmt(x interface{}) (*ast.ExprStmt, error) {
+	if x, ok := x.(ast.Expr); ok {
+		return &ast.ExprStmt{X: x}, nil
+	}
+	return nil, errutil.Newf("invalid expression statement expression type; expected ast.Expr, got %T", x)
+}
+
+// NewReturnStmt returns a new return statement, based on the following
+// production rule.
+//
+//    "return" Expr ";"
+func NewReturnStmt(result interface{}) (*ast.ReturnStmt, error) {
+	if result, ok := result.(ast.Expr); ok {
+		return &ast.ReturnStmt{Result: result}, nil
+	}
+	return nil, errutil.Newf("invalid return statement result type; expected ast.Expr, got %T", result)
+}
+
+// NewWhileStmt returns a new while statement, based on the following production
+// rule.
+//
+//    "while" Condition Stmt
+func NewWhileStmt(cond, body interface{}) (*ast.WhileStmt, error) {
+	condExpr, ok := cond.(ast.Expr)
+	if !ok {
+		return nil, errutil.Newf("invalid while statement condition type; expected ast.Expr, got %T", cond)
+	}
+	bodyStmt, ok := body.(ast.Stmt)
+	if !ok {
+		return nil, errutil.Newf("invalid while statement body type; expected ast.Stmt, got %T", body)
+	}
+	return &ast.WhileStmt{Cond: condExpr, Body: bodyStmt}, nil
+}
+
+// NewIfStmt returns a new if statement, based on the following production
+// rules.
+//
+//    "if" Condition Stmt ElsePart
+//
+//    ElsePart
+//       : empty
+//       | "else" Stmt
+//    ;
+func NewIfStmt(cond, trueBranch, falseBranch interface{}) (*ast.IfStmt, error) {
+	condExpr, ok := cond.(ast.Expr)
+	if !ok {
+		return nil, errutil.Newf("invalid if statement condition type; expected ast.Expr, got %T", cond)
+	}
+	bodyStmt, ok := trueBranch.(ast.Stmt)
+	if !ok {
+		return nil, errutil.Newf("invalid if statement body type; expected ast.Stmt, got %T", trueBranch)
+	}
+	// TODO: Verify that the falseBranch != nil logic is correct for 1-way
+	// conditionals.
+	elseStmt, ok := cond.(ast.Stmt)
+	if !ok && falseBranch != nil {
+		return nil, errutil.Newf("invalid if statement else-body type; expected ast.Stmt, got %T", falseBranch)
+	}
+	return &ast.IfStmt{Cond: condExpr, Body: bodyStmt, Else: elseStmt}, nil
+}
+
+// NewBlockStmt returns a new block statement, based on the following production
+// rule.
+//
+//    "{" Stmts "}"
+func NewBlockStmt(stmts interface{}) (*ast.BlockStmt, error) {
+	if stmts, ok := stmts.([]ast.Stmt); ok {
+		return &ast.BlockStmt{Stmts: stmts}, nil
+	}
+	return nil, errutil.Newf("invalid block statements type; expected []ast.Stmt, got %T", stmts)
 }
 
 // NewBinaryExpr returns a new binary experssion node, based on the following
@@ -147,7 +223,7 @@ func NewIdent(name interface{}) (*ast.Ident, error) {
 // production rule.
 //
 //    ident "[" Expr "]"
-func NewIndexExpr(name interface{}, index interface{}) (*ast.IndexExpr, error) {
+func NewIndexExpr(name, index interface{}) (*ast.IndexExpr, error) {
 	ident, err := NewIdent(name)
 	if err != nil {
 		return nil, errutil.Newf("invalid array name; %v", err)
@@ -162,7 +238,7 @@ func NewIndexExpr(name interface{}, index interface{}) (*ast.IndexExpr, error) {
 // rule.
 //
 //    ident "(" Actuals ")"
-func NewCallExpr(name interface{}, args interface{}) (*ast.CallExpr, error) {
+func NewCallExpr(name, args interface{}) (*ast.CallExpr, error) {
 	ident, err := NewIdent(name)
 	if err != nil {
 		return nil, errutil.Newf("invalid function name; %v", err)
