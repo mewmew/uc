@@ -20,39 +20,37 @@ func NewArrayDecl(elem interface{}, name interface{}, length interface{}) (ast.D
 	if err != nil {
 		return nil, errutil.Newf("invalid array type; %v", err)
 	}
-	s, err := NewIdent(name)
+	ident, err := NewIdent(name)
 	if err != nil {
 		return nil, errutil.Newf("invalid declaration identifier; %v", err)
 	}
-	return &ast.VarDecl{Name: s, Type: typ}, nil
+	return &ast.VarDecl{Name: ident, Type: typ}, nil
 }
 
 // NewArrayType returns a new array type based on the given element type and
 // length.
 func NewArrayType(elem interface{}, length interface{}) (*types.Array, error) {
-	// Parse array length.
 	s, err := tokenString(length)
 	if err != nil {
 		return nil, errutil.Newf("invalid array length; %v", err)
 	}
-	n, err := strconv.Atoi(s)
+	len, err := strconv.Atoi(s)
 	if err != nil {
 		return nil, errutil.Newf("invalid array length; %v", err)
 	}
-
-	// Validate element type.
-	switch elem := elem.(type) {
-	case *types.Basic:
-		switch elem.Kind {
-		case types.Char, types.Int:
-			// Valid element type.
-		default:
-			return nil, errutil.Newf("invalid array element type; %v", elem.Kind)
-		}
-		return &types.Array{Elem: elem, Len: n}, nil
-	default:
-		return nil, errutil.Newf("invalid array element type; %v", elem)
+	elemType, err := NewType(elem)
+	if err != nil {
+		return nil, errutil.Newf("invalid array element type; %v", err)
 	}
+	return &types.Array{Elem: elemType, Len: len}, nil
+}
+
+// NewType returns a new type of µC.
+func NewType(typ interface{}) (types.Type, error) {
+	if typ, ok := typ.(types.Type); ok {
+		return typ, nil
+	}
+	return nil, errutil.Newf("invalid type; expected types.Type, got %T", typ)
 }
 
 // NewIdent returns a new identifier experssion node, based on the following
@@ -67,12 +65,51 @@ func NewIdent(name interface{}) (*ast.Ident, error) {
 	return &ast.Ident{Name: s}, nil
 }
 
+// NewIndexExpr returns a new index expression, based on the following
+// production rule.
+//
+//    ident "[" Expr "]"
+func NewIndexExpr(name interface{}, index interface{}) (*ast.IndexExpr, error) {
+	ident, err := NewIdent(name)
+	if err != nil {
+		return nil, errutil.Newf("invalid array name; %v", err)
+	}
+	if index, ok := index.(ast.Expr); ok {
+		return &ast.IndexExpr{Name: ident, Index: index}, nil
+	}
+	return nil, errutil.Newf("invalid index expression type; expected ast.Expr, got %T", index)
+}
+
+// NewCallExpr returns a new call expression, based on the following production
+// rule.
+//
+//    ident "(" Actuals ")"
+func NewCallExpr(name interface{}, args interface{}) (*ast.CallExpr, error) {
+	ident, err := NewIdent(name)
+	if err != nil {
+		return nil, errutil.Newf("invalid function name; %v", err)
+	}
+	if args, ok := args.([]ast.Expr); ok {
+		return &ast.CallExpr{Name: ident, Args: args}, nil
+	}
+	return nil, errutil.Newf("invalid function arguments type; expected []ast.Expr, got %T", args)
+}
+
+// NewParenExpr returns a new parenthesized expression, based on the following
+// production rule.
+//
+//    "(" Expr ")"
+func NewParenExpr(x interface{}) (*ast.ParenExpr, error) {
+	if x, ok := x.(ast.Expr); ok {
+		return &ast.ParenExpr{X: x}, nil
+	}
+	return nil, errutil.Newf("invalid parenthesized expression type; expected ast.Expr, got %T", x)
+}
+
 // tokenString returns the lexeme of the given token.
 func tokenString(tok interface{}) (string, error) {
-	switch tok := tok.(type) {
-	case *gocctoken.Token:
+	if tok, ok := tok.(*gocctoken.Token); ok {
 		return string(tok.Lit), nil
-	default:
-		return "", errutil.Newf("invalid tok type; expected *gocctoken.Token, got %T", tok)
 	}
+	return "", errutil.Newf("invalid tok type; expected *gocctoken.Token, got %T", tok)
 }

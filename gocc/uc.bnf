@@ -104,6 +104,8 @@ TopLevelDecl
 	| TypeName ident "(" Formals ")" FuncBody // TypeName : "char" | "int" | "void" ;
 ;
 
+// TODO: Rename Actuals, Args, and Formals Params.
+
 VarDecl
 	: ScalarDecl
 	| ArrayDecl
@@ -255,13 +257,13 @@ Expr14
 Expr15
 	: int_lit                           << &ast.BasicLit{Kind: token.IntLit, Val: string($2.(*gocctoken.Token).Lit)}, nil >>
 	| ident                             << &ast.Ident{Name: string($0.(*gocctoken.Token).Lit)}, nil >>
-	| ident "[" Expr "]"                << &ast.IndexExpr{Name: &ast.Ident{Name: string($0.(*gocctoken.Token).Lit)}, Index: $2.(ast.Expr)}, nil >>
-	| ident "(" Actuals ")"             << &ast.CallExpr{Name: &ast.Ident{Name: string($0.(*gocctoken.Token).Lit)}, Args: $2.([]ast.Expr)}, nil >>
+	| ident "[" Expr "]"                << astx.NewIndexExpr($0, $2) >>
+	| ident "(" Actuals ")"             << astx.NewCallExpr($0, $2) >>
 	| ParenExpr
 ;
 
 ParenExpr
-	: "(" Expr ")"                      << &ast.ParenExpr{X: $1.(ast.Expr)}, nil >>
+	: "(" Expr ")"                      << astx.NewParenExpr($1) >>
 ;
 
 Actuals
