@@ -145,13 +145,13 @@ func NewIfStmt(cond, trueBranch, falseBranch interface{}) (*ast.IfStmt, error) {
 	if !ok {
 		return nil, errutil.Newf("invalid if statement body type; expected ast.Stmt, got %T", trueBranch)
 	}
-	// TODO: Verify that the falseBranch != nil logic is correct for 1-way
-	// conditionals.
-	elseStmt, ok := falseBranch.(ast.Stmt)
-	if !ok && falseBranch != nil {
-		return nil, errutil.Newf("invalid if statement else-body type; expected ast.Stmt, got %T", falseBranch)
+	if falseBranch == nil {
+		return &ast.IfStmt{Cond: condExpr, Body: bodyStmt}, nil
 	}
-	return &ast.IfStmt{Cond: condExpr, Body: bodyStmt, Else: elseStmt}, nil
+	if elseStmt, ok := falseBranch.(ast.Stmt); ok {
+		return &ast.IfStmt{Cond: condExpr, Body: bodyStmt, Else: elseStmt}, nil
+	}
+	return nil, errutil.Newf("invalid if statement else-body type; expected ast.Stmt, got %T", falseBranch)
 }
 
 // NewBlockStmt returns a new block statement, based on the following production
