@@ -85,8 +85,9 @@ _char_lit     : '\'' ( _ascii_char | '"' | _escaped_char ) '\'' ;
 
 	"github.com/mewmew/uc/ast"
 	"github.com/mewmew/uc/ast/astx"
-	"github.com/mewmew/uc/token"
 	gocctoken "github.com/mewmew/uc/gocc/token"
+	"github.com/mewmew/uc/token"
+	"github.com/mewmew/uc/types"
 ) >>
 
 Program
@@ -119,9 +120,9 @@ ArrayDecl
 
 TypeName
 	// TypeName : "char" | "int" | "void" ;
-	: "char"                            << &ast.BasicType{Kind: ast.CharType}, nil >>
-	| "int"                             << &ast.BasicType{Kind: ast.IntType}, nil >>
-	| "void"                            << &ast.BasicType{Kind: ast.VoidType}, nil >>
+	: "char"                            << &types.Basic{Kind: types.Char}, nil >>
+	| "int"                             << &types.Basic{Kind: types.Int}, nil >>
+	| "void"                            << &types.Basic{Kind: types.Void}, nil >>
 ;
 
 FuncBody

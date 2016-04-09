@@ -3,9 +3,8 @@
 package ast
 
 import (
-	"fmt"
-
 	"github.com/mewmew/uc/token"
+	"github.com/mewmew/uc/types"
 )
 
 // A File represents a µC source file.
@@ -53,7 +52,7 @@ type (
 		// Function name.
 		Name *Ident
 		// Function signature.
-		Type *FuncType
+		Type *types.Func
 		// Function body; or nil if function declaration (i.e. not function
 		// definition).
 		Body *BlockStmt
@@ -78,7 +77,7 @@ type (
 		// Variable name.
 		Name *Ident
 		// Variable type.
-		Type Type
+		Type types.Type
 		// Variable value expression; or nil if variable declaration (i.e. not
 		// variable definition).
 		Val Expr
@@ -260,71 +259,6 @@ type (
 		Index Expr
 	}
 )
-
-// TODO: Move types to dedicated types package, and simplify names; e.g.
-// ArrayType becomes types.Array, Array.ElemType becomes types.Array.Elem,
-// IntType becomes types.Int, etc.
-
-// A Type represents a type of µC, and has one of the following underlying
-// types.
-//
-//    *BasicType
-//    *ArrayType
-//    *FuncType
-type Type interface {
-	// isType ensures that only µC types can be assigned to the Type interface.
-	isType()
-}
-
-type (
-
-	// A BasicType represents a basic type.
-	BasicType struct {
-		// Kind of basic type.
-		Kind BasicKind
-	}
-
-	// An ArrayType represents an array type.
-	ArrayType struct {
-		// Element type.
-		ElemType Type
-		// Array length.
-		Len int
-	}
-
-	// A FuncType represents a function signature.
-	FuncType struct {
-		// Function argument types.
-		Args []Type
-		// Return type.
-		Result Type
-	}
-)
-
-// BasicKind describes the kind of basic type.
-type BasicKind int
-
-// Basic type.
-const (
-	InvalidType BasicKind = iota // invalid type
-
-	CharType // "char"
-	IntType  // "int"
-	VoidType // "void"
-)
-
-func (kind BasicKind) String() string {
-	m := map[BasicKind]string{
-		InvalidType: "invalid kind of basic type",
-		CharType:    "char",
-		IntType:     "int",
-		VoidType:    "void",
-	}
-	if s, ok := m[kind]; ok {
-		return s
-	}
-	return fmt.Sprintf("unknown kind of basic type (%d)", int(kind))
-}
 
 // Start returns the start position of the node within the input stream.
 func (n *BasicLit) Start() int { panic("ast.BasicLit.Start: not yet implemented") }
@@ -519,16 +453,4 @@ var (
 	_ Expr = &IndexExpr{}
 	_ Expr = &ParenExpr{}
 	_ Expr = &UnaryExpr{}
-)
-
-// isType ensures that only µC types can be assigned to the Type interface.
-func (n *BasicType) isType() {}
-func (n *ArrayType) isType() {}
-func (n *FuncType) isType()  {}
-
-// Verify that the µC types implement the Type interface.
-var (
-	_ Type = &BasicType{}
-	_ Type = &ArrayType{}
-	_ Type = &FuncType{}
 )

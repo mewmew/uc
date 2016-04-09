@@ -8,6 +8,7 @@ import (
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
 	gocctoken "github.com/mewmew/uc/gocc/token"
+	"github.com/mewmew/uc/types"
 )
 
 // NewArrayDecl returns a new array declaration node, based on the following
@@ -28,7 +29,7 @@ func NewArrayDecl(elem interface{}, name interface{}, length interface{}) (ast.D
 
 // NewArrayType returns a new array type based on the given element type and
 // length.
-func NewArrayType(elem interface{}, length interface{}) (*ast.ArrayType, error) {
+func NewArrayType(elem interface{}, length interface{}) (*types.Array, error) {
 	// Parse array length.
 	s, err := tokenString(length)
 	if err != nil {
@@ -41,14 +42,14 @@ func NewArrayType(elem interface{}, length interface{}) (*ast.ArrayType, error) 
 
 	// Validate element type.
 	switch elem := elem.(type) {
-	case *ast.BasicType:
+	case *types.Basic:
 		switch elem.Kind {
-		case ast.CharType, ast.IntType:
+		case types.Char, types.Int:
 			// Valid element type.
 		default:
 			return nil, errutil.Newf("invalid array element type; %v", elem.Kind)
 		}
-		return &ast.ArrayType{ElemType: elem, Len: n}, nil
+		return &types.Array{Elem: elem, Len: n}, nil
 	default:
 		return nil, errutil.Newf("invalid array element type; %v", elem)
 	}
