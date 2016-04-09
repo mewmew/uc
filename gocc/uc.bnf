@@ -76,7 +76,6 @@ int_lit : _decimals | _char_lit ;
 _escaped_char : '\\' 'n' ;
 _char_lit     : '\'' ( _ascii_char | '"' | _escaped_char ) '\'' ;
 
-
 // # Syntaxic production rules
 //
 
@@ -101,7 +100,8 @@ TopLevelDeclList
 
 TopLevelDecl
 	: VarDecl ";"
-	| TypeName ident "(" Params ")" FuncBody // TypeName : "char" | "int" | "void" ;
+	// TypeName : "char" | "int" | "void" ;
+	| TypeName ident "(" Params ")" FuncBody
 ;
 
 VarDecl
@@ -110,7 +110,8 @@ VarDecl
 ;
 
 ScalarDecl
-	: TypeName ident // TypeName : "char" | "int" ;
+	// TypeName : "char" | "int" ;
+	: TypeName ident
 ;
 
 ArrayDecl
@@ -134,7 +135,8 @@ FuncBody
 ;
 
 Params
-	: TypeName   // TypeName : "void" ;
+	// TypeName : "void" ;
+	: TypeName
 	| FormalList
 ;
 
@@ -267,11 +269,11 @@ ParenExpr
 ;
 
 Args
-	: empty
+	: empty                             << nil, nil >>
 	| ExprList
 ;
 
 ExprList
-	: Expr
-	| Expr "," ExprList
+	: Expr                              << astx.NewExprList($0) >>
+	| ExprList "," Expr                 << astx.AppendExpr($0, $2) >>
 ;

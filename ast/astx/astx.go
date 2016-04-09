@@ -15,7 +15,9 @@ import (
 // NewArrayDecl returns a new array declaration node, based on the following
 // production rule.
 //
-//    TypeName ident "[" int_lit "]"
+//    ArrayDecl
+//       : TypeName ident "[" int_lit "]"
+//    ;
 func NewArrayDecl(elem, name, length interface{}) (ast.Decl, error) {
 	typ, err := NewArrayType(elem, length)
 	if err != nil {
@@ -57,9 +59,11 @@ func NewType(typ interface{}) (types.Type, error) {
 // NewBasicType returns a new basic type of µC, based on the following
 // production rules.
 //
-//    "char"
-//    "int"
-//    "void"
+//    TypeName
+//       : "char"
+//       | "int"
+//       | "void"
+//    ;
 func NewBasicType(typ interface{}) (*types.Basic, error) {
 	s, err := tokenString(typ)
 	if err != nil {
@@ -80,7 +84,9 @@ func NewBasicType(typ interface{}) (*types.Basic, error) {
 // NewExprStmt returns a new expression statement, based on the following
 // production rule.
 //
-//    Expr ";"
+//    Stmt
+//       : Expr ";"
+//    ;
 func NewExprStmt(x interface{}) (*ast.ExprStmt, error) {
 	if x, ok := x.(ast.Expr); ok {
 		return &ast.ExprStmt{X: x}, nil
@@ -91,7 +97,9 @@ func NewExprStmt(x interface{}) (*ast.ExprStmt, error) {
 // NewReturnStmt returns a new return statement, based on the following
 // production rule.
 //
-//    "return" Expr ";"
+//    Stmt
+//       : "return" Expr ";"
+//    ;
 func NewReturnStmt(result interface{}) (*ast.ReturnStmt, error) {
 	if result, ok := result.(ast.Expr); ok {
 		return &ast.ReturnStmt{Result: result}, nil
@@ -102,7 +110,9 @@ func NewReturnStmt(result interface{}) (*ast.ReturnStmt, error) {
 // NewWhileStmt returns a new while statement, based on the following production
 // rule.
 //
-//    "while" Condition Stmt
+//    Stmt
+//       : "while" Condition Stmt
+//    ;
 func NewWhileStmt(cond, body interface{}) (*ast.WhileStmt, error) {
 	condExpr, ok := cond.(ast.Expr)
 	if !ok {
@@ -118,7 +128,9 @@ func NewWhileStmt(cond, body interface{}) (*ast.WhileStmt, error) {
 // NewIfStmt returns a new if statement, based on the following production
 // rules.
 //
-//    "if" Condition Stmt ElsePart
+//    Stmt
+//       : "if" Condition Stmt ElsePart
+//    ;
 //
 //    ElsePart
 //       : empty
@@ -145,7 +157,9 @@ func NewIfStmt(cond, trueBranch, falseBranch interface{}) (*ast.IfStmt, error) {
 // NewBlockStmt returns a new block statement, based on the following production
 // rule.
 //
-//    "{" Stmts "}"
+//    Stmt
+//       : "{" Stmts "}"
+//    ;
 func NewBlockStmt(stmts interface{}) (*ast.BlockStmt, error) {
 	if stmts, ok := stmts.([]ast.Stmt); ok {
 		return &ast.BlockStmt{Stmts: stmts}, nil
@@ -156,18 +170,35 @@ func NewBlockStmt(stmts interface{}) (*ast.BlockStmt, error) {
 // NewBinaryExpr returns a new binary experssion node, based on the following
 // production rules.
 //
-//    Expr2R "=" Expr5L
-//    Expr5L "&&" Expr9L
-//    Expr9L "==" Expr10L
-//    Expr9L "!=" Expr10L
-//    Expr10L "<" Expr12L
-//    Expr10L ">" Expr12L
-//    Expr10L "<=" Expr12L
-//    Expr10L ">=" Expr12L
-//    Expr12L "+" Expr13L
-//    Expr12L "-" Expr13L
-//    Expr13L "*" Expr14
-//    Expr13L "/" Expr14
+//    Expr2R
+//       : Expr2R "=" Expr5L
+//    ;
+//
+//    Expr5L
+//       : Expr5L "&&" Expr9L
+//    ;
+//
+//    Expr9L
+//       : Expr9L "==" Expr10L
+//       | Expr9L "!=" Expr10L
+//    ;
+//
+//    Expr10L
+//       : Expr10L "<" Expr12L
+//       | Expr10L ">" Expr12L
+//       | Expr10L "<=" Expr12L
+//       | Expr10L ">=" Expr12L
+//    ;
+//
+//    Expr12L
+//       : Expr12L "+" Expr13L
+//       | Expr12L "-" Expr13L
+//    ;
+//
+//    Expr13L
+//       : Expr13L "*" Expr14
+//       | Expr13L "/" Expr14
+//    ;
 func NewBinaryExpr(x interface{}, op token.Kind, y interface{}) (*ast.BinaryExpr, error) {
 	switch op {
 	case token.Assign,
@@ -194,8 +225,10 @@ func NewBinaryExpr(x interface{}, op token.Kind, y interface{}) (*ast.BinaryExpr
 // NewUnaryExpr returns a new unary experssion node, based on the following
 // production rules.
 //
-//    "-" Expr15
-//    "!" Expr15
+//    Expr14
+//       : "-" Expr15
+//       | "!" Expr15
+//    ;
 func NewUnaryExpr(op token.Kind, x interface{}) (*ast.UnaryExpr, error) {
 	switch op {
 	case token.Sub, token.Not:
@@ -215,7 +248,9 @@ func NewUnaryExpr(op token.Kind, x interface{}) (*ast.UnaryExpr, error) {
 // NewBasicLit returns a new basic literal experssion node of the given kind,
 // based on the following production rule.
 //
-//    int_lit
+//    Expr15
+//       : int_lit
+//    ;
 func NewBasicLit(val interface{}, kind token.Kind) (*ast.BasicLit, error) {
 	s, err := tokenString(val)
 	if err != nil {
@@ -233,7 +268,9 @@ func NewBasicLit(val interface{}, kind token.Kind) (*ast.BasicLit, error) {
 // NewIdent returns a new identifier experssion node, based on the following
 // production rule.
 //
-//    ident
+//    Expr15
+//       : ident
+//    ;
 func NewIdent(name interface{}) (*ast.Ident, error) {
 	s, err := tokenString(name)
 	if err != nil {
@@ -245,7 +282,9 @@ func NewIdent(name interface{}) (*ast.Ident, error) {
 // NewIndexExpr returns a new index expression, based on the following
 // production rule.
 //
-//    ident "[" Expr "]"
+//    Expr15
+//       : ident "[" Expr "]"
+//    ;
 func NewIndexExpr(name, index interface{}) (*ast.IndexExpr, error) {
 	ident, err := NewIdent(name)
 	if err != nil {
@@ -260,7 +299,9 @@ func NewIndexExpr(name, index interface{}) (*ast.IndexExpr, error) {
 // NewCallExpr returns a new call expression, based on the following production
 // rule.
 //
-//    ident "(" Args ")"
+//    Expr15
+//       : ident "(" Args ")"
+//    ;
 func NewCallExpr(name, args interface{}) (*ast.CallExpr, error) {
 	ident, err := NewIdent(name)
 	if err != nil {
@@ -275,12 +316,44 @@ func NewCallExpr(name, args interface{}) (*ast.CallExpr, error) {
 // NewParenExpr returns a new parenthesized expression, based on the following
 // production rule.
 //
-//    "(" Expr ")"
+//    ParenExpr
+//       : "(" Expr ")"
+//    ;
 func NewParenExpr(x interface{}) (*ast.ParenExpr, error) {
 	if x, ok := x.(ast.Expr); ok {
 		return &ast.ParenExpr{X: x}, nil
 	}
 	return nil, errutil.Newf("invalid parenthesized expression type; expected ast.Expr, got %T", x)
+}
+
+// NewExprList returns a new expression list, based on the following production
+// rule.
+//
+//    ExprList
+//       : Expr
+//    ;
+func NewExprList(x interface{}) ([]ast.Expr, error) {
+	if x, ok := x.(ast.Expr); ok {
+		return []ast.Expr{x}, nil
+	}
+	return nil, errutil.Newf("invalid expression list expression type; expected ast.Expr, got %T", x)
+}
+
+// AppendExpr appends x to the expression list, based on the following
+// production rule.
+//
+//    ExprList
+//       : ExprList "," Expr
+//    ;
+func AppendExpr(list, x interface{}) ([]ast.Expr, error) {
+	l, ok := list.([]ast.Expr)
+	if !ok {
+		return nil, errutil.Newf("invalid expression list type; expected []ast.Expr, got %T", list)
+	}
+	if x, ok := x.(ast.Expr); ok {
+		return append(l, x), nil
+	}
+	return nil, errutil.Newf("invalid expression list expression type; expected ast.Expr, got %T", x)
 }
 
 // tokenString returns the lexeme of the given token.
