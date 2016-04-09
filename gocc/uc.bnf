@@ -260,7 +260,7 @@ Expr14
 
 // Expressions with precedence 15.
 Expr15
-	: int_lit                           << astx.NewBasicLit($1, token.IntLit) >>
+	: int_lit                           << astx.NewBasicLit($0, token.IntLit) >>
 	| ident                             << astx.NewIdent($0) >>
 	| ident "[" Expr "]"                << astx.NewIndexExpr($0, $2) >>
 	| ident "(" Args ")"                << astx.NewCallExpr($0, $2) >>
