@@ -2,7 +2,11 @@
 // soure code.
 package ast
 
-import "github.com/mewmew/uc/token"
+import (
+	"fmt"
+
+	"github.com/mewmew/uc/token"
+)
 
 // A File represents a µC source file.
 type File struct {
@@ -74,7 +78,7 @@ type (
 		// Variable name.
 		Name *Ident
 		// Variable type.
-		Type *VarType
+		Type Type
 		// Variable value expression; or nil if variable declaration (i.e. not
 		// variable definition).
 		Val Expr
@@ -85,7 +89,12 @@ type (
 // types.
 //
 //    *BlockStmt
-//    TODO
+//    *DeclStmt
+//    *EmptyStmt
+//    *ExprStmt
+//    *IfStmt
+//    *ReturnStmt
+//    *WhileStmt
 type Stmt interface {
 	Node
 	// isStmt ensures that only statement nodes can be assigned to the Stmt
@@ -117,12 +126,12 @@ type (
 		Stmts []Stmt
 	}
 
+	// TODO: Add support for lists of declarations? E.g.
+	//    int x, y, z;
+	//    int x, y = 3, *z;
+
 	// A DeclStmt node represents a declaration statement.
 	DeclStmt struct {
-		// TODO: Add support for lists of declarations? E.g.
-		//    int x, y, z;
-		//    int x, y = 3, *z;
-
 		// Declaration.
 		Decl Decl
 	}
@@ -164,7 +173,13 @@ type (
 // An Expr node represents an expression, and has one of the following
 // underlying types.
 //
-//    TODO
+//    *BasicLit
+//    *BinaryExpr
+//    *CallExpr
+//    *Ident
+//    *IndexExpr
+//    *ParenExpr
+//    *UnaryExpr
 type Expr interface {
 	Node
 	// isExpr ensures that only expression nodes can be assigned to the Expr
@@ -246,14 +261,70 @@ type (
 	}
 )
 
-// TODO: Move FuncType and VarType to dedicated types package.
-// TODO: Add definition of FuncType and VarType.
+// TODO: Move types to dedicated types package, and simplify names; e.g.
+// ArrayType becomes types.Array, Array.ElemType becomes types.Array.Elem,
+// IntType becomes types.Int, etc.
 
-// A FuncType represents a type signature.
-type FuncType struct{}
+// A Type represents a type of µC, and has one of the following underlying
+// types.
+//
+//    *BasicType
+//    *ArrayType
+//    *FuncType
+type Type interface {
+	// isType ensures that only µC types can be assigned to the Type interface.
+	isType()
+}
 
-// A VarType represents a variable type.
-type VarType struct{}
+type (
+
+	// A BasicType represents a basic type.
+	BasicType struct {
+		// Kind of basic type.
+		Kind BasicKind
+	}
+
+	// An ArrayType represents an array type.
+	ArrayType struct {
+		// Element type.
+		ElemType Type
+		// Array length.
+		Len int
+	}
+
+	// A FuncType represents a function signature.
+	FuncType struct {
+		// Function argument types.
+		Args []Type
+		// Return type.
+		Result Type
+	}
+)
+
+// BasicKind describes the kind of basic type.
+type BasicKind int
+
+// Basic type.
+const (
+	InvalidType BasicKind = iota // invalid type
+
+	CharType // "char"
+	IntType  // "int"
+	VoidType // "void"
+)
+
+func (kind BasicKind) String() string {
+	m := map[BasicKind]string{
+		InvalidType: "invalid kind of basic type",
+		CharType:    "char",
+		IntType:     "int",
+		VoidType:    "void",
+	}
+	if s, ok := m[kind]; ok {
+		return s
+	}
+	return fmt.Sprintf("unknown kind of basic type (%d)", int(kind))
+}
 
 // Start returns the start position of the node within the input stream.
 func (n *BasicLit) Start() int { panic("ast.BasicLit.Start: not yet implemented") }
@@ -448,4 +519,16 @@ var (
 	_ Expr = &IndexExpr{}
 	_ Expr = &ParenExpr{}
 	_ Expr = &UnaryExpr{}
+)
+
+// isType ensures that only µC types can be assigned to the Type interface.
+func (n *BasicType) isType() {}
+func (n *ArrayType) isType() {}
+func (n *FuncType) isType()  {}
+
+// Verify that the µC types implement the Type interface.
+var (
+	_ Type = &BasicType{}
+	_ Type = &ArrayType{}
+	_ Type = &FuncType{}
 )
