@@ -80,6 +80,13 @@ _char_lit     : '\'' ( _ascii_char | '"' | _escaped_char ) '\'' ;
 // # Syntaxic production rules
 //
 
+<< import (
+	"github.com/mewmew/uc/ast"
+	"github.com/mewmew/uc/ast/astx"
+	"github.com/mewmew/uc/token"
+	gocctoken "github.com/mewmew/uc/gocc/token"
+) >>
+
 Program
 	: TopLevelDeclList
 ;
@@ -172,7 +179,7 @@ Expr
 //    2R: =
 Expr2R
 	: Expr5L
-	| Expr2R "=" Expr5L
+	| Expr2R "=" Expr5L           << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Assign, B: $2.(ast.Expr)}, nil >>
 ;
 
 // Left-associative binary expressions with precedence 5.
@@ -180,7 +187,7 @@ Expr2R
 //    5L: &&
 Expr5L
 	: Expr9L
-	| Expr5L "&&" Expr9L
+	| Expr5L "&&" Expr9L          << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Land, B: $2.(ast.Expr)}, nil >>
 ;
 
 // Left-associative binary expressions with precedence 9.
@@ -188,8 +195,8 @@ Expr5L
 //    9L: == !=
 Expr9L
 	: Expr10L
-	| Expr9L "==" Expr10L
-	| Expr9L "!=" Expr10L
+	| Expr9L "==" Expr10L         << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Eq, B: $2.(ast.Expr)}, nil >>
+	| Expr9L "!=" Expr10L         << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Ne, B: $2.(ast.Expr)}, nil >>
 ;
 
 // Left-associative binary expressions with precedence 10.
@@ -197,10 +204,10 @@ Expr9L
 //    10L: < > <= >=
 Expr10L
 	: Expr12L
-	| Expr10L "<" Expr12L
-	| Expr10L ">" Expr12L
-	| Expr10L "<=" Expr12L
-	| Expr10L ">=" Expr12L
+	| Expr10L "<" Expr12L         << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Lt, B: $2.(ast.Expr)}, nil >>
+	| Expr10L ">" Expr12L         << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Gt, B: $2.(ast.Expr)}, nil >>
+	| Expr10L "<=" Expr12L        << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Le, B: $2.(ast.Expr)}, nil >>
+	| Expr10L ">=" Expr12L        << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Ge, B: $2.(ast.Expr)}, nil >>
 ;
 
 // Left-associative binary expressions with precedence 12.
@@ -208,8 +215,8 @@ Expr10L
 //    12L: + -
 Expr12L
 	: Expr13L
-	| Expr12L "+" Expr13L
-	| Expr12L "-" Expr13L
+	| Expr12L "+" Expr13L         << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Add, B: $2.(ast.Expr)}, nil >>
+	| Expr12L "-" Expr13L         << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Sub, B: $2.(ast.Expr)}, nil >>
 ;
 
 // Left-associative binary expressions with precedence 13.
@@ -217,8 +224,8 @@ Expr12L
 //    13L: * /
 Expr13L
 	: Expr14
-	| Expr13L "*" Expr14
-	| Expr13L "/" Expr14
+	| Expr13L "*" Expr14          << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Mul, B: $2.(ast.Expr)}, nil >>
+	| Expr13L "/" Expr14          << &ast.BinaryExpr{A: $0.(ast.Expr), Op: token.Div, B: $2.(ast.Expr)}, nil >>
 ;
 
 // Unary expressions with precedence 14.
@@ -226,20 +233,22 @@ Expr13L
 //    14: - !
 Expr14
 	: Expr15
-	| "-" Expr15
-	| "!" Expr15
+	| "-" Expr15                  << &ast.UnaryExpr{Op: token.Sub, B: $1.(ast.Expr)}, nil >>
+	| "!" Expr15                  << &ast.UnaryExpr{Op: token.Not, B: $1.(ast.Expr)}, nil >>
 ;
 
 // TODO: Check that integer litearls, identifiers, index expressions, call
 // expressions, and parentesized espressions have precedence 15.
 
+// TODO: Handle char_lit explicitly?
+
 // Expressions with precedence 15.
 Expr15
-	: int_lit
-	| ident
-	| ident "[" Expr "]"
-	| ident "(" Actuals ")"
-	| "(" Expr ")"
+	: int_lit                     << &ast.BasicLit{Kind: token.IntLit, Val: string($2.(*gocctoken.Token).Lit)}, nil >>
+	| ident                       << &ast.Ident{Name: string($0.(*gocctoken.Token).Lit)}, nil >>
+	| ident "[" Expr "]"          << &ast.IndexExpr{Name: &ast.Ident{Name: string($0.(*gocctoken.Token).Lit)}, Index: $2.(ast.Expr)}, nil >>
+	| ident "(" Actuals ")"       << &ast.CallExpr{Name: &ast.Ident{Name: string($0.(*gocctoken.Token).Lit)}, Args: $2.([]ast.Expr)}, nil >>
+	| "(" Expr ")"                << &ast.ParenExpr{Expr: $1.(ast.Expr)}, nil >>
 ;
 
 Actuals
