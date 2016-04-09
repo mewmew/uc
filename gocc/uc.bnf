@@ -81,6 +81,8 @@ _char_lit     : '\'' ( _ascii_char | '"' | _escaped_char ) '\'' ;
 //
 
 << import (
+	"strconv"
+
 	"github.com/mewmew/uc/ast"
 	"github.com/mewmew/uc/ast/astx"
 	"github.com/mewmew/uc/token"
@@ -111,11 +113,15 @@ ScalarDecl
 ;
 
 ArrayDecl
-	: TypeName ident "[" int_lit "]" // TypeName : "char" | "int" ;
+	// TypeName : "char" | "int" ;
+	: TypeName ident "[" int_lit "]"    << astx.NewArrayDecl($0, $1, $3) >>
 ;
 
 TypeName
-	: "char" | "int" | "void" // TypeName : "char" | "int" | "void" ;
+	// TypeName : "char" | "int" | "void" ;
+	: "char"                            << &ast.BasicType{Kind: ast.CharType}, nil >>
+	| "int"                             << &ast.BasicType{Kind: ast.IntType}, nil >>
+	| "void"                            << &ast.BasicType{Kind: ast.VoidType}, nil >>
 ;
 
 FuncBody
@@ -135,7 +141,8 @@ FormalList
 
 FormalDecl
 	: ScalarDecl
-	| TypeName ident "[" "]" // TypeName : "char" | "int" ;
+	// TypeName : "char" | "int" ;
+	| TypeName ident "[" "]"
 ;
 
 Locals

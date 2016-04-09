@@ -1,4 +1,5 @@
-// Package astx implements utility functions for handling abstract syntax trees.
+// Package astx implements utility functions for generating abstract syntax
+// trees.
 package astx
 
 import (
@@ -16,31 +17,40 @@ import (
 func NewArrayDecl(elem interface{}, name interface{}, length interface{}) (ast.Decl, error) {
 	typ, err := NewArrayType(elem, length)
 	if err != nil {
-		return nil, errutil.Err(err)
+		return nil, errutil.Newf("invalid array type; %v", err)
 	}
-	return &ast.VarDecl{Name: NewIdent(name), Type: typ}, nil
+	s, err := NewIdent(name)
+	if err != nil {
+		return nil, errutil.Newf("invalid declaration identifier; %v", err)
+	}
+	return &ast.VarDecl{Name: s, Type: typ}, nil
 }
 
 // NewArrayType returns a new array type based on the given element type and
 // length.
 func NewArrayType(elem interface{}, length interface{}) (*ast.ArrayType, error) {
-	n, err := strconv.Atoi(tokenString(length))
+	// Parse array length.
+	s, err := tokenString(length)
 	if err != nil {
-		return nil, errutil.Newf("astx.NewArrayType: invalid length; %v", err)
+		return nil, errutil.Newf("invalid array length; %v", err)
+	}
+	n, err := strconv.Atoi(s)
+	if err != nil {
+		return nil, errutil.Newf("invalid array length; %v", err)
 	}
 
-	// Sanity checks.
+	// Validate element type.
 	switch elem := elem.(type) {
 	case *ast.BasicType:
 		switch elem.Kind {
 		case ast.CharType, ast.IntType:
-			// Valid type.
+			// Valid element type.
 		default:
-			return nil, errutil.Newf("astx.NewArrayType: invalid kind of element basic type; %v", elem.Kind)
+			return nil, errutil.Newf("invalid array element type; %v", elem.Kind)
 		}
 		return &ast.ArrayType{ElemType: elem, Len: n}, nil
 	default:
-		return nil, errutil.Newf("astx.NewArrayType: invalid element type; %v", elem)
+		return nil, errutil.Newf("invalid array element type; %v", elem)
 	}
 }
 
@@ -48,11 +58,20 @@ func NewArrayType(elem interface{}, length interface{}) (*ast.ArrayType, error) 
 // production rule.
 //
 //    ident
-func NewIdent(name interface{}) *ast.Ident {
-	return &ast.Ident{Name: tokenString(name)}
+func NewIdent(name interface{}) (*ast.Ident, error) {
+	s, err := tokenString(name)
+	if err != nil {
+		return nil, errutil.Newf("invalid identifier; %v", err)
+	}
+	return &ast.Ident{Name: s}, nil
 }
 
 // tokenString returns the lexeme of the given token.
-func tokenString(tok interface{}) string {
-	return string(tok.(*gocctoken.Token).Lit)
+func tokenString(tok interface{}) (string, error) {
+	switch tok := tok.(type) {
+	case *gocctoken.Token:
+		return string(tok.Lit), nil
+	default:
+		return "", errutil.Newf("invalid tok type; expected *gocctoken.Token, got %T", tok)
+	}
 }
