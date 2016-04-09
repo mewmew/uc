@@ -170,7 +170,7 @@ Stmt
 ;
 
 ElsePart
-	: empty                             << nil, nil >>
+	: empty
 	| "else" Stmt                       << $1, nil >>
 ;
 
@@ -277,7 +277,7 @@ ParenExpr
 ;
 
 Args
-	: empty                             << nil, nil >>
+	: empty
 	| ExprList
 ;
 
