@@ -147,7 +147,7 @@ func NewIfStmt(cond, trueBranch, falseBranch interface{}) (*ast.IfStmt, error) {
 	}
 	// TODO: Verify that the falseBranch != nil logic is correct for 1-way
 	// conditionals.
-	elseStmt, ok := cond.(ast.Stmt)
+	elseStmt, ok := falseBranch.(ast.Stmt)
 	if !ok && falseBranch != nil {
 		return nil, errutil.Newf("invalid if statement else-body type; expected ast.Stmt, got %T", falseBranch)
 	}
