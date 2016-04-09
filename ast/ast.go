@@ -133,7 +133,7 @@ type (
 	// An ExprStmt node represents a stand-alone expression in a statement list.
 	ExprStmt struct {
 		// Stand-alone expression.
-		Expr Expr
+		X Expr
 	}
 
 	// An IfStmt node represents an if statement.
@@ -234,7 +234,7 @@ type (
 	// A ParenExpr node represents a parenthesised expression.
 	ParenExpr struct {
 		// Parenthesised expression.
-		Expr Expr
+		X Expr
 	}
 
 	// An IndexExpr node represents an array index expression.
