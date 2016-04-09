@@ -307,6 +307,9 @@ func NewCallExpr(name, args interface{}) (*ast.CallExpr, error) {
 	if err != nil {
 		return nil, errutil.Newf("invalid function name; %v", err)
 	}
+	if args == nil {
+		return &ast.CallExpr{Name: ident}, nil
+	}
 	if args, ok := args.([]ast.Expr); ok {
 		return &ast.CallExpr{Name: ident, Args: args}, nil
 	}
