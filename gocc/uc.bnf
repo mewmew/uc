@@ -120,11 +120,14 @@ ArrayDecl
 	: TypeName ident "[" int_lit "]"    << astx.NewArrayDecl($0, $1, $3) >>
 ;
 
+// TODO: Figure out a way to reimplement The Lexer Hack without getting shift-
+// reduce conflicts in the Locals production rule.
+
 TypeName
 	// TypeName : "char" | "int" | "void" ;
-	: "char"                            << &types.Basic{Kind: types.Char}, nil >>
-	| "int"                             << &types.Basic{Kind: types.Int}, nil >>
-	| "void"                            << &types.Basic{Kind: types.Void}, nil >>
+	: "char"                            << astx.NewBasicType($0) >>
+	| "int"                             << astx.NewBasicType($0) >>
+	| "void"                            << astx.NewBasicType($0) >>
 ;
 
 FuncBody
