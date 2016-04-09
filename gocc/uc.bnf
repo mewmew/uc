@@ -101,10 +101,8 @@ TopLevelDeclList
 
 TopLevelDecl
 	: VarDecl ";"
-	| TypeName ident "(" Formals ")" FuncBody // TypeName : "char" | "int" | "void" ;
+	| TypeName ident "(" Params ")" FuncBody // TypeName : "char" | "int" | "void" ;
 ;
-
-// TODO: Rename Actuals, Args, and Formals Params.
 
 VarDecl
 	: ScalarDecl
@@ -135,7 +133,7 @@ FuncBody
 	| ";"
 ;
 
-Formals
+Params
 	: TypeName   // TypeName : "void" ;
 	| FormalList
 ;
@@ -260,7 +258,7 @@ Expr15
 	: int_lit                           << astx.NewBasicLit($1, token.IntLit) >>
 	| ident                             << astx.NewIdent($0) >>
 	| ident "[" Expr "]"                << astx.NewIndexExpr($0, $2) >>
-	| ident "(" Actuals ")"             << astx.NewCallExpr($0, $2) >>
+	| ident "(" Args ")"                << astx.NewCallExpr($0, $2) >>
 	| ParenExpr
 ;
 
@@ -268,7 +266,7 @@ ParenExpr
 	: "(" Expr ")"                      << astx.NewParenExpr($1) >>
 ;
 
-Actuals
+Args
 	: empty
 	| ExprList
 ;

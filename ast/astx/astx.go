@@ -260,7 +260,7 @@ func NewIndexExpr(name, index interface{}) (*ast.IndexExpr, error) {
 // NewCallExpr returns a new call expression, based on the following production
 // rule.
 //
-//    ident "(" Actuals ")"
+//    ident "(" Args ")"
 func NewCallExpr(name, args interface{}) (*ast.CallExpr, error) {
 	ident, err := NewIdent(name)
 	if err != nil {

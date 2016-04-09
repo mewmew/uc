@@ -7,7 +7,7 @@ import "fmt"
 //
 //    TopLevelDecl
 //       : VarDecl ";"
-//       | TypeName ident "(" Formals ")" FuncBody // TypeName : "char" | "int" | "void" ;
+//       | TypeName ident "(" Params ")" FuncBody // TypeName : "char" | "int" | "void" ;
 //    ;
 //
 //    ScalarDecl
@@ -18,7 +18,7 @@ import "fmt"
 //       : TypeName ident "[" int_lit "]" // TypeName : "char" | "int" ;
 //    ;
 //
-//    Formals
+//    Params
 //       : TypeName   // TypeName : "void" ;
 //       | FormalList
 //    ;
