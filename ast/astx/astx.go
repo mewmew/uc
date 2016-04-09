@@ -161,10 +161,43 @@ func NewIfStmt(cond, trueBranch, falseBranch interface{}) (*ast.IfStmt, error) {
 //       : "{" Stmts "}"
 //    ;
 func NewBlockStmt(stmts interface{}) (*ast.BlockStmt, error) {
+	if stmts == nil {
+		return &ast.BlockStmt{}, nil
+	}
 	if stmts, ok := stmts.([]ast.Stmt); ok {
 		return &ast.BlockStmt{Stmts: stmts}, nil
 	}
 	return nil, errutil.Newf("invalid block statements type; expected []ast.Stmt, got %T", stmts)
+}
+
+// NewStmtList returns a new statement list, based on the following production
+// rule.
+//
+//    StmtList
+//       : Stmt
+//    ;
+func NewStmtList(stmt interface{}) ([]ast.Stmt, error) {
+	if stmt, ok := stmt.(ast.Stmt); ok {
+		return []ast.Stmt{stmt}, nil
+	}
+	return nil, errutil.Newf("invalid statement list statement type; expected ast.Stmt, got %T", stmt)
+}
+
+// AppendStmt appends stmt to the statement list, based on the following
+// production rule.
+//
+//    StmtList
+//       : StmtList "," Stmt
+//    ;
+func AppendStmt(list, stmt interface{}) ([]ast.Stmt, error) {
+	l, ok := list.([]ast.Stmt)
+	if !ok {
+		return nil, errutil.Newf("invalid statement list type; expected []ast.Stmt, got %T", list)
+	}
+	if stmt, ok := stmt.(ast.Stmt); ok {
+		return append(l, stmt), nil
+	}
+	return nil, errutil.Newf("invalid statement list statement type; expected ast.Stmt, got %T", stmt)
 }
 
 // NewBinaryExpr returns a new binary experssion node, based on the following

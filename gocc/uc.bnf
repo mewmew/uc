@@ -159,11 +159,6 @@ Locals
 	| VarDecl ";" Locals
 ;
 
-Stmts
-	: empty
-	| Stmt Stmts
-;
-
 Stmt
 	: Expr ";"                          << astx.NewExprStmt($0) >>
 	| "return" Expr ";"                 << astx.NewReturnStmt($1) >>
@@ -181,6 +176,16 @@ ElsePart
 
 Condition
 	: ParenExpr
+;
+
+Stmts
+	: empty
+	| StmtList
+;
+
+StmtList
+	: Stmt                              << astx.NewStmtList($0) >>
+	| StmtList Stmt                     << astx.AppendStmt($0, $1) >>
 ;
 
 Expr
