@@ -39,8 +39,7 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	paths := flag.Args()
-	for _, path := range paths {
+	for _, path := range flag.Args() {
 		err := parseFile(path)
 		if err != nil {
 			log.Print(err)

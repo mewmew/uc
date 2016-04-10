@@ -23,11 +23,13 @@ $ go get github.com/mewmew/uc/...
 $ go test github.com/mewmew/uc/hand/lexer
 $ go test github.com/mewmew/uc/gocc/lexer
 $ go install github.com/mewmew/uc/cmd/ulex
+$ go install github.com/mewmew/uc/cmd/uparse
 ```
 
 ## Usage
 
 * [ulex](https://godoc.org/github.com/mewmew/uc/cmd/ulex): a lexer for the µC language which pretty-prints tokens to standard output.
+* [uparse](https://godoc.org/github.com/mewmew/uc/cmd/uparse): a parser for the µC language which pretty-prints abstract syntax trees to standard output.
 
 ## Public domain
 

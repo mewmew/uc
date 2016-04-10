@@ -41,8 +41,7 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	paths := flag.Args()
-	for _, path := range paths {
+	for _, path := range flag.Args() {
 		if err := lexFile(path, n); err != nil {
 			log.Print(err)
 		}
