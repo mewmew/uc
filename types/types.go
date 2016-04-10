@@ -1,7 +1,5 @@
 package types
 
-import "fmt"
-
 // TODO: Implement type checking which ensures correct uses of "void".
 // Relevant sections of the uC BNF grammar have been included below.
 //
@@ -61,12 +59,14 @@ type (
 
 	// A Func represents a function signature.
 	Func struct {
-		// Function parameter types.
+		// Function parameter types; or nil if void parameter.
 		Params []*Field
 		// Return type.
 		Result Type
 	}
 )
+
+//go:generate stringer -type BasicKind
 
 // BasicKind describes the kind of basic type.
 type BasicKind int
@@ -79,19 +79,6 @@ const (
 	Int  // "int"
 	Void // "void"
 )
-
-func (kind BasicKind) String() string {
-	m := map[BasicKind]string{
-		Invalid: "invalid kind of basic type",
-		Char:    "char",
-		Int:     "int",
-		Void:    "void",
-	}
-	if s, ok := m[kind]; ok {
-		return s
-	}
-	return fmt.Sprintf("unknown kind of basic type (%d)", int(kind))
-}
 
 // A Field represents a field declaration in a struct type, or a parameter
 // declaration in a function signature.
