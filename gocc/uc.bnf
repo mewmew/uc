@@ -90,12 +90,17 @@ _char_lit     : '\'' ( _ascii_char | '"' | _escaped_char ) '\'' ;
 ) >>
 
 Program
-	: TopLevelDeclList
+	: TopLevelDecls
+;
+
+TopLevelDecls
+	: empty
+	| TopLevelDeclList
 ;
 
 TopLevelDeclList
-	: empty
-	| TopLevelDecl TopLevelDeclList
+	: TopLevelDecl                      << astx.NewTopLevelDeclList($0) >>
+	| TopLevelDeclList TopLevelDecl     << astx.AppendTopLevelDecl($0, $1) >>
 ;
 
 TopLevelDecl

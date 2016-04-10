@@ -10,6 +10,36 @@ import (
 	"github.com/mewmew/uc/types"
 )
 
+// NewTopLevelDeclList returns a new top-level declaration list, based on the
+// following production rule.
+//
+//    TopLevelDeclList
+//       : TopLevelDecl
+//    ;
+func NewTopLevelDeclList(decl interface{}) ([]ast.TopLevelDecl, error) {
+	if decl, ok := decl.(ast.TopLevelDecl); ok {
+		return []ast.TopLevelDecl{decl}, nil
+	}
+	return nil, errutil.Newf("invalid top-level declaration list top-level declaration type; expected ast.TopLevelDecl, got %T", decl)
+}
+
+// AppendTopLevelDecl appends decl to the top-level declaration list, based on
+// the following production rule.
+//
+//    TopLevelDeclList
+//       : TopLevelDeclList TopLevelDecl
+//    ;
+func AppendTopLevelDecl(list, decl interface{}) ([]ast.TopLevelDecl, error) {
+	l, ok := list.([]ast.TopLevelDecl)
+	if !ok {
+		return nil, errutil.Newf("invalid top-level declaration list type; expected []ast.TopLevelDecl, got %T", list)
+	}
+	if decl, ok := decl.(ast.TopLevelDecl); ok {
+		return append(l, decl), nil
+	}
+	return nil, errutil.Newf("invalid top-level declaration list top-level declaration type; expected ast.TopLevelDecl, got %T", decl)
+}
+
 // NewFuncDecl returns a new function declaration node, based on the following
 // production rule.
 //
@@ -243,7 +273,7 @@ func NewStmtList(stmt interface{}) ([]ast.Stmt, error) {
 // production rule.
 //
 //    StmtList
-//       : StmtList "," Stmt
+//       : StmtList Stmt
 //    ;
 func AppendStmt(list, stmt interface{}) ([]ast.Stmt, error) {
 	l, ok := list.([]ast.Stmt)
