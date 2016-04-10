@@ -119,16 +119,9 @@ ArrayDecl
 	: TypeName ident "[" int_lit "]"    << astx.NewArrayDecl($0, $1, $3) >>
 ;
 
-// TODO: Replace the TypeName rule with TypeName : ident ;, thus making use of
-// The Lexer Hack as implemented by Clang.
-//
-// Discussion taking place in issue #27, https://github.com/mewmew/uc/issues/27
-
 TypeName
 	// TypeName : "char" | "int" | "void" ;
-	: "char"                            << astx.NewBasicType($0) >>
-	| "int"                             << astx.NewBasicType($0) >>
-	| "void"                            << astx.NewBasicType($0) >>
+	: ident                             << astx.NewBasicType($0) >>
 ;
 
 FuncBody
