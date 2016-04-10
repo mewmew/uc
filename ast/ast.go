@@ -1,3 +1,5 @@
+// TODO: Add source position tracking of nodes.
+
 // Package ast declares the types used to represent abstract syntax trees of µC
 // soure code.
 package ast

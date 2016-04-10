@@ -37,7 +37,7 @@ func NewBasicType(typ interface{}) (*types.Basic, error) {
 	case "void":
 		return &types.Basic{Kind: types.Void}, nil
 	default:
-		return nil, errutil.Newf(`invalid basic type; expected "char", "int" or "void", got %q`, s)
+		return nil, errutil.Newf(`invalid basic type; expected Char, Int or Void, got %q`, s)
 	}
 }
 

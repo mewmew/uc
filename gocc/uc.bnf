@@ -135,7 +135,7 @@ FuncBody
 
 Params
 	// TypeName : "void" ;
-	: TypeName
+	: TypeName                          << astx.NewVoidParameter($0) >>
 	| FieldList
 ;
 

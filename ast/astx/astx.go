@@ -46,6 +46,25 @@ func NewArrayDecl(elem, name, length interface{}) (*ast.VarDecl, error) {
 	return &ast.VarDecl{Name: ident, Type: typ}, nil
 }
 
+// NewVoidParam returns a new void parameter, based on the following production
+// rule.
+//
+//    Params
+//    	: TypeName // "void"
+//    ;
+func NewVoidParam(typ interface{}) ([]*types.Field, error) {
+	if typ, ok := typ.(*types.Basic); ok {
+		switch typ.Kind {
+		case types.Void:
+			// Valid void parameter.
+			return nil, nil
+		default:
+			return nil, errutil.Newf("invalid void parameter kind; expected Void, got %v", typ.Kind)
+		}
+	}
+	return nil, errutil.Newf("invalid void parameter type; expected *types.Basic, got %T", typ)
+}
+
 // NewFieldList returns a new field list, based on the following production
 // rule.
 //
