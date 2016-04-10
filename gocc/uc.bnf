@@ -100,12 +100,12 @@ TopLevelDeclList
 
 TopLevelDecl
 	: DeclStmt
-	// TypeName : "char" | "int" | "void" ;
+	// BasicType : "char" | "int" | "void" ;
 	| FuncDecl
 ;
 
 FuncDecl
-	: TypeName ident "(" Params ")" FuncBody
+	: BasicType ident "(" Params ")" FuncBody
 ;
 
 VarDecl
@@ -114,18 +114,18 @@ VarDecl
 ;
 
 ScalarDecl
-	// TypeName : "char" | "int" ;
-	: TypeName ident                    << astx.NewScalarDecl($0, $1) >>
+	// BasicType : "char" | "int" ;
+	: BasicType ident                   << astx.NewScalarDecl($0, $1) >>
 ;
 
 ArrayDecl
-	// TypeName : "char" | "int" ;
-	: TypeName ident "[" int_lit "]"    << astx.NewArrayDecl($0, $1, $3) >>
-	| TypeName ident "[" "]"            << astx.NewArrayDecl($0, $1, 0) >>
+	// BasicType : "char" | "int" ;
+	: BasicType ident "[" int_lit "]"   << astx.NewArrayDecl($0, $1, $3) >>
+	| BasicType ident "[" "]"           << astx.NewArrayDecl($0, $1, 0) >>
 ;
 
-TypeName
-	// TypeName : "char" | "int" | "void" ;
+BasicType
+	// BasicType : "char" | "int" | "void" ;
 	: ident                             << astx.NewBasicType($0) >>
 ;
 
@@ -138,8 +138,8 @@ FuncBody
 // allow `int foo()` as an alternative to `int foo(void)`.
 
 Params
-	// TypeName : "void" ;
-	: TypeName                          << astx.NewVoidParam($0) >>
+	// BasicType : "void" ;
+	: BasicType                         << astx.NewVoidParam($0) >>
 	| FieldList
 ;
 
