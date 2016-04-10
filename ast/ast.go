@@ -93,6 +93,7 @@ type (
 //    *ExprStmt
 //    *IfStmt
 //    *ReturnStmt
+//    *VarDecl
 //    *WhileStmt
 type Stmt interface {
 	Node
@@ -421,6 +422,7 @@ func (n *EmptyStmt) isStmt()  {}
 func (n *ExprStmt) isStmt()   {}
 func (n *IfStmt) isStmt()     {}
 func (n *ReturnStmt) isStmt() {}
+func (n *VarDecl) isStmt()    {}
 func (n *WhileStmt) isStmt()  {}
 
 // Verify that the statement nodes implement the Stmt interface.
@@ -431,6 +433,7 @@ var (
 	_ Stmt = &ExprStmt{}
 	_ Stmt = &IfStmt{}
 	_ Stmt = &ReturnStmt{}
+	_ Stmt = &VarDecl{}
 	_ Stmt = &WhileStmt{}
 )
 

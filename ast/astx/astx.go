@@ -9,20 +9,38 @@ import (
 	"github.com/mewmew/uc/token"
 )
 
+// NewScalarDecl returns a new scalar declaration node, based on the following
+// production rule.
+//
+//    ScalarDecl
+//       : TypeName ident
+//    ;
+func NewScalarDecl(typ, name interface{}) (*ast.VarDecl, error) {
+	scalarType, err := NewType(typ)
+	if err != nil {
+		return nil, errutil.Newf("invalid scalar type; %v", err)
+	}
+	ident, err := NewIdent(name)
+	if err != nil {
+		return nil, errutil.Newf("invalid scalar declaration identifier; %v", err)
+	}
+	return &ast.VarDecl{Name: ident, Type: scalarType}, nil
+}
+
 // NewArrayDecl returns a new array declaration node, based on the following
 // production rule.
 //
 //    ArrayDecl
 //       : TypeName ident "[" int_lit "]"
 //    ;
-func NewArrayDecl(elem, name, length interface{}) (ast.Decl, error) {
+func NewArrayDecl(elem, name, length interface{}) (*ast.VarDecl, error) {
 	typ, err := NewArrayType(elem, length)
 	if err != nil {
 		return nil, errutil.Newf("invalid array type; %v", err)
 	}
 	ident, err := NewIdent(name)
 	if err != nil {
-		return nil, errutil.Newf("invalid declaration identifier; %v", err)
+		return nil, errutil.Newf("invalid array declaration identifier; %v", err)
 	}
 	return &ast.VarDecl{Name: ident, Type: typ}, nil
 }

@@ -99,7 +99,7 @@ TopLevelDeclList
 ;
 
 TopLevelDecl
-	: VarDecl ";"
+	: DeclStmt
 	// TypeName : "char" | "int" | "void" ;
 	| TypeName ident "(" Params ")" FuncBody
 ;
@@ -111,7 +111,7 @@ VarDecl
 
 ScalarDecl
 	// TypeName : "char" | "int" ;
-	: TypeName ident
+	: TypeName ident                    << astx.NewScalarDecl($0, $1) >>
 ;
 
 ArrayDecl
@@ -119,9 +119,8 @@ ArrayDecl
 	: TypeName ident "[" int_lit "]"    << astx.NewArrayDecl($0, $1, $3) >>
 ;
 
-// TODO: Remove the Locals production rule and replace the TypeName rule with
-// TypeName : ident ;, thus making use of The Lexer Hack as implemented by
-// Clang.
+// TODO: Replace the TypeName rule with TypeName : ident ;, thus making use of
+// The Lexer Hack as implemented by Clang.
 //
 // Discussion taking place in issue #27, https://github.com/mewmew/uc/issues/27
 
@@ -133,9 +132,12 @@ TypeName
 ;
 
 FuncBody
-	: "{" Locals Stmts "}"
+	: "{" Stmts "}"
 	| ";"
 ;
+
+// TODO: Allow empty parameter list, as was intended by the original K&R C, i.e.
+// allow `int foo()` as an alternative to `int foo(void)`.
 
 Params
 	// TypeName : "void" ;
@@ -154,19 +156,19 @@ ParamDecl
 	| TypeName ident "[" "]"
 ;
 
-Locals
-	: empty
-	| VarDecl ";" Locals
-;
-
 Stmt
-	: Expr ";"                          << astx.NewExprStmt($0) >>
+	: DeclStmt
+	| Expr ";"                          << astx.NewExprStmt($0) >>
 	| "return" Expr ";"                 << astx.NewReturnStmt($1) >>
 	| "return" ";"                      << &ast.ReturnStmt{}, nil >>
 	| "while" Condition Stmt            << astx.NewWhileStmt($1, $2) >>
 	| "if" Condition Stmt ElsePart      << astx.NewIfStmt($1, $2, $3) >>
 	| "{" Stmts "}"                     << astx.NewBlockStmt($1) >>
 	| ";"                               << &ast.EmptyStmt{}, nil >>
+;
+
+DeclStmt
+	: VarDecl ";"                       << $0, nil >>
 ;
 
 ElsePart
