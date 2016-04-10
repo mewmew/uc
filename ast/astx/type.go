@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/mewkiz/pkg/errutil"
+	gocctoken "github.com/mewmew/uc/gocc/token"
 	"github.com/mewmew/uc/types"
 )
 
@@ -43,13 +44,21 @@ func NewBasicType(typ interface{}) (*types.Basic, error) {
 // NewArrayType returns a new array type based on the given element type and
 // length.
 func NewArrayType(elem, length interface{}) (*types.Array, error) {
-	s, err := tokenString(length)
-	if err != nil {
-		return nil, errutil.Newf("invalid array length; %v", err)
-	}
-	len, err := strconv.Atoi(s)
-	if err != nil {
-		return nil, errutil.Newf("invalid array length; %v", err)
+	var len int
+	switch length := length.(type) {
+	case *gocctoken.Token:
+		s, err := tokenString(length)
+		if err != nil {
+			return nil, errutil.Newf("invalid array length; %v", err)
+		}
+		len, err = strconv.Atoi(s)
+		if err != nil {
+			return nil, errutil.Newf("invalid array length; %v", err)
+		}
+	case int:
+		len = length
+	default:
+		return nil, errutil.Newf("invalid array length type; %T", length)
 	}
 	elemType, err := NewType(elem)
 	if err != nil {

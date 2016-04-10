@@ -7,6 +7,7 @@ import (
 	"github.com/mewmew/uc/ast"
 	gocctoken "github.com/mewmew/uc/gocc/token"
 	"github.com/mewmew/uc/token"
+	"github.com/mewmew/uc/types"
 )
 
 // NewScalarDecl returns a new scalar declaration node, based on the following
@@ -43,6 +44,49 @@ func NewArrayDecl(elem, name, length interface{}) (*ast.VarDecl, error) {
 		return nil, errutil.Newf("invalid array declaration identifier; %v", err)
 	}
 	return &ast.VarDecl{Name: ident, Type: typ}, nil
+}
+
+// NewFieldList returns a new field list, based on the following production
+// rule.
+//
+//    FieldList
+//       : Field
+//    ;
+func NewFieldList(field interface{}) ([]*types.Field, error) {
+	if field, ok := field.(*types.Field); ok {
+		return []*types.Field{field}, nil
+	}
+	return nil, errutil.Newf("invalid field list field type; expected *types.Field, got %T", field)
+}
+
+// AppendField appends field to the field list, based on the following
+// production rule.
+//
+//    FieldList
+//       : FieldList "," Field
+//    ;
+func AppendField(list, field interface{}) ([]*types.Field, error) {
+	l, ok := list.([]*types.Field)
+	if !ok {
+		return nil, errutil.Newf("invalid field list type; expected []*types.Field, got %T", list)
+	}
+	if field, ok := field.(*types.Field); ok {
+		return append(l, field), nil
+	}
+	return nil, errutil.Newf("invalid field list field type; expected *types.Field, got %T", field)
+}
+
+// NewField returns a new field, based on the following production rules.
+//
+//    ParamDecl
+//       : ScalarDecl
+//       | TypeName ident "[" "]"
+//    ;
+func NewField(decl interface{}) (*types.Field, error) {
+	if decl, ok := decl.(*ast.VarDecl); ok {
+		return &types.Field{Type: decl.Type, Name: decl.Name.Name}, nil
+	}
+	return nil, errutil.Newf("invalid field type; expected *ast.VarDecl, got %T", decl)
 }
 
 // NewExprStmt returns a new expression statement, based on the following
