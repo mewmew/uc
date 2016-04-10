@@ -7,7 +7,6 @@ import (
 	"github.com/mewmew/uc/ast"
 	gocctoken "github.com/mewmew/uc/gocc/token"
 	"github.com/mewmew/uc/token"
-	"github.com/mewmew/uc/types"
 )
 
 // NewArrayDecl returns a new array declaration node, based on the following
@@ -26,31 +25,6 @@ func NewArrayDecl(elem, name, length interface{}) (ast.Decl, error) {
 		return nil, errutil.Newf("invalid declaration identifier; %v", err)
 	}
 	return &ast.VarDecl{Name: ident, Type: typ}, nil
-}
-
-// NewBasicType returns a new basic type of µC, based on the following
-// production rules.
-//
-//    TypeName
-//       : "char"
-//       | "int"
-//       | "void"
-//    ;
-func NewBasicType(typ interface{}) (*types.Basic, error) {
-	s, err := tokenString(typ)
-	if err != nil {
-		return nil, errutil.Newf("invalid basic type; %v", err)
-	}
-	switch s {
-	case "char":
-		return &types.Basic{Kind: types.Char}, nil
-	case "int":
-		return &types.Basic{Kind: types.Int}, nil
-	case "void":
-		return &types.Basic{Kind: types.Void}, nil
-	default:
-		return nil, errutil.Newf(`invalid basic type; expected "char", "int" or "void", got %q`, s)
-	}
 }
 
 // NewExprStmt returns a new expression statement, based on the following
