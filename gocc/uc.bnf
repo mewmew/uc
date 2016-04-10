@@ -140,15 +140,15 @@ FuncBody
 Params
 	// TypeName : "void" ;
 	: TypeName
-	| FormalList
+	| ParamList
 ;
 
-FormalList
-	: FormalDecl
-	| FormalDecl "," FormalList
+ParamList
+	: ParamDecl
+	| ParamDecl "," ParamList
 ;
 
-FormalDecl
+ParamDecl
 	: ScalarDecl
 	// TypeName : "char" | "int" ;
 	| TypeName ident "[" "]"

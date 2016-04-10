@@ -57,8 +57,8 @@ type (
 
 	// A Func represents a function signature.
 	Func struct {
-		// Function argument types.
-		Args []Type
+		// Function parameter types.
+		Params []*Field
 		// Return type.
 		Result Type
 	}
@@ -87,6 +87,15 @@ func (kind BasicKind) String() string {
 		return s
 	}
 	return fmt.Sprintf("unknown kind of basic type (%d)", int(kind))
+}
+
+// A Field represents a field declaration in a struct type, or a parameter
+// declaration in a function signature.
+type Field struct {
+	// Field type.
+	Type Type
+	// Field names.
+	Name []string
 }
 
 // isType ensures that only µC types can be assigned to the Type interface.
