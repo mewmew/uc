@@ -125,7 +125,7 @@ TypeName
 ;
 
 FuncBody
-	: "{" Stmts "}"
+	: BlockStmt
 	| ";"
 ;
 
@@ -156,12 +156,16 @@ Stmt
 	| "return" ";"                      << &ast.ReturnStmt{}, nil >>
 	| "while" Condition Stmt            << astx.NewWhileStmt($1, $2) >>
 	| "if" Condition Stmt ElsePart      << astx.NewIfStmt($1, $2, $3) >>
-	| "{" Stmts "}"                     << astx.NewBlockStmt($1) >>
+	| BlockStmt
 	| ";"                               << &ast.EmptyStmt{}, nil >>
 ;
 
 DeclStmt
 	: VarDecl ";"                       << $0, nil >>
+;
+
+BlockStmt
+	: "{" Stmts "}"                     << astx.NewBlockStmt($1) >>
 ;
 
 ElsePart
