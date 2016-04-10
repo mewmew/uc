@@ -101,7 +101,11 @@ TopLevelDeclList
 TopLevelDecl
 	: DeclStmt
 	// TypeName : "char" | "int" | "void" ;
-	| TypeName ident "(" Params ")" FuncBody
+	| FuncDecl
+;
+
+FuncDecl
+	: TypeName ident "(" Params ")" FuncBody
 ;
 
 VarDecl
@@ -135,7 +139,7 @@ FuncBody
 
 Params
 	// TypeName : "void" ;
-	: TypeName                          << astx.NewVoidParameter($0) >>
+	: TypeName                          << astx.NewVoidParam($0) >>
 	| FieldList
 ;
 
