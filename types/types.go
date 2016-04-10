@@ -20,13 +20,17 @@ import "fmt"
 //
 //    Params
 //       : TypeName   // TypeName : "void" ;
-//       | FormalList
+//       | ParamList
 //    ;
 //
-//    FormalDecl
+//    ParamDecl
 //       : ScalarDecl
 //       | TypeName ident "[" "]" // TypeName : "char" | "int" ;
 //    ;
+
+// TODO: Make sure that array declarations (e.g. `int x[5]`) may only be used
+// within declaration statements, and array parameter declarations (e.g. `int
+// x[]`) may only be used within function signatures.
 
 // A Type represents a type of µC, and has one of the following underlying
 // types.
@@ -94,8 +98,8 @@ func (kind BasicKind) String() string {
 type Field struct {
 	// Field type.
 	Type Type
-	// Field names.
-	Name []string
+	// Field name.
+	Name string
 }
 
 // isType ensures that only µC types can be assigned to the Type interface.
