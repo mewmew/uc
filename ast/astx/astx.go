@@ -179,6 +179,19 @@ func NewField(decl interface{}) (*types.Field, error) {
 	return nil, errutil.Newf("invalid field type; expected *ast.VarDecl, got %T", decl)
 }
 
+// NewDeclStmt returns a new declaration statement, based on the following
+// production rule.
+//
+//    DeclStmt
+//       : VarDecl ";"
+//    ;
+func NewDeclStmt(decl interface{}) (*ast.DeclStmt, error) {
+	if decl, ok := decl.(ast.Decl); ok {
+		return &ast.DeclStmt{Decl: decl}, nil
+	}
+	return nil, errutil.Newf("invalid declaration statement declaration type; expected ast.Decl, got %T", decl)
+}
+
 // NewExprStmt returns a new expression statement, based on the following
 // production rule.
 //

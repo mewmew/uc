@@ -98,7 +98,6 @@ type (
 //    *ExprStmt
 //    *IfStmt
 //    *ReturnStmt
-//    *VarDecl
 //    *WhileStmt
 type Stmt interface {
 	Node
@@ -107,22 +106,6 @@ type Stmt interface {
 	isStmt()
 }
 
-// TODO: Add semantic analysis pass which verifies that declaration statements
-// precedes any other statements in the body of function block.
-//
-//    // first specifies the first non-declaration statement within the
-//    // statements of the block.
-//    first := -1
-//    for i, stmt := f.Body.Stmts {
-//       if _, ok := stmt.(*DeclStmt); ok {
-//          if first != -1 {
-//             return errutil.Newf("declaration statement %v occurs after first non-declaration statement %v in function body", stmt, f.Body.Stmts[first])
-//          }
-//       } else if first == -1 {
-//          first = i
-//       }
-//    }
-
 // Statement nodes.
 type (
 	// A BlockStmt node represents a block statement.
@@ -130,10 +113,6 @@ type (
 		// List of statements contained within the block.
 		Stmts []Stmt
 	}
-
-	// TODO: Add support for lists of declarations? E.g.
-	//    int x, y, z;
-	//    int x, y = 3, *z;
 
 	// A DeclStmt node represents a declaration statement.
 	DeclStmt struct {
@@ -427,7 +406,6 @@ func (n *EmptyStmt) isStmt()  {}
 func (n *ExprStmt) isStmt()   {}
 func (n *IfStmt) isStmt()     {}
 func (n *ReturnStmt) isStmt() {}
-func (n *VarDecl) isStmt()    {}
 func (n *WhileStmt) isStmt()  {}
 
 // Verify that the statement nodes implement the Stmt interface.
@@ -438,7 +416,6 @@ var (
 	_ Stmt = &ExprStmt{}
 	_ Stmt = &IfStmt{}
 	_ Stmt = &ReturnStmt{}
-	_ Stmt = &VarDecl{}
 	_ Stmt = &WhileStmt{}
 )
 
