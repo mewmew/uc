@@ -9,6 +9,9 @@ import (
 	"github.com/mewmew/uc/types"
 )
 
+// TODO: Consider removing file abstraction, and let []TopLevelDecl be the
+// return type of Parse.
+
 // A File represents a µC source file.
 type File struct {
 	// Top-level declarations.
@@ -76,10 +79,10 @@ type Decl interface {
 type (
 	// A VarDecl node represents a variable declaration.
 	VarDecl struct {
-		// Variable name.
-		Name *Ident
 		// Variable type.
 		Type types.Type
+		// Variable name.
+		Name *Ident
 		// Variable value expression; or nil if variable declaration (i.e. not
 		// variable definition).
 		Val Expr

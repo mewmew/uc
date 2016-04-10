@@ -9,11 +9,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 
+	"github.com/davecgh/go-spew/spew"
+	"github.com/kr/pretty"
 	"github.com/mewkiz/pkg/errutil"
+	"github.com/mewmew/uc/ast"
 	"github.com/mewmew/uc/gocc/lexer"
 	"github.com/mewmew/uc/gocc/parser"
 	"github.com/mewmew/uc/gocc/token"
@@ -50,7 +52,7 @@ func main() {
 // standard output.
 func parseFile(path string) (err error) {
 	// Create lexer for the input.
-	buf, err := ioutil.ReadFile(path)
+	buf, err := readFile(path)
 	if err != nil {
 		return errutil.Err(err)
 	}
@@ -62,15 +64,28 @@ func parseFile(path string) (err error) {
 	s := lexer.NewLexer(buf)
 
 	// Create debug scanner.
-	ds := newDebugScanner(s)
+	//ds := newDebugScanner(s)
 
 	// Parse input.
 	p := parser.NewParser()
-	foo, err := p.Parse(ds)
+	file, err := p.Parse(s)
 	if err != nil {
 		return errutil.Err(err)
 	}
-	fmt.Println("foo:", foo)
+	f := file.(*ast.File)
+	for _, decl := range f.Decls {
+		fmt.Println("=== [ Top-level declaration ] ===")
+		fmt.Println()
+		fmt.Printf("decl type: %T\n", decl)
+		fmt.Println()
+		fmt.Println("decl:", decl)
+		fmt.Println()
+		pretty.Print(decl)
+		fmt.Println()
+		spew.Print(decl)
+		fmt.Println()
+		fmt.Println()
+	}
 
 	return nil
 }

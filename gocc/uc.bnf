@@ -90,7 +90,7 @@ _char_lit     : '\'' ( _ascii_char | '"' | _escaped_char ) '\'' ;
 ) >>
 
 Program
-	: TopLevelDecls
+	: TopLevelDecls                     << astx.NewFile($0) >>
 ;
 
 TopLevelDecls

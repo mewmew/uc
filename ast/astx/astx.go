@@ -10,6 +10,18 @@ import (
 	"github.com/mewmew/uc/types"
 )
 
+// NewFile returns a new µC source file, based on the following production rule.
+//
+//    Program
+//       : TopLevelDecls
+//    ;
+func NewFile(decls interface{}) (*ast.File, error) {
+	if decls, ok := decls.([]ast.TopLevelDecl); ok {
+		return &ast.File{Decls: decls}, nil
+	}
+	return nil, errutil.Newf("invalid file top-level declarations type; expected []ast.TopLevelDecl, got %T", decls)
+}
+
 // NewTopLevelDeclList returns a new top-level declaration list, based on the
 // following production rule.
 //
@@ -84,7 +96,7 @@ func NewScalarDecl(typ, name interface{}) (*ast.VarDecl, error) {
 	if err != nil {
 		return nil, errutil.Newf("invalid scalar declaration identifier; %v", err)
 	}
-	return &ast.VarDecl{Name: ident, Type: scalarType}, nil
+	return &ast.VarDecl{Type: scalarType, Name: ident}, nil
 }
 
 // NewArrayDecl returns a new array declaration node, based on the following
@@ -102,7 +114,7 @@ func NewArrayDecl(elem, name, length interface{}) (*ast.VarDecl, error) {
 	if err != nil {
 		return nil, errutil.Newf("invalid array declaration identifier; %v", err)
 	}
-	return &ast.VarDecl{Name: ident, Type: typ}, nil
+	return &ast.VarDecl{Type: typ, Name: ident}, nil
 }
 
 // NewVoidParam returns a new void parameter, based on the following production
