@@ -10,6 +10,35 @@ import (
 	"github.com/mewmew/uc/types"
 )
 
+// NewFuncDecl returns a new function declaration node, based on the following
+// production rule.
+//
+//    FuncDecl
+//       : BasicType ident "(" Params ")" FuncBody
+//    ;
+func NewFuncDecl(resultType, name, params, body interface{}) (*ast.FuncDecl, error) {
+	resType, err := NewType(resultType)
+	if err != nil {
+		return nil, errutil.Newf("invalid function result type; %v", err)
+	}
+	ident, err := NewIdent(name)
+	if err != nil {
+		return nil, errutil.Newf("invalid function name identifier; %v", err)
+	}
+	fields, ok := params.([]*types.Field)
+	if !ok {
+		return nil, errutil.Newf("invalid function parameters type; expected []*types.Field, got %T", params)
+	}
+	typ := &types.Func{Params: fields, Result: resType}
+	if body == nil {
+		return &ast.FuncDecl{Name: ident, Type: typ}, nil
+	}
+	if body, ok := body.(*ast.BlockStmt); ok {
+		return &ast.FuncDecl{Name: ident, Type: typ, Body: body}, nil
+	}
+	return nil, errutil.Newf("invalid function body type; expected *ast.BlockStmt, got %T", body)
+}
+
 // NewScalarDecl returns a new scalar declaration node, based on the following
 // production rule.
 //

@@ -105,7 +105,7 @@ TopLevelDecl
 ;
 
 FuncDecl
-	: BasicType ident "(" Params ")" FuncBody
+	: BasicType ident "(" Params ")" FuncBody     << astx.NewFuncDecl($0, $1, $3, $5) >>
 ;
 
 VarDecl
@@ -131,7 +131,7 @@ BasicType
 
 FuncBody
 	: BlockStmt
-	| ";"
+	| ";"                               << nil, nil >>
 ;
 
 // TODO: Allow empty parameter list, as was intended by the original K&R C, i.e.
