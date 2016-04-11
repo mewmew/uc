@@ -21,6 +21,7 @@ type File struct {
 // A Node represents a node within the abstract syntax tree, and has one of the
 // following underlying types.
 //
+//    *File
 //    TopLevelDecl
 //    Decl
 //    Stmt
@@ -267,6 +268,9 @@ func (n *EmptyStmt) Start() int { panic("ast.EmptyStmt.Start: not yet implemente
 func (n *ExprStmt) Start() int { panic("ast.ExprStmt.Start: not yet implemented") }
 
 // Start returns the start position of the node within the input stream.
+func (n *File) Start() int { panic("ast.File.Start: not yet implemented") }
+
+// Start returns the start position of the node within the input stream.
 func (n *FuncDecl) Start() int { panic("ast.FuncDecl.Start: not yet implemented") }
 
 // Start returns the start position of the node within the input stream.
@@ -323,6 +327,10 @@ func (n *ExprStmt) End() int { panic("ast.ExprStmt.End: not yet implemented") }
 
 // End returns the first character immediately after the node within the input
 // stream.
+func (n *File) End() int { panic("ast.File.End: not yet implemented") }
+
+// End returns the first character immediately after the node within the input
+// stream.
 func (n *FuncDecl) End() int { panic("ast.FuncDecl.End: not yet implemented") }
 
 // End returns the first character immediately after the node within the input
@@ -366,6 +374,7 @@ var (
 	_ Node = &DeclStmt{}
 	_ Node = &EmptyStmt{}
 	_ Node = &ExprStmt{}
+	_ Node = &File{}
 	_ Node = &FuncDecl{}
 	_ Node = &Ident{}
 	_ Node = &IfStmt{}
