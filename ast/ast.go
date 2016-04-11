@@ -54,6 +54,11 @@ type TopLevelDecl interface {
 // Top-level declaration nodes.
 type (
 	// A FuncDecl node represents a function declaration.
+	//
+	// Examples.
+	//
+	//    int add(int a, int b) { return a+b; }
+	//    int puts(char s[]);
 	FuncDecl struct {
 		// Function name.
 		Name *Ident
@@ -79,6 +84,11 @@ type Decl interface {
 // Declaration nodes.
 type (
 	// A VarDecl node represents a variable declaration.
+	//
+	// Examples.
+	//
+	//    int x;
+	//    char buf[128];
 	VarDecl struct {
 		// Variable type.
 		Type types.Type
@@ -110,6 +120,10 @@ type Stmt interface {
 // Statement nodes.
 type (
 	// A BlockStmt node represents a block statement.
+	//
+	// Examples.
+	//
+	//
 	BlockStmt struct {
 		// List of statements contained within the block.
 		Stmts []Stmt
