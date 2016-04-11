@@ -5,7 +5,6 @@ package astutil
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
@@ -58,12 +57,11 @@ func Walk(node ast.Node, f func(ast.Node)) error {
 		return walkUnaryExpr(n, f)
 
 	case nil:
-		log.Println("### walking NIL node type ##")
+		// Nothing to do.
 		return nil
 	default:
 		panic(fmt.Sprintf("support for walking node of type %T not yet implemented", node))
 	}
-	return nil
 }
 
 // === [ Source file ] ===
