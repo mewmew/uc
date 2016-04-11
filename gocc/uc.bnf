@@ -267,12 +267,20 @@ Expr14
 
 // TODO: Handle char_lit explicitly?
 
+// TODO: Replace function name with expression in call expression. Do the same
+// for array names.
+
 // Expressions with precedence 15.
 Expr15
-	: int_lit                           << astx.NewBasicLit($0, token.IntLit) >>
-	| ident                             << astx.NewIdent($0) >>
+	: PrimaryExpr
 	| ident "[" Expr "]"                << astx.NewIndexExpr($0, $2) >>
 	| ident "(" Args ")"                << astx.NewCallExpr($0, $2) >>
+;
+
+// Primary expressions with the highest precedence (§A.2.1).
+PrimaryExpr
+	: int_lit                           << astx.NewBasicLit($0, token.IntLit) >>
+	| ident                             << astx.NewIdent($0) >>
 	| ParenExpr
 ;
 
