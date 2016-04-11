@@ -258,8 +258,8 @@ Expr13L
 //    14: - !
 Expr14
 	: Expr15
-	| "-" Expr15                        << astx.NewUnaryExpr(token.Sub, $1) >>
-	| "!" Expr15                        << astx.NewUnaryExpr(token.Not, $1) >>
+	| "-" Expr14                        << astx.NewUnaryExpr(token.Sub, $1) >>
+	| "!" Expr14                        << astx.NewUnaryExpr(token.Not, $1) >>
 ;
 
 // TODO: Check that integer litearls, identifiers, index expressions, call
