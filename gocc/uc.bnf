@@ -270,6 +270,9 @@ Expr14
 // TODO: Replace function name with expression in call expression. Do the same
 // for array names.
 
+// TODO: Replace Expr15 (and similar names) with CastExpr, PostfixExpr, ...
+// (from the C11 spec).
+
 // Expressions with precedence 15.
 Expr15
 	: PrimaryExpr
