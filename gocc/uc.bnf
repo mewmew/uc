@@ -203,7 +203,8 @@ Expr
 //    2R: =
 Expr2R
 	: Expr5L
-	| Expr2R "=" Expr5L                 << astx.NewBinaryExpr($0, token.Assign, $2) >>
+	// Right-associative.
+	| Expr5L "=" Expr2R                 << astx.NewBinaryExpr($0, token.Assign, $2) >>
 ;
 
 // Left-associative binary expressions with precedence 5.
