@@ -1,4 +1,5 @@
-package main
+// Package ioutilx implements extended input/output utility functions.
+package ioutilx
 
 import (
 	"io/ioutil"
@@ -7,9 +8,9 @@ import (
 	"github.com/mewkiz/pkg/errutil"
 )
 
-// readFile reads from the given file, or standard input if path is "-", and
+// ReadFile reads from the given file, or standard input if path is "-", and
 // returns its file contents.
-func readFile(path string) ([]byte, error) {
+func ReadFile(path string) ([]byte, error) {
 	if path == "-" {
 		// Read from standard input.
 		buf, err := ioutil.ReadAll(os.Stdin)
