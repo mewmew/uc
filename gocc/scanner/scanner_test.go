@@ -1,13 +1,12 @@
-package lexer_test
+package scanner_test
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"testing"
 
-	"github.com/mewmew/uc/gocc/lexer"
+	"github.com/mewmew/uc/gocc/scanner"
 	"github.com/mewmew/uc/gocc/token"
 )
 
@@ -19,11 +18,6 @@ func TestLexer(t *testing.T) {
 		{
 			path: "../../testdata/incorrect/lexer/bad.c",
 			toks: []*token.Token{
-				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("/*\t\t\t\t\t\t\t||\n**\tFile for testing lexical analysis\t\t||\n**\t\t\t\t\t\t\t||\n**\tThis file is 'lexically incorrect'.\t\t||\n*/"),
-					Pos:  token.Pos{Offset: 0},
-				},
 				{
 					Type: token.TokMap.Type("ident"),
 					Lit:  []byte("int"),
@@ -86,21 +80,6 @@ func TestLexer(t *testing.T) {
 			path: "../../testdata/incorrect/lexer/good.c",
 			toks: []*token.Token{
 				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("/*\t\t\t\t\t\t\t||\n**\tFile for testing lexical analysis\t\t||\n**\t\t\t\t\t\t\t||\n**\tThis file would confuse a parser, but\n        is 'lexically correct'.\t\t                ||\n*/"),
-					Pos:  token.Pos{Offset: 1},
-				},
-				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("/* ** / ** */"),
-					Pos:  token.Pos{Offset: 163},
-				},
-				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// Simple tokens and single characters:\n"),
-					Pos:  token.Pos{Offset: 179},
-				},
-				{
 					Type: token.TokMap.Type("{"),
 					Lit:  []byte("{"),
 					Pos:  token.Pos{Offset: 220},
@@ -109,11 +88,6 @@ func TestLexer(t *testing.T) {
 					Type: token.TokMap.Type("}"),
 					Lit:  []byte("}"),
 					Pos:  token.Pos{Offset: 222},
-				},
-				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// until end-of-line comment\n"),
-					Pos:  token.Pos{Offset: 248},
 				},
 				{
 					Type: token.TokMap.Type("if"),
@@ -129,11 +103,6 @@ func TestLexer(t *testing.T) {
 					Type: token.TokMap.Type("while"),
 					Lit:  []byte("while"),
 					Pos:  token.Pos{Offset: 285},
-				},
-				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("/* normal comment */"),
-					Pos:  token.Pos{Offset: 311},
 				},
 				{
 					Type: token.TokMap.Type("return"),
@@ -261,21 +230,6 @@ func TestLexer(t *testing.T) {
 					Pos:  token.Pos{Offset: 402},
 				},
 				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("/* Comment with bad tokens: _ || | ++ # @ ...  */"),
-					Pos:  token.Pos{Offset: 406},
-				},
-				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// Ditto */ /* : _ || | ++ # @ ...  \n"),
-					Pos:  token.Pos{Offset: 456},
-				},
-				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// Identifiers and numbers:\n"),
-					Pos:  token.Pos{Offset: 493},
-				},
-				{
 					Type: token.TokMap.Type("int_lit"),
 					Lit:  []byte("17"),
 					Pos:  token.Pos{Offset: 522},
@@ -289,11 +243,6 @@ func TestLexer(t *testing.T) {
 					Type: token.TokMap.Type("int_lit"),
 					Lit:  []byte("17"),
 					Pos:  token.Pos{Offset: 526},
-				},
-				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// No floats? -17.17e17 -17.17E-17  \n"),
-					Pos:  token.Pos{Offset: 529},
 				},
 				{
 					Type: token.TokMap.Type("ident"),
@@ -406,11 +355,6 @@ func TestLexer(t *testing.T) {
 					Pos:  token.Pos{Offset: 706},
 				},
 				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("/* The following 'trap' should be correctly handled:\n\n\t\t* \"2die4U\" consists of the number '2' and the\n\t\t  identifier 'die4U'.\n*/"),
-					Pos:  token.Pos{Offset: 714},
-				},
-				{
 					Type: token.TokMap.Type("int_lit"),
 					Lit:  []byte("2"),
 					Pos:  token.Pos{Offset: 852},
@@ -419,11 +363,6 @@ func TestLexer(t *testing.T) {
 					Type: token.TokMap.Type("ident"),
 					Lit:  []byte("die4U"),
 					Pos:  token.Pos{Offset: 853},
-				},
-				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("//|| The following should all be regarded as identifiers:\n"),
-					Pos:  token.Pos{Offset: 860},
 				},
 				{
 					Type: token.TokMap.Type("ident"),
@@ -526,14 +465,12 @@ func TestLexer(t *testing.T) {
 					Pos:  token.Pos{Offset: 1024},
 				},
 				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// It is legal to end the code like this, without an ending newline."), // TODO: Figure out how to handle line comments, ending with EOF.
-					Pos:  token.Pos{Offset: 1031},
-				},
-				{
 					Type: token.TokMap.Type("$"),
 					Lit:  []byte(""),
-					Pos:  token.Pos{Offset: 1099},
+					// Note, a new line character has been inserted to ensure that
+					// the file ends with a new line; thus the actual offset of the
+					// EOF is 1099.
+					Pos: token.Pos{Offset: 1100},
 				},
 			},
 		},
@@ -607,11 +544,6 @@ func TestLexer(t *testing.T) {
 					Pos:  token.Pos{Offset: 36},
 				},
 				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// OK\n"),
-					Pos:  token.Pos{Offset: 38},
-				},
-				{
 					Type: token.TokMap.Type("ident"),
 					Lit:  []byte("c"),
 					Pos:  token.Pos{Offset: 46},
@@ -630,11 +562,6 @@ func TestLexer(t *testing.T) {
 					Type: token.TokMap.Type("INVALID"),
 					Lit:  []byte("'; "),
 					Pos:  token.Pos{Offset: 53},
-				},
-				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// Not OK\n"),
-					Pos:  token.Pos{Offset: 56},
 				},
 				{
 					Type: token.TokMap.Type("}"),
@@ -2165,7 +2092,10 @@ func TestLexer(t *testing.T) {
 				{
 					Type: token.TokMap.Type("$"),
 					Lit:  []byte(""),
-					Pos:  token.Pos{Offset: 533},
+					// Note, a new line character has been inserted to ensure that
+					// the file ends with a new line; thus the actual offset of the
+					// EOF is 533.
+					Pos: token.Pos{Offset: 534},
 				},
 			},
 		},
@@ -2429,11 +2359,6 @@ func TestLexer(t *testing.T) {
 					Type: token.TokMap.Type(";"),
 					Lit:  []byte(";"),
 					Pos:  token.Pos{Offset: 41},
-				},
-				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// Was:   i = 1234567890;\n"),
-					Pos:  token.Pos{Offset: 43},
 				},
 				{
 					Type: token.TokMap.Type("ident"),
@@ -3049,46 +2974,6 @@ func TestLexer(t *testing.T) {
 			path: "../../testdata/quiet/lexer/l06.c",
 			toks: []*token.Token{
 				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("/* This file contains examples of various types of white space and comments. */"),
-					Pos:  token.Pos{Offset: 0},
-				},
-				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// A blank (32)\n"),
-					Pos:  token.Pos{Offset: 80},
-				},
-				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// A new-line (10)\n"),
-					Pos:  token.Pos{Offset: 98},
-				},
-				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// a carriage-return (13)\n"),
-					Pos:  token.Pos{Offset: 118},
-				},
-				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// form-feed (12)\n"),
-					Pos:  token.Pos{Offset: 146},
-				},
-				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("// tab(9)\n"),
-					Pos:  token.Pos{Offset: 166},
-				},
-				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("/* In uC, each file must contain at least one declaration */"),
-					Pos:  token.Pos{Offset: 178},
-				},
-				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("/* a comment... */"),
-					Pos:  token.Pos{Offset: 240},
-				},
-				{
 					Type: token.TokMap.Type("ident"),
 					Lit:  []byte("int"),
 					Pos:  token.Pos{Offset: 259},
@@ -3102,11 +2987,6 @@ func TestLexer(t *testing.T) {
 					Type: token.TokMap.Type("("),
 					Lit:  []byte("("),
 					Pos:  token.Pos{Offset: 267},
-				},
-				{
-					Type: token.TokMap.Type("comment"),
-					Lit:  []byte("/* ...and another */"),
-					Pos:  token.Pos{Offset: 269},
 				},
 				{
 					Type: token.TokMap.Type("ident"),
@@ -3144,7 +3024,7 @@ func TestLexer(t *testing.T) {
 
 	for _, g := range golden {
 		log.Println("path:", g.path)
-		s, err := lexer.NewLexerFile(g.path)
+		s, err := scanner.Open(g.path)
 		if err != nil {
 			t.Error(err)
 			continue
@@ -3157,7 +3037,6 @@ func TestLexer(t *testing.T) {
 			}
 			if want := g.toks[j]; !tokenEqual(got, want) {
 				t.Errorf("%s: token %d mismatch; expected %#v, got %#v", g.path, j, want, got)
-				fmt.Printf("gocc token at %d: %q\n", got.Pos.Offset, string(got.Lit)) // TODO: Remove.
 			}
 			if got.Type == token.EOF {
 				if j != len(g.toks)-1 {
@@ -3181,7 +3060,7 @@ func BenchmarkLexer(b *testing.B) {
 	}
 
 	for i := 0; i < b.N; i++ {
-		s := lexer.NewLexer(src)
+		s := scanner.NewFromBytes(src)
 		for {
 			tok := s.Scan()
 			if tok.Type == token.EOF {
