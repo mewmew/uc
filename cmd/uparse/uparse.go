@@ -19,7 +19,6 @@ import (
 	"github.com/kr/pretty"
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
-	"github.com/mewmew/uc/cmd/internal/debug"
 	"github.com/mewmew/uc/cmd/internal/ioutilx"
 	"github.com/mewmew/uc/gocc/parser"
 	goccscanner "github.com/mewmew/uc/gocc/scanner"
@@ -79,11 +78,9 @@ func parseFile(path string, hand bool) (err error) {
 		s = goccscanner.NewFromBytes(buf)
 	}
 
-	ds := debug.NewScanner(s)
-
 	// Parse input.
 	p := parser.NewParser()
-	file, err := p.Parse(ds)
+	file, err := p.Parse(s)
 	if err != nil {
 		return errutil.Err(err)
 	}
