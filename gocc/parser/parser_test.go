@@ -92,7 +92,96 @@ func TestParser(t *testing.T) {
 				},
 			},
 		},
-		// {path: "../../testdata/quiet/parser/p02.c"},
+		{path: "../../testdata/quiet/parser/p02.c",
+			want: &ast.File{
+				Decls: []ast.Decl{
+					&ast.FuncDecl{
+						Type: &types.Func{
+							Params: []*types.Field{
+								&types.Field{
+									Type: &types.Basic{
+										Kind: types.Void,
+									},
+								},
+							},
+							Result: &types.Basic{
+								Kind: types.Int,
+							},
+						},
+						Name: &ast.Ident{
+							Name: "main",
+						},
+						Body: &ast.BlockStmt{
+							Items: []ast.BlockItem{
+								&ast.VarDecl{
+									Type: &types.Basic{
+										Kind: types.Int,
+									},
+									Name: &ast.Ident{
+										Name: "x",
+									},
+								},
+								&ast.EmptyStmt{},
+								&ast.WhileStmt{
+									Cond: &ast.BinaryExpr{
+										X: &ast.Ident{
+											Name: "x",
+										},
+										Op: token.Lt,
+										Y: &ast.BasicLit{
+											Kind: token.IntLit,
+											Val:  "10",
+										},
+									},
+									Body: &ast.ExprStmt{
+										X: &ast.BinaryExpr{
+											X: &ast.Ident{
+												Name: "x",
+											},
+											Op: token.Assign,
+											Y: &ast.BinaryExpr{
+												X: &ast.Ident{
+													Name: "x",
+												},
+												Op: token.Add,
+												Y: &ast.BasicLit{
+													Kind: token.IntLit,
+													Val:  "3",
+												},
+											},
+										},
+									},
+								},
+								&ast.IfStmt{
+									Cond: &ast.BasicLit{
+										Kind: token.IntLit,
+										Val:  "1",
+									},
+									Body: &ast.ExprStmt{
+										X: &ast.BinaryExpr{
+											X: &ast.Ident{
+												Name: "x",
+											},
+											Op: token.Assign,
+											Y: &ast.BinaryExpr{
+												X: &ast.Ident{
+													Name: "x",
+												},
+												Op: token.Add,
+												Y: &ast.BasicLit{
+													Kind: token.IntLit,
+													Val:  "3",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		// {path: "../../testdata/quiet/parser/p03.c"},
 		// {path: "../../testdata/quiet/parser/p04.c"},
 		// {path: "../../testdata/quiet/parser/p05.c"},
