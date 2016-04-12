@@ -93,7 +93,8 @@ func TestParser(t *testing.T) {
 				},
 			},
 		},
-		{path: "../../testdata/quiet/parser/p02.c",
+		{
+			path: "../../testdata/quiet/parser/p02.c",
 			want: &ast.File{
 				Decls: []ast.Decl{
 					&ast.FuncDecl{
@@ -183,7 +184,79 @@ func TestParser(t *testing.T) {
 				},
 			},
 		},
-		// {path: "../../testdata/quiet/parser/p03.c"},
+		{
+			path: "../../testdata/quiet/parser/p03.c",
+			want: &ast.File{
+				Decls: []ast.Decl{
+					&ast.FuncDecl{
+						Type: &types.Func{
+							Params: []*types.Field{
+								&types.Field{
+									Type: &types.Basic{
+										Kind: types.Void,
+									},
+								},
+							},
+							Result: &types.Basic{
+								Kind: types.Int,
+							},
+						},
+						Name: &ast.Ident{
+							Name: "main",
+						},
+						Body: &ast.BlockStmt{
+							Items: []ast.BlockItem{
+								&ast.VarDecl{
+									Type: &types.Basic{
+										Kind: types.Int,
+									},
+									Name: &ast.Ident{
+										Name: "x",
+									},
+								},
+								&ast.IfStmt{
+									Cond: &ast.BinaryExpr{
+										X: &ast.BasicLit{
+											Kind: token.IntLit,
+											Val:  "1",
+										},
+										Op: token.Lt,
+										Y: &ast.BasicLit{
+											Kind: token.IntLit,
+											Val:  "2",
+										},
+									},
+									Body: &ast.ExprStmt{
+										X: &ast.BinaryExpr{
+											X: &ast.Ident{
+												Name: "x",
+											},
+											Op: token.Assign,
+											Y: &ast.BasicLit{
+												Kind: token.IntLit,
+												Val:  "1",
+											},
+										},
+									},
+									Else: &ast.ExprStmt{
+										X: &ast.BinaryExpr{
+											X: &ast.Ident{
+												Name: "x",
+											},
+											Op: token.Assign,
+											Y: &ast.BasicLit{
+												Kind: token.IntLit,
+												Val:  "2",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		// {path: "../../testdata/quiet/parser/p04.c"},
 		// {path: "../../testdata/quiet/parser/p05.c"},
 		// {path: "../../testdata/quiet/parser/p06.c"},
