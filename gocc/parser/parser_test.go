@@ -49,7 +49,83 @@ func TestParser(t *testing.T) {
 			},
 		},
 
-		// {path: "../../testdata/quiet/lexer/l02.c"},
+		{
+			path: "../../testdata/quiet/lexer/l02.c",
+			want: &ast.File{
+				Decls: []ast.Decl{
+					&ast.VarDecl{
+						Type: &types.Basic{
+							Kind: types.Int,
+						},
+						Name: &ast.Ident{
+							Name: "foo",
+						},
+					},
+					&ast.VarDecl{
+						Type: &types.Basic{
+							Kind: types.Int,
+						},
+						Name: &ast.Ident{
+							Name: "BarBara",
+						},
+					},
+					&ast.VarDecl{
+						Type: &types.Basic{
+							Kind: types.Int,
+						},
+						Name: &ast.Ident{
+							Name: "bar_bara",
+						},
+					},
+					&ast.VarDecl{
+						Type: &types.Basic{
+							Kind: types.Int,
+						},
+						Name: &ast.Ident{
+							Name: "bar4711",
+						},
+					},
+					&ast.VarDecl{
+						Type: &types.Basic{
+							Kind: types.Int,
+						},
+						Name: &ast.Ident{
+							Name: "b4rb4r4",
+						},
+					},
+					&ast.VarDecl{
+						Type: &types.Basic{
+							Kind: types.Int,
+						},
+						Name: &ast.Ident{
+							Name: "abcdefghijklmnopqrstuvwxyz_ABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789",
+						},
+					},
+					&ast.FuncDecl{
+						Type: &types.Func{
+							Result: &types.Basic{
+								Kind: types.Int,
+							},
+							Params: []*types.Field{
+								&types.Field{
+									Type: &types.Basic{
+										Kind: types.Void,
+									},
+								},
+							},
+						},
+						Name: &ast.Ident{
+							Name: "main",
+						},
+						Body: &ast.BlockStmt{
+							Items: []ast.BlockItem{
+								&ast.EmptyStmt{},
+							},
+						},
+					},
+				},
+			},
+		},
 
 		// {path: "../../testdata/quiet/lexer/l03.c"},
 
