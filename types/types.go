@@ -66,10 +66,10 @@ type (
 
 	// A Func represents a function signature.
 	Func struct {
-		// Function parameter types; or nil if void parameter.
-		Params []*Field
 		// Return type.
 		Result Type
+		// Function parameter types; or nil if void parameter.
+		Params []*Field
 	}
 )
 
