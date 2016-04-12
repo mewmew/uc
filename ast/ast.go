@@ -25,9 +25,6 @@ type File struct {
 type Node interface {
 	// Start returns the start position of the node within the input stream.
 	Start() int
-	// End returns the first character immediately after the node within the
-	// input stream.
-	End() int
 }
 
 // A Decl node represents a declaration, and has one of the following underlying
@@ -288,70 +285,6 @@ func (n *VarDecl) Start() int { panic("ast.VarDecl.Start: not yet implemented") 
 
 // Start returns the start position of the node within the input stream.
 func (n *WhileStmt) Start() int { panic("ast.WhileStmt.Start: not yet implemented") }
-
-// End returns the first character immediately after the node within the input
-// stream.
-func (n *BasicLit) End() int { panic("ast.BasicLit.End: not yet implemented") }
-
-// End returns the first character immediately after the node within the input
-// stream.
-func (n *BinaryExpr) End() int { panic("ast.BinaryExpr.End: not yet implemented") }
-
-// End returns the first character immediately after the node within the input
-// stream.
-func (n *BlockStmt) End() int { panic("ast.BlockStmt.End: not yet implemented") }
-
-// End returns the first character immediately after the node within the input
-// stream.
-func (n *CallExpr) End() int { panic("ast.CallExpr.End: not yet implemented") }
-
-// End returns the first character immediately after the node within the input
-// stream.
-func (n *EmptyStmt) End() int { panic("ast.EmptyStmt.End: not yet implemented") }
-
-// End returns the first character immediately after the node within the input
-// stream.
-func (n *ExprStmt) End() int { panic("ast.ExprStmt.End: not yet implemented") }
-
-// End returns the first character immediately after the node within the input
-// stream.
-func (n *File) End() int { panic("ast.File.End: not yet implemented") }
-
-// End returns the first character immediately after the node within the input
-// stream.
-func (n *FuncDecl) End() int { panic("ast.FuncDecl.End: not yet implemented") }
-
-// End returns the first character immediately after the node within the input
-// stream.
-func (n *Ident) End() int { panic("ast.Ident.End: not yet implemented") }
-
-// End returns the first character immediately after the node within the input
-// stream.
-func (n *IfStmt) End() int { panic("ast.IfStmt.End: not yet implemented") }
-
-// End returns the first character immediately after the node within the input
-// stream.
-func (n *IndexExpr) End() int { panic("ast.IndexExpr.End: not yet implemented") }
-
-// End returns the first character immediately after the node within the input
-// stream.
-func (n *ParenExpr) End() int { panic("ast.ParenExpr.End: not yet implemented") }
-
-// End returns the first character immediately after the node within the input
-// stream.
-func (n *ReturnStmt) End() int { panic("ast.ReturnStmt.End: not yet implemented") }
-
-// End returns the first character immediately after the node within the input
-// stream.
-func (n *UnaryExpr) End() int { panic("ast.UnaryExpr.End: not yet implemented") }
-
-// End returns the first character immediately after the node within the input
-// stream.
-func (n *VarDecl) End() int { panic("ast.VarDecl.End: not yet implemented") }
-
-// End returns the first character immediately after the node within the input
-// stream.
-func (n *WhileStmt) End() int { panic("ast.WhileStmt.End: not yet implemented") }
 
 // Verify that all nodes implement the Node interface.
 var (

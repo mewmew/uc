@@ -41,9 +41,6 @@ package types
 type Type interface {
 	// Start returns the start position of the node within the input stream.
 	Start() int
-	// End returns the first character immediately after the node within the
-	// input stream.
-	End() int
 	// isType ensures that only µC types can be assigned to the Type interface.
 	isType()
 }
@@ -108,22 +105,6 @@ func (n *Func) Start() int { panic("ast.Func.Start: not yet implemented") }
 
 // Start returns the start position of the node within the input stream.
 func (n *Field) Start() int { panic("ast.Field.Start: not yet implemented") }
-
-// End returns the first character immediately after the node within the input
-// stream.
-func (n *Basic) End() int { panic("ast.Basic.End: not yet implemented") }
-
-// End returns the first character immediately after the node within the input
-// stream.
-func (n *Array) End() int { panic("ast.Array.End: not yet implemented") }
-
-// End returns the first character immediately after the node within the input
-// stream.
-func (n *Func) End() int { panic("ast.Func.End: not yet implemented") }
-
-// End returns the first character immediately after the node within the input
-// stream.
-func (n *Field) End() int { panic("ast.Field.End: not yet implemented") }
 
 // isType ensures that only µC types can be assigned to the Type interface.
 func (n *Basic) isType() {}
