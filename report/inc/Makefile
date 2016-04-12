@@ -1,5 +1,5 @@
 .SECONDARY:
-TESTDATA=../../uc/testdata
+TESTDATA=../../testdata
 TESTOUTDIR=testoutput
 VPATH=$(TESTDATA):$(TESTOUTDIR)
 
