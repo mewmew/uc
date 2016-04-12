@@ -93,6 +93,7 @@ func TestParser(t *testing.T) {
 				},
 			},
 		},
+
 		{
 			path: "../../testdata/quiet/parser/p02.c",
 			want: &ast.File{
@@ -184,6 +185,7 @@ func TestParser(t *testing.T) {
 				},
 			},
 		},
+
 		{
 			path: "../../testdata/quiet/parser/p03.c",
 			want: &ast.File{
@@ -257,6 +259,7 @@ func TestParser(t *testing.T) {
 				},
 			},
 		},
+
 		{
 			path: "../../testdata/quiet/parser/p04.c",
 			want: &ast.File{
@@ -387,7 +390,88 @@ func TestParser(t *testing.T) {
 				},
 			},
 		},
-		// {path: "../../testdata/quiet/parser/p05.c"},
+
+		{
+			path: "../../testdata/quiet/parser/p05.c",
+			want: &ast.File{
+				Decls: []ast.Decl{
+					&ast.VarDecl{
+						Type: &types.Array{
+							Elem: &types.Basic{
+								Kind: types.Int,
+							},
+							Len: 10,
+						},
+						Name: &ast.Ident{
+							Name: "c",
+						},
+					},
+					&ast.VarDecl{
+						Type: &types.Array{
+							Elem: &types.Basic{
+								Kind: types.Char,
+							},
+							Len: 10,
+						},
+						Name: &ast.Ident{
+							Name: "d",
+						},
+					},
+					&ast.FuncDecl{
+						Type: &types.Func{
+							Result: &types.Basic{
+								Kind: types.Void,
+							},
+							Params: []*types.Field{
+								&types.Field{
+									Type: &types.Array{
+										Elem: &types.Basic{
+											Kind: types.Int,
+										},
+									},
+									Name: "h",
+								},
+								&types.Field{
+									Type: &types.Array{
+										Elem: &types.Basic{
+											Kind: types.Char,
+										},
+									},
+									Name: "i",
+								},
+							},
+						},
+						Name: &ast.Ident{
+							Name: "f",
+						},
+						Body: &ast.BlockStmt{},
+					},
+					&ast.FuncDecl{
+						Type: &types.Func{
+							Result: &types.Basic{
+								Kind: types.Int,
+							},
+							Params: []*types.Field{
+								&types.Field{
+									Type: &types.Basic{
+										Kind: types.Void,
+									},
+								},
+							},
+						},
+						Name: &ast.Ident{
+							Name: "main",
+						},
+						Body: &ast.BlockStmt{
+							[]ast.BlockItem{
+								&ast.EmptyStmt{},
+							},
+						},
+					},
+				},
+			},
+		},
+
 		{
 			path: "../../testdata/quiet/parser/p06.c",
 			want: &ast.File{
@@ -558,19 +642,33 @@ func TestParser(t *testing.T) {
 				},
 			},
 		},
+
 		// {path: "../../testdata/incorrect/parser/p01.c"},
+
 		// {path: "../../testdata/incorrect/parser/p02.c"},
+
 		// {path: "../../testdata/incorrect/parser/p03.c"},
+
 		// {path: "../../testdata/incorrect/parser/p04.c"},
+
 		// {path: "../../testdata/incorrect/parser/p05.c"},
+
 		// {path: "../../testdata/incorrect/parser/p06.c"},
+
 		// {path: "../../testdata/incorrect/parser/p07.c"},
+
 		// {path: "../../testdata/incorrect/parser/p08.c"},
+
 		// {path: "../../testdata/incorrect/parser/p09.c"},
+
 		// {path: "../../testdata/incorrect/parser/p10.c"},
+
 		// {path: "../../testdata/incorrect/parser/p11.c"},
+
 		// {path: "../../testdata/incorrect/parser/p12.c"},
+
 		// {path: "../../testdata/incorrect/parser/p13.c"},
+
 		// {path: "../../testdata/incorrect/parser/p14.c"},
 	}
 
