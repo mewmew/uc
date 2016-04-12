@@ -25,6 +25,7 @@ clean: clean_aux
 # TODO: Remove temporary sections from Makefile when the report is finalized.
 
 lex: 2_lex.pdf clean_aux
+parse: 3_parse.pdf clean_aux
 
 %.pdf: %.tex
 	pdflatex $<
@@ -33,5 +34,7 @@ lex: 2_lex.pdf clean_aux
 	pdflatex $<
 
 2_lex.pdf: inc
+
+3_parse.pdf:
 
 tmpsec: 1_intro.pdf 2_lex.pdf 3_parse.pdf 4_sem.pdf 5_ir.pdf 6_ir_gen.pdf 7_con.pdf app.pdf
