@@ -1,6 +1,7 @@
 package parser_test
 
 import (
+	"fmt"
 	"log"
 	"reflect"
 	"testing"
@@ -220,8 +221,7 @@ func TestParser(t *testing.T) {
 		got := file.(*ast.File)
 		if !reflect.DeepEqual(got, g.want) {
 			t.Errorf("%q: ast tree mismatch:\nWant: %v\nGot: %v", g.path, g.want, got)
-			pretty.Print(g.want)
-			pretty.Print(got)
+			fmt.Println(pretty.Diff(g.want, got))
 		}
 	}
 }
