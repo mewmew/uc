@@ -74,6 +74,7 @@ type (
 )
 
 //go:generate stringer -type BasicKind
+//go:generate gorename -from basickind_string.go::i -to kind
 
 // BasicKind describes the kind of basic type.
 type BasicKind int

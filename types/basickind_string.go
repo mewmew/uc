@@ -8,9 +8,9 @@ const _BasicKind_name = "InvalidCharIntVoid"
 
 var _BasicKind_index = [...]uint8{0, 7, 11, 14, 18}
 
-func (i BasicKind) String() string {
-	if i < 0 || i >= BasicKind(len(_BasicKind_index)-1) {
-		return fmt.Sprintf("BasicKind(%d)", i)
+func (kind BasicKind) String() string {
+	if kind < 0 || kind >= BasicKind(len(_BasicKind_index)-1) {
+		return fmt.Sprintf("BasicKind(%d)", kind)
 	}
-	return _BasicKind_name[_BasicKind_index[i]:_BasicKind_index[i+1]]
+	return _BasicKind_name[_BasicKind_index[kind]:_BasicKind_index[kind+1]]
 }
