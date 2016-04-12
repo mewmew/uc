@@ -259,7 +259,97 @@ func TestParser(t *testing.T) {
 		},
 		// {path: "../../testdata/quiet/parser/p04.c"},
 		// {path: "../../testdata/quiet/parser/p05.c"},
-		// {path: "../../testdata/quiet/parser/p06.c"},
+		{
+			path: "../../testdata/quiet/parser/p06.c",
+			want: &ast.File{
+				Decls: []ast.Decl{
+					&ast.FuncDecl{
+						Type: &types.Func{
+							Result: &types.Basic{
+								Kind: types.Void,
+							},
+							Params: []*types.Field{
+								&types.Field{
+									Type: &types.Basic{
+										Kind: types.Void,
+									},
+								},
+							},
+						},
+						Name: &ast.Ident{
+							Name: "f",
+						},
+						Body: &ast.BlockStmt{
+							Items: []ast.BlockItem{
+								&ast.ReturnStmt{},
+							},
+						},
+					},
+					&ast.FuncDecl{
+						Type: &types.Func{
+							Result: &types.Basic{
+								Kind: types.Int,
+							},
+							Params: []*types.Field{
+								&types.Field{
+									Type: &types.Basic{
+										Kind: types.Void,
+									},
+								},
+							},
+						},
+						Name: &ast.Ident{
+							Name: "g",
+						},
+						Body: &ast.BlockStmt{
+							Items: []ast.BlockItem{
+								&ast.ReturnStmt{
+									Result: &ast.BasicLit{
+										Kind: token.IntLit,
+										Val:  "42",
+									},
+								},
+							},
+						},
+					},
+					&ast.FuncDecl{
+						Type: &types.Func{
+							Params: []*types.Field{
+								&types.Field{
+									Type: &types.Basic{
+										Kind: types.Void,
+									},
+								},
+							},
+							Result: &types.Basic{
+								Kind: types.Int,
+							},
+						},
+						Name: &ast.Ident{
+							Name: "main",
+						},
+						Body: &ast.BlockStmt{
+							Items: []ast.BlockItem{
+								&ast.ExprStmt{
+									X: &ast.CallExpr{
+										Name: &ast.Ident{
+											Name: "f",
+										},
+									},
+								},
+								&ast.ExprStmt{
+									&ast.CallExpr{
+										Name: &ast.Ident{
+											Name: "g",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		// {path: "../../testdata/quiet/parser/p07.c"},
 		// {path: "../../testdata/quiet/parser/p08.c"},
 		// {path: "../../testdata/incorrect/parser/p01.c"},
