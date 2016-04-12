@@ -8,6 +8,7 @@ import (
 
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
+	"github.com/mewmew/uc/types"
 )
 
 // Walk walks the given parse tree in depth first order.
@@ -54,6 +55,16 @@ func Walk(node ast.Node, f func(ast.Node)) error {
 	case *ast.UnaryExpr:
 		return walkUnaryExpr(n, f)
 
+	// Types.
+	case *types.Basic:
+		return walkBasicType(n, f)
+	case *types.Array:
+		return walkArrayType(n, f)
+	case *types.Func:
+		return walkFuncType(n, f)
+	case *types.Field:
+		return walkTypeField(n, f)
+
 	case nil:
 		// Nothing to do.
 		return nil
@@ -84,10 +95,9 @@ func walkFuncDecl(decl *ast.FuncDecl, f func(ast.Node)) error {
 	if err := Walk(decl.Name, f); err != nil {
 		return errutil.Err(err)
 	}
-	// TODO: Make type nodes implement the ast.Node interface.
-	//if err := Walk(decl.Type, f); err != nil {
-	//	return errutil.Err(err)
-	//}
+	if err := Walk(decl.Type, f); err != nil {
+		return errutil.Err(err)
+	}
 	if err := Walk(decl.Body, f); err != nil {
 		return errutil.Err(err)
 	}
@@ -98,10 +108,9 @@ func walkFuncDecl(decl *ast.FuncDecl, f func(ast.Node)) error {
 // first order.
 func walkVarDecl(decl *ast.VarDecl, f func(ast.Node)) error {
 	f(decl)
-	// TODO: Make type nodes implement the ast.Node interface.
-	//if err := Walk(decl.Type, f); err != nil {
-	//	return errutil.Err(err)
-	//}
+	if err := Walk(decl.Type, f); err != nil {
+		return errutil.Err(err)
+	}
 	if err := Walk(decl.Name, f); err != nil {
 		return errutil.Err(err)
 	}
@@ -255,5 +264,50 @@ func walkUnaryExpr(expr *ast.UnaryExpr, f func(ast.Node)) error {
 	if err := Walk(expr.X, f); err != nil {
 		return errutil.Err(err)
 	}
+	return nil
+}
+
+// === [ Types ] ===
+
+// walkBasicType walks the parse tree of the given basic type in depth first
+// order.
+func walkBasicType(typ *types.Basic, f func(ast.Node)) error {
+	f(typ)
+	return nil
+}
+
+// walkArrayType walks the parse tree of the given array type in depth first
+// order.
+func walkArrayType(arr *types.Array, f func(ast.Node)) error {
+	f(arr)
+	if err := Walk(arr.Elem, f); err != nil {
+		return errutil.Err(err)
+	}
+	return nil
+}
+
+// walkFuncType walks the parse tree of the given function signature in depth
+// first order.
+func walkFuncType(fn *types.Func, f func(ast.Node)) error {
+	f(fn)
+	for _, param := range fn.Params {
+		if err := Walk(param, f); err != nil {
+			return errutil.Err(err)
+		}
+	}
+	if err := Walk(fn.Result, f); err != nil {
+		return errutil.Err(err)
+	}
+	return nil
+}
+
+// walkTypeField walks the parse tree of the given type field in depth first
+// order.
+func walkTypeField(field *types.Field, f func(ast.Node)) error {
+	f(field)
+	if err := Walk(field.Type, f); err != nil {
+		return errutil.Err(err)
+	}
+	// TODO: Make field.Name an *ast.Ident and walk field.Name?
 	return nil
 }
