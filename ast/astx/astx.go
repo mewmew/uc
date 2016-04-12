@@ -3,12 +3,8 @@
 package astx
 
 import (
-	"fmt"
-	"sort"
-
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
-	"github.com/mewmew/uc/gocc/errors"
 	gocctoken "github.com/mewmew/uc/gocc/token"
 	"github.com/mewmew/uc/token"
 	"github.com/mewmew/uc/types"
@@ -517,22 +513,4 @@ func tokenString(tok interface{}) (string, error) {
 		return string(tok.Lit), nil
 	}
 	return "", errutil.Newf("invalid tok type; expected *gocctoken.Token, got %T", tok)
-}
-
-// NewError returns a user-friendly parse error.
-func NewError(err interface{}) (ast.Node, error) {
-	if err, ok := err.(*errors.Error); ok {
-		// TODO: Add line:col positional tracking.
-		var expected []string
-		for _, tok := range err.ExpectedTokens {
-			if tok == "error" {
-				// Ignore "error" production rule as an expected token.
-				continue
-			}
-			expected = append(expected, tok)
-		}
-		sort.Strings(expected)
-		return nil, fmt.Errorf("%d: unexpected %q, expected %q", err.ErrorToken.Pos.Offset, string(err.ErrorToken.Lit), expected)
-	}
-	return nil, errutil.Newf("invalid error type; expected *errors.Error, got %T", err)
 }

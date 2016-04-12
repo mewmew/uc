@@ -287,7 +287,6 @@ PrimaryExpr
 	: int_lit                           << astx.NewBasicLit($0, token.IntLit) >>
 	| ident                             << astx.NewIdent($0) >>
 	| ParenExpr
-	| error                             << astx.NewError($0) >>
 ;
 
 ParenExpr
