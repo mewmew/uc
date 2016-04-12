@@ -20,6 +20,46 @@ func TestParser(t *testing.T) {
 		want *ast.File
 	}{
 		{
+			path: "../../testdata/quiet/lexer/l01.c",
+			want: &ast.File{
+				Decls: []ast.Decl{
+					&ast.FuncDecl{
+						Type: &types.Func{
+							Result: &types.Basic{
+								Kind: types.Int,
+							},
+							Params: []*types.Field{
+								&types.Field{
+									Type: &types.Basic{
+										Kind: types.Void,
+									},
+								},
+							},
+						},
+						Name: &ast.Ident{
+							Name: "main",
+						},
+						Body: &ast.BlockStmt{
+							Items: []ast.BlockItem{
+								&ast.EmptyStmt{},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		// {path: "../../testdata/quiet/lexer/l02.c"},
+
+		// {path: "../../testdata/quiet/lexer/l03.c"},
+
+		// {path: "../../testdata/quiet/lexer/l04.c"},
+
+		// {path: "../../testdata/quiet/lexer/l05.c"},
+
+		// {path: "../../testdata/quiet/lexer/l06.c"},
+
+		{
 			path: "../../testdata/quiet/parser/p01.c",
 			want: &ast.File{
 				Decls: []ast.Decl{
