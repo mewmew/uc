@@ -4,6 +4,7 @@ package astx
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
@@ -530,7 +531,8 @@ func NewError(err interface{}) (ast.Node, error) {
 			}
 			expected = append(expected, tok)
 		}
-		return nil, fmt.Errorf("%d: expected %q, got %q", err.ErrorToken.Pos.Offset, expected, string(err.ErrorToken.Lit))
+		sort.Strings(expected)
+		return nil, fmt.Errorf("%d: unexpected %q, expected %q", err.ErrorToken.Pos.Offset, string(err.ErrorToken.Lit), expected)
 	}
 	return nil, errutil.Newf("invalid error type; expected *errors.Error, got %T", err)
 }
