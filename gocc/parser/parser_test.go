@@ -257,7 +257,136 @@ func TestParser(t *testing.T) {
 				},
 			},
 		},
-		// {path: "../../testdata/quiet/parser/p04.c"},
+		{
+			path: "../../testdata/quiet/parser/p04.c",
+			want: &ast.File{
+				Decls: []ast.Decl{
+					&ast.FuncDecl{
+						Type: &types.Func{
+							Result: &types.Basic{
+								Kind: types.Int,
+							},
+							Params: []*types.Field{
+								&types.Field{
+									Type: &types.Basic{
+										Kind: types.Void,
+									},
+								},
+							},
+						},
+						Name: &ast.Ident{
+							Name: "main",
+						},
+						Body: &ast.BlockStmt{
+							Items: []ast.BlockItem{
+								&ast.VarDecl{
+									Type: &types.Basic{
+										Kind: types.Int,
+									},
+									Name: &ast.Ident{
+										Name: "x",
+									},
+								},
+								&ast.VarDecl{
+									Type: &types.Basic{
+										Kind: types.Int,
+									},
+									Name: &ast.Ident{
+										Name: "y",
+									},
+								},
+								&ast.VarDecl{
+									Type: &types.Basic{
+										Kind: types.Int,
+									},
+									Name: &ast.Ident{
+										Name: "z",
+									},
+								},
+								&ast.ExprStmt{
+									X: &ast.BinaryExpr{
+										X: &ast.BinaryExpr{
+											X: &ast.BinaryExpr{
+												X: &ast.Ident{
+													Name: "x",
+												},
+												Op: token.Sub,
+												Y: &ast.Ident{
+													Name: "y",
+												},
+											},
+											Op: token.Sub,
+											Y: &ast.Ident{
+												Name: "z",
+											},
+										},
+										Op: token.Sub,
+										Y: &ast.BasicLit{
+											Kind: token.IntLit,
+											Val:  "42",
+										},
+									},
+								},
+								&ast.ExprStmt{
+									X: &ast.BinaryExpr{
+										X: &ast.BinaryExpr{
+											X: &ast.BinaryExpr{
+												X: &ast.BinaryExpr{
+													X: &ast.UnaryExpr{
+														Op: token.Not,
+														X: &ast.Ident{
+															Name: "x",
+														},
+													},
+													Op: token.Mul,
+													Y: &ast.Ident{
+														Name: "y",
+													},
+												},
+												Op: token.Add,
+												Y: &ast.Ident{
+													Name: "z",
+												},
+											},
+											Op: token.Lt,
+											Y: &ast.Ident{
+												Name: "x",
+											},
+										},
+										Op: token.Ne,
+										Y: &ast.BinaryExpr{
+											X: &ast.BasicLit{
+												Kind: token.IntLit,
+												Val:  "42",
+											},
+											Op: token.Lt,
+											Y: &ast.BinaryExpr{
+												X: &ast.Ident{
+													Name: "x",
+												},
+												Op: token.Add,
+												Y: &ast.BinaryExpr{
+													X: &ast.Ident{
+														Name: "y",
+													},
+													Op: token.Mul,
+													Y: &ast.UnaryExpr{
+														Op: token.Not,
+														X: &ast.Ident{
+															Name: "x",
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		// {path: "../../testdata/quiet/parser/p05.c"},
 		{
 			path: "../../testdata/quiet/parser/p06.c",
@@ -351,7 +480,84 @@ func TestParser(t *testing.T) {
 			},
 		},
 		// {path: "../../testdata/quiet/parser/p07.c"},
-		// {path: "../../testdata/quiet/parser/p08.c"},
+		{
+			path: "../../testdata/quiet/parser/p08.c",
+			want: &ast.File{
+				Decls: []ast.Decl{
+					&ast.FuncDecl{
+						Type: &types.Func{
+							Result: &types.Basic{
+								Kind: types.Int,
+							},
+							Params: []*types.Field{
+								&types.Field{
+									Type: &types.Basic{
+										Kind: types.Void,
+									},
+								},
+							},
+						},
+						Name: &ast.Ident{
+							Name: "main",
+						},
+						Body: &ast.BlockStmt{
+							Items: []ast.BlockItem{
+								&ast.VarDecl{
+									Type: &types.Basic{
+										Kind: types.Int,
+									},
+									Name: &ast.Ident{
+										Name: "x",
+									},
+								},
+								&ast.VarDecl{
+									Type: &types.Basic{
+										Kind: types.Int,
+									},
+									Name: &ast.Ident{
+										Name: "y",
+									},
+								},
+								&ast.IfStmt{
+									Cond: &ast.Ident{
+										Name: "x",
+									},
+									Body: &ast.IfStmt{
+										Cond: &ast.Ident{
+											Name: "y",
+										},
+										Body: &ast.ExprStmt{
+											X: &ast.BinaryExpr{
+												X: &ast.Ident{
+													Name: "x",
+												},
+												Op: token.Assign,
+												Y: &ast.BasicLit{
+													Kind: token.IntLit,
+													Val:  "4711",
+												},
+											},
+										},
+										Else: &ast.ExprStmt{
+											X: &ast.BinaryExpr{
+												X: &ast.Ident{
+													Name: "x",
+												},
+												Op: token.Assign,
+												Y: &ast.BasicLit{
+													Kind: token.IntLit,
+													Val:  "42",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		// {path: "../../testdata/incorrect/parser/p01.c"},
 		// {path: "../../testdata/incorrect/parser/p02.c"},
 		// {path: "../../testdata/incorrect/parser/p03.c"},
