@@ -25,15 +25,15 @@ func TestParser(t *testing.T) {
 				Decls: []ast.Decl{
 					&ast.FuncDecl{
 						Type: &types.Func{
+							Result: &types.Basic{
+								Kind: types.Int,
+							},
 							Params: []*types.Field{
 								&types.Field{
 									Type: &types.Basic{
 										Kind: types.Void,
 									},
 								},
-							},
-							Result: &types.Basic{
-								Kind: types.Int,
 							},
 						},
 						Name: &ast.Ident{
@@ -100,15 +100,15 @@ func TestParser(t *testing.T) {
 				Decls: []ast.Decl{
 					&ast.FuncDecl{
 						Type: &types.Func{
+							Result: &types.Basic{
+								Kind: types.Int,
+							},
 							Params: []*types.Field{
 								&types.Field{
 									Type: &types.Basic{
 										Kind: types.Void,
 									},
 								},
-							},
-							Result: &types.Basic{
-								Kind: types.Int,
 							},
 						},
 						Name: &ast.Ident{
@@ -192,15 +192,15 @@ func TestParser(t *testing.T) {
 				Decls: []ast.Decl{
 					&ast.FuncDecl{
 						Type: &types.Func{
+							Result: &types.Basic{
+								Kind: types.Int,
+							},
 							Params: []*types.Field{
 								&types.Field{
 									Type: &types.Basic{
 										Kind: types.Void,
 									},
 								},
-							},
-							Result: &types.Basic{
-								Kind: types.Int,
 							},
 						},
 						Name: &ast.Ident{
@@ -527,15 +527,15 @@ func TestParser(t *testing.T) {
 					},
 					&ast.FuncDecl{
 						Type: &types.Func{
+							Result: &types.Basic{
+								Kind: types.Int,
+							},
 							Params: []*types.Field{
 								&types.Field{
 									Type: &types.Basic{
 										Kind: types.Void,
 									},
 								},
-							},
-							Result: &types.Basic{
-								Kind: types.Int,
 							},
 						},
 						Name: &ast.Ident{
@@ -563,21 +563,22 @@ func TestParser(t *testing.T) {
 				},
 			},
 		},
+
 		{
 			path: "../../testdata/quiet/parser/p07.c",
 			want: &ast.File{
 				Decls: []ast.Decl{
 					&ast.FuncDecl{
 						Type: &types.Func{
+							Result: &types.Basic{
+								Kind: types.Int,
+							},
 							Params: []*types.Field{
 								&types.Field{
 									Type: &types.Basic{
 										Kind: types.Void,
 									},
 								},
-							},
-							Result: &types.Basic{
-								Kind: types.Int,
 							},
 						},
 						Name: &ast.Ident{
@@ -651,6 +652,7 @@ func TestParser(t *testing.T) {
 				},
 			},
 		},
+
 		{
 			path: "../../testdata/quiet/parser/p08.c",
 			want: &ast.File{
