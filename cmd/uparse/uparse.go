@@ -20,6 +20,7 @@ import (
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
 	"github.com/mewmew/uc/cmd/internal/ioutilx"
+	"github.com/mewmew/uc/gocc/errors"
 	"github.com/mewmew/uc/gocc/parser"
 	goccscanner "github.com/mewmew/uc/gocc/scanner"
 	handscanner "github.com/mewmew/uc/hand/scanner"
@@ -82,6 +83,10 @@ func parseFile(path string, hand bool) (err error) {
 	p := parser.NewParser()
 	file, err := p.Parse(s)
 	if err != nil {
+		if err, ok := err.(*errors.Error); ok {
+			// Unwrap Gocc error.
+			return errutil.Err(err.Err)
+		}
 		return errutil.Err(err)
 	}
 	f := file.(*ast.File)
