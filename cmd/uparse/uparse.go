@@ -1,9 +1,12 @@
 // uparse is a parser for the µC language which pretty-prints abstract syntax
 // trees to standard output.
 //
-// Usage: uparse FILE...
+// Usage: uparse [OPTION]... FILE...
 //
 // If FILE is -, read standard input.
+//
+//   -hand
+//        use hand-written lexer (default true)
 package main
 
 import (
@@ -16,31 +19,40 @@ import (
 	"github.com/kr/pretty"
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
+	"github.com/mewmew/uc/cmd/internal/debug"
 	"github.com/mewmew/uc/cmd/internal/ioutilx"
-	"github.com/mewmew/uc/gocc/lexer"
 	"github.com/mewmew/uc/gocc/parser"
-	// TODO: Use hand-written scanner instead of Gocc-generated lexer once the
-	// grammar has matured.
-	//"github.com/mewmew/uc/hand/scanner"
+	goccscanner "github.com/mewmew/uc/gocc/scanner"
+	handscanner "github.com/mewmew/uc/hand/scanner"
 )
 
 func usage() {
 	const use = `
-Usage: uparse FILE...
+Usage: uparse [OPTION]... FILE...
 
-If FILE is -, read standard input.`
+If FILE is -, read standard input.
+`
 	fmt.Fprintln(os.Stderr, use[1:])
+	flag.PrintDefaults()
 }
 
 func main() {
+	var (
+		// hand specifies whether to use the hand-written lexer, instead of the
+		// Gocc generated.
+		hand bool
+	)
+	flag.BoolVar(&hand, "hand", true, "use hand-written lexer")
 	flag.Usage = usage
 	flag.Parse()
 	if flag.NArg() == 0 {
 		flag.Usage()
 		os.Exit(1)
 	}
+
+	// Parse input.
 	for _, path := range flag.Args() {
-		err := parseFile(path)
+		err := parseFile(path, hand)
 		if err != nil {
 			log.Print(err)
 		}
@@ -48,8 +60,8 @@ func main() {
 }
 
 // parseFile parses the given file and pretty-prints its abstract syntax tree to
-// standard output.
-func parseFile(path string) (err error) {
+// standard output, optionally using the hand-written lexer.
+func parseFile(path string, hand bool) (err error) {
 	// Create lexer for the input.
 	buf, err := ioutilx.ReadFile(path)
 	if err != nil {
@@ -60,11 +72,18 @@ func parseFile(path string) (err error) {
 	} else {
 		fmt.Fprintf(os.Stderr, "Parsing %q\n", path)
 	}
-	s := lexer.NewLexer(buf)
+	var s parser.Scanner
+	if hand {
+		s = handscanner.NewFromBytes(buf)
+	} else {
+		s = goccscanner.NewFromBytes(buf)
+	}
+
+	ds := debug.NewScanner(s)
 
 	// Parse input.
 	p := parser.NewParser()
-	file, err := p.Parse(s)
+	file, err := p.Parse(ds)
 	if err != nil {
 		return errutil.Err(err)
 	}

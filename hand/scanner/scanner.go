@@ -43,13 +43,15 @@ func (s *scanner) Scan() *token.Token {
 	case uctoken.Error:
 		typ = token.TokMap.Type("INVALID")
 	case uctoken.Comment:
-		typ = token.TokMap.Type("comment")
+		// Skip comments.
+		return s.Scan()
 	case uctoken.Ident:
 		typ = token.TokMap.Type("ident")
 	case uctoken.IntLit:
 		typ = token.TokMap.Type("int_lit")
 	case uctoken.CharLit:
-		typ = token.TokMap.Type("char_lit")
+		// TODO: Change back to "char_lit" once dedicated support for character literals has been added.
+		typ = token.TokMap.Type("int_lit")
 	default:
 		typ = token.TokMap.Type(tok.Val)
 	}
@@ -83,5 +85,11 @@ func Open(path string) (Scanner, error) {
 // NewFromString returns a new scanner lexing from input.
 func NewFromString(input string) Scanner {
 	toks := lexer.ParseString(input)
+	return &scanner{toks: toks}
+}
+
+// NewFromBytes returns a new scanner lexing from input.
+func NewFromBytes(input []byte) Scanner {
+	toks := lexer.ParseString(string(input))
 	return &scanner{toks: toks}
 }

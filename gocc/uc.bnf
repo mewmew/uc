@@ -203,9 +203,6 @@ Expr
 	: Expr2R
 ;
 
-// TODO: Figure out how to represent left- and right-associativity. Perhaps this
-// may be done during the generation of the AST?
-
 // Right-associative binary expressions with precedence 2.
 //
 //    2R: =
@@ -269,9 +266,6 @@ Expr14
 	| "-" Expr14                        << astx.NewUnaryExpr(token.Sub, $1) >>
 	| "!" Expr14                        << astx.NewUnaryExpr(token.Not, $1) >>
 ;
-
-// TODO: Check that integer litearls, identifiers, index expressions, call
-// expressions, and parentesized espressions have precedence 15.
 
 // TODO: Handle char_lit explicitly?
 
