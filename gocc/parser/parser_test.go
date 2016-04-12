@@ -24,6 +24,13 @@ func TestParser(t *testing.T) {
 				Decls: []ast.Decl{
 					&ast.FuncDecl{
 						Type: &types.Func{
+							Params: []*types.Field{
+								&types.Field{
+									Type: &types.Basic{
+										Kind: types.Void,
+									},
+								},
+							},
 							Result: &types.Basic{
 								Kind: types.Int,
 							},
