@@ -9,20 +9,16 @@ import (
 	"github.com/mewmew/uc/types"
 )
 
-// TODO: Consider removing file abstraction, and let []TopLevelDecl be the
-// return type of Parse.
-
 // A File represents a µC source file.
 type File struct {
 	// Top-level declarations.
-	Decls []TopLevelDecl
+	Decls []Decl
 }
 
 // A Node represents a node within the abstract syntax tree, and has one of the
 // following underlying types.
 //
 //    *File
-//    TopLevelDecl
 //    Decl
 //    Stmt
 //    Expr
@@ -34,24 +30,17 @@ type Node interface {
 	End() int
 }
 
-// TODO: Evaluate whether TopLevelDecl should be merged with Decl, to simplify
-// the structure of the AST; in which case a semantic analysis pass would be
-// added to ensure that function declarations are not nested (even if this would
-// be an interesting extension to C).
-
-// A TopLevelDecl node represents a top-level declaration, and has one of the
-// following underlying types.
+// A Decl node represents a declaration, and has one of the following underlying
+// types.
 //
-//    Decl
 //    *FuncDecl
-type TopLevelDecl interface {
+//    *VarDecl
+type Decl interface {
 	Node
-	// isTopLevelDecl ensures that only top-level declaration nodes can be
-	// assigned to the TopLevelDevl interface.
-	isTopLevelDecl()
+	isDecl()
 }
 
-// Top-level declaration nodes.
+// Declaration nodes.
 type (
 	// A FuncDecl node represents a function declaration.
 	//
@@ -60,29 +49,15 @@ type (
 	//    int add(int a, int b) { return a+b; }
 	//    int puts(char s[]);
 	FuncDecl struct {
-		// Function name.
-		Name *Ident
 		// Function signature.
 		Type *types.Func
+		// Function name.
+		Name *Ident
 		// Function body; or nil if function declaration (i.e. not function
 		// definition).
 		Body *BlockStmt
 	}
-)
 
-// A Decl node represents a declaration, and has one of the following underlying
-// types.
-//
-//    *VarDecl
-type Decl interface {
-	Node
-	// isDecl ensures that only declaration nodes can be assigned to the Decl
-	// interface.
-	isDecl()
-}
-
-// Declaration nodes.
-type (
 	// A VarDecl node represents a variable declaration.
 	//
 	// Examples.
@@ -104,7 +79,6 @@ type (
 // types.
 //
 //    *BlockStmt
-//    *DeclStmt
 //    *EmptyStmt
 //    *ExprStmt
 //    *IfStmt
@@ -123,16 +97,11 @@ type (
 	//
 	// Examples.
 	//
-	//
+	//    {}
+	//    { int x; x = 42; }
 	BlockStmt struct {
-		// List of statements contained within the block.
-		Stmts []Stmt
-	}
-
-	// A DeclStmt node represents a declaration statement.
-	DeclStmt struct {
-		// Declaration.
-		Decl Decl
+		// List of block items contained within the block.
+		Items []BlockItem
 	}
 
 	// An EmptyStmt node represents an empty statement (i.e. ";").
@@ -168,6 +137,18 @@ type (
 		Result Expr
 	}
 )
+
+// A BlockItem represents an item of a block statement, and has one of the
+// following underlying types.
+//
+//    Decl
+//    Stmt
+type BlockItem interface {
+	Node
+	// isBlockItem ensures that only block item nodes can be assigned to the
+	// BlockItem interface.
+	isBlockItem()
+}
 
 // An Expr node represents an expression, and has one of the following
 // underlying types.
@@ -273,9 +254,6 @@ func (n *BlockStmt) Start() int { panic("ast.BlockStmt.Start: not yet implemente
 func (n *CallExpr) Start() int { panic("ast.CallExpr.Start: not yet implemented") }
 
 // Start returns the start position of the node within the input stream.
-func (n *DeclStmt) Start() int { panic("ast.DeclStmt.Start: not yet implemented") }
-
-// Start returns the start position of the node within the input stream.
 func (n *EmptyStmt) Start() int { panic("ast.EmptyStmt.Start: not yet implemented") }
 
 // Start returns the start position of the node within the input stream.
@@ -326,10 +304,6 @@ func (n *BlockStmt) End() int { panic("ast.BlockStmt.End: not yet implemented") 
 // End returns the first character immediately after the node within the input
 // stream.
 func (n *CallExpr) End() int { panic("ast.CallExpr.End: not yet implemented") }
-
-// End returns the first character immediately after the node within the input
-// stream.
-func (n *DeclStmt) End() int { panic("ast.DeclStmt.End: not yet implemented") }
 
 // End returns the first character immediately after the node within the input
 // stream.
@@ -385,7 +359,6 @@ var (
 	_ Node = &BinaryExpr{}
 	_ Node = &BlockStmt{}
 	_ Node = &CallExpr{}
-	_ Node = &DeclStmt{}
 	_ Node = &EmptyStmt{}
 	_ Node = &ExprStmt{}
 	_ Node = &File{}
@@ -400,31 +373,20 @@ var (
 	_ Node = &WhileStmt{}
 )
 
-// isTopLevelDecl ensures that only top-level declaration nodes can be assigned
-// to the TopLevelDevl interface.
-func (n *FuncDecl) isTopLevelDecl() {}
-func (n *VarDecl) isTopLevelDecl()  {}
-
-// Verify that the top-level declaration nodes implement the TopLevelDecl
-// interface.
-var (
-	_ TopLevelDecl = &FuncDecl{}
-	_ TopLevelDecl = &VarDecl{}
-)
-
 // isDecl ensures that only declaration nodes can be assigned to the Decl
 // interface.
-func (n *VarDecl) isDecl() {}
+func (n *FuncDecl) isDecl() {}
+func (n *VarDecl) isDecl()  {}
 
 // Verify that the declaration nodes implement the Decl interface.
 var (
+	_ Decl = &FuncDecl{}
 	_ Decl = &VarDecl{}
 )
 
 // isStmt ensures that only statement nodes can be assigned to the Stmt
 // interface.
 func (n *BlockStmt) isStmt()  {}
-func (n *DeclStmt) isStmt()   {}
 func (n *EmptyStmt) isStmt()  {}
 func (n *ExprStmt) isStmt()   {}
 func (n *IfStmt) isStmt()     {}
@@ -434,12 +396,34 @@ func (n *WhileStmt) isStmt()  {}
 // Verify that the statement nodes implement the Stmt interface.
 var (
 	_ Stmt = &BlockStmt{}
-	_ Stmt = &DeclStmt{}
 	_ Stmt = &EmptyStmt{}
 	_ Stmt = &ExprStmt{}
 	_ Stmt = &IfStmt{}
 	_ Stmt = &ReturnStmt{}
 	_ Stmt = &WhileStmt{}
+)
+
+// isBlockItem ensures that only block item nodes can be assigned to the
+// BlockItem interface.
+func (n *BlockStmt) isBlockItem()  {}
+func (n *EmptyStmt) isBlockItem()  {}
+func (n *ExprStmt) isBlockItem()   {}
+func (n *FuncDecl) isBlockItem()   {}
+func (n *IfStmt) isBlockItem()     {}
+func (n *ReturnStmt) isBlockItem() {}
+func (n *VarDecl) isBlockItem()    {}
+func (n *WhileStmt) isBlockItem()  {}
+
+// Verify that the block item nodes implement the BlockItem interface.
+var (
+	_ BlockItem = &BlockStmt{}
+	_ BlockItem = &EmptyStmt{}
+	_ BlockItem = &ExprStmt{}
+	_ BlockItem = &FuncDecl{}
+	_ BlockItem = &IfStmt{}
+	_ BlockItem = &ReturnStmt{}
+	_ BlockItem = &VarDecl{}
+	_ BlockItem = &WhileStmt{}
 )
 
 // isExpr ensures that only expression nodes can be assigned to the Expr

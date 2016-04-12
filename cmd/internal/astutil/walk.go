@@ -18,7 +18,7 @@ func Walk(node ast.Node, f func(ast.Node)) error {
 	case *ast.File:
 		return walkFile(n, f)
 
-	// Top-level declarations.
+	// Declarations.
 	case *ast.FuncDecl:
 		return walkFuncDecl(n, f)
 	case *ast.VarDecl:
@@ -27,8 +27,6 @@ func Walk(node ast.Node, f func(ast.Node)) error {
 	// Statements.
 	case *ast.BlockStmt:
 		return walkBlockStmt(n, f)
-	case *ast.DeclStmt:
-		return walkDeclStmt(n, f)
 	case *ast.EmptyStmt:
 		return walkEmptyStmt(n, f)
 	case *ast.ExprStmt:
@@ -119,20 +117,10 @@ func walkVarDecl(decl *ast.VarDecl, f func(ast.Node)) error {
 // first order.
 func walkBlockStmt(block *ast.BlockStmt, f func(ast.Node)) error {
 	f(block)
-	for _, stmt := range block.Stmts {
-		if err := Walk(stmt, f); err != nil {
+	for _, item := range block.Items {
+		if err := Walk(item, f); err != nil {
 			return errutil.Err(err)
 		}
-	}
-	return nil
-}
-
-// walkDeclStmt walks the parse tree of the given declaration statement in depth
-// first order.
-func walkDeclStmt(stmt *ast.DeclStmt, f func(ast.Node)) error {
-	f(stmt)
-	if err := Walk(stmt.Decl, f); err != nil {
-		return errutil.Err(err)
 	}
 	return nil
 }

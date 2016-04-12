@@ -12,53 +12,57 @@ import (
 
 // NewFile returns a new µC source file, based on the following production rule.
 //
-//    Program
-//       : TopLevelDecls
+//    File
+//       : DeclStmts
 //    ;
 func NewFile(decls interface{}) (*ast.File, error) {
-	if decls, ok := decls.([]ast.TopLevelDecl); ok {
+	if decls, ok := decls.([]ast.Decl); ok {
 		return &ast.File{Decls: decls}, nil
 	}
-	return nil, errutil.Newf("invalid file top-level declarations type; expected []ast.TopLevelDecl, got %T", decls)
+	return nil, errutil.Newf("invalid file declarations type; expected []ast.Decl, got %T", decls)
 }
 
-// NewTopLevelDeclList returns a new top-level declaration list, based on the
-// following production rule.
+// NewDeclList returns a new declaration list, based on the following production
+// rule.
 //
-//    TopLevelDeclList
-//       : TopLevelDecl
+//    DeclList
+//       : Decl
 //    ;
-func NewTopLevelDeclList(decl interface{}) ([]ast.TopLevelDecl, error) {
-	if decl, ok := decl.(ast.TopLevelDecl); ok {
-		return []ast.TopLevelDecl{decl}, nil
+func NewDeclList(decl interface{}) ([]ast.Decl, error) {
+	if decl, ok := decl.(ast.Decl); ok {
+		return []ast.Decl{decl}, nil
 	}
-	return nil, errutil.Newf("invalid top-level declaration list top-level declaration type; expected ast.TopLevelDecl, got %T", decl)
+	return nil, errutil.Newf("invalid declaration list declaration type; expected ast.Decl, got %T", decl)
 }
 
-// AppendTopLevelDecl appends decl to the top-level declaration list, based on
-// the following production rule.
+// AppendDecl appends decl to the declaration list, based on the following
+// production rule.
 //
-//    TopLevelDeclList
-//       : TopLevelDeclList TopLevelDecl
+//    DeclList
+//       : DeclList Decl
 //    ;
-func AppendTopLevelDecl(list, decl interface{}) ([]ast.TopLevelDecl, error) {
-	l, ok := list.([]ast.TopLevelDecl)
+func AppendDecl(list, decl interface{}) ([]ast.Decl, error) {
+	lst, ok := list.([]ast.Decl)
 	if !ok {
-		return nil, errutil.Newf("invalid top-level declaration list type; expected []ast.TopLevelDecl, got %T", list)
+		return nil, errutil.Newf("invalid declaration list type; expected []ast.Decl, got %T", list)
 	}
-	if decl, ok := decl.(ast.TopLevelDecl); ok {
-		return append(l, decl), nil
+	if decl, ok := decl.(ast.Decl); ok {
+		return append(lst, decl), nil
 	}
-	return nil, errutil.Newf("invalid top-level declaration list top-level declaration type; expected ast.TopLevelDecl, got %T", decl)
+	return nil, errutil.Newf("invalid declaration list declaration type; expected ast.Decl, got %T", decl)
 }
 
 // NewFuncDecl returns a new function declaration node, based on the following
 // production rule.
 //
 //    FuncDecl
-//       : BasicType ident "(" Params ")" FuncBody
+//       : FuncHeader
 //    ;
-func NewFuncDecl(resultType, name, params, body interface{}) (*ast.FuncDecl, error) {
+//
+//    FuncHeader
+//       : BasicType ident "(" Params ")"
+//    ;
+func NewFuncDecl(resultType, name, params interface{}) (*ast.FuncDecl, error) {
 	resType, err := NewType(resultType)
 	if err != nil {
 		return nil, errutil.Newf("invalid function result type; %v", err)
@@ -72,13 +76,26 @@ func NewFuncDecl(resultType, name, params, body interface{}) (*ast.FuncDecl, err
 		return nil, errutil.Newf("invalid function parameters type; expected []*types.Field, got %T", params)
 	}
 	typ := &types.Func{Params: fields, Result: resType}
-	if body == nil {
-		return &ast.FuncDecl{Name: ident, Type: typ}, nil
+	return &ast.FuncDecl{Type: typ, Name: ident}, nil
+}
+
+// SetFuncBody sets the function body of the given function declaration, based
+// on the following production rule.
+//
+//    FuncDef
+//       : FuncHeader BlockStmt
+//    ;
+func SetFuncBody(f, body interface{}) (*ast.FuncDecl, error) {
+	fn, ok := f.(*ast.FuncDecl)
+	if !ok {
+		return nil, errutil.Newf("invalid function declaration type; expected *ast.FuncDecl, got %T", f)
 	}
 	if body, ok := body.(*ast.BlockStmt); ok {
-		return &ast.FuncDecl{Name: ident, Type: typ, Body: body}, nil
+		fn.Body = body
+		return fn, nil
 	}
 	return nil, errutil.Newf("invalid function body type; expected *ast.BlockStmt, got %T", body)
+
 }
 
 // NewScalarDecl returns a new scalar declaration node, based on the following
@@ -156,12 +173,12 @@ func NewFieldList(field interface{}) ([]*types.Field, error) {
 //       : FieldList "," Field
 //    ;
 func AppendField(list, field interface{}) ([]*types.Field, error) {
-	l, ok := list.([]*types.Field)
+	lst, ok := list.([]*types.Field)
 	if !ok {
 		return nil, errutil.Newf("invalid field list type; expected []*types.Field, got %T", list)
 	}
 	if field, ok := field.(*types.Field); ok {
-		return append(l, field), nil
+		return append(lst, field), nil
 	}
 	return nil, errutil.Newf("invalid field list field type; expected *types.Field, got %T", field)
 }
@@ -177,19 +194,6 @@ func NewField(decl interface{}) (*types.Field, error) {
 		return &types.Field{Type: decl.Type, Name: decl.Name.Name}, nil
 	}
 	return nil, errutil.Newf("invalid field type; expected *ast.VarDecl, got %T", decl)
-}
-
-// NewDeclStmt returns a new declaration statement, based on the following
-// production rule.
-//
-//    DeclStmt
-//       : VarDecl ";"
-//    ;
-func NewDeclStmt(decl interface{}) (*ast.DeclStmt, error) {
-	if decl, ok := decl.(ast.Decl); ok {
-		return &ast.DeclStmt{Decl: decl}, nil
-	}
-	return nil, errutil.Newf("invalid declaration statement declaration type; expected ast.Decl, got %T", decl)
 }
 
 // NewExprStmt returns a new expression statement, based on the following
@@ -268,47 +272,47 @@ func NewIfStmt(cond, trueBranch, falseBranch interface{}) (*ast.IfStmt, error) {
 // NewBlockStmt returns a new block statement, based on the following production
 // rule.
 //
-//    Stmt
-//       : "{" Stmts "}"
+//    BlockStmt
+//       : "{" BlockItems "}"
 //    ;
-func NewBlockStmt(stmts interface{}) (*ast.BlockStmt, error) {
-	if stmts == nil {
+func NewBlockStmt(items interface{}) (*ast.BlockStmt, error) {
+	if items == nil {
 		return &ast.BlockStmt{}, nil
 	}
-	if stmts, ok := stmts.([]ast.Stmt); ok {
-		return &ast.BlockStmt{Stmts: stmts}, nil
+	if items, ok := items.([]ast.BlockItem); ok {
+		return &ast.BlockStmt{Items: items}, nil
 	}
-	return nil, errutil.Newf("invalid block statements type; expected []ast.Stmt, got %T", stmts)
+	return nil, errutil.Newf("invalid block statements type; expected []ast.BlockItem, got %T", items)
 }
 
-// NewStmtList returns a new statement list, based on the following production
-// rule.
-//
-//    StmtList
-//       : Stmt
-//    ;
-func NewStmtList(stmt interface{}) ([]ast.Stmt, error) {
-	if stmt, ok := stmt.(ast.Stmt); ok {
-		return []ast.Stmt{stmt}, nil
-	}
-	return nil, errutil.Newf("invalid statement list statement type; expected ast.Stmt, got %T", stmt)
-}
-
-// AppendStmt appends stmt to the statement list, based on the following
+// NewBlockItemList returns a new block item list, based on the following
 // production rule.
 //
-//    StmtList
-//       : StmtList Stmt
+//    BlockItemList
+//       : BlockItem
 //    ;
-func AppendStmt(list, stmt interface{}) ([]ast.Stmt, error) {
-	l, ok := list.([]ast.Stmt)
+func NewBlockItemList(item interface{}) ([]ast.BlockItem, error) {
+	if item, ok := item.(ast.BlockItem); ok {
+		return []ast.BlockItem{item}, nil
+	}
+	return nil, errutil.Newf("invalid block item list block item type; expected ast.BlockItem, got %T", item)
+}
+
+// AppendBlockItem appends item to the block item list, based on the following
+// production rule.
+//
+//    BlockItemList
+//       : BlockItemList BlockItem
+//    ;
+func AppendBlockItem(list, item interface{}) ([]ast.BlockItem, error) {
+	lst, ok := list.([]ast.BlockItem)
 	if !ok {
-		return nil, errutil.Newf("invalid statement list type; expected []ast.Stmt, got %T", list)
+		return nil, errutil.Newf("invalid block item list type; expected []ast.BlockItem, got %T", list)
 	}
-	if stmt, ok := stmt.(ast.Stmt); ok {
-		return append(l, stmt), nil
+	if item, ok := item.(ast.BlockItem); ok {
+		return append(lst, item), nil
 	}
-	return nil, errutil.Newf("invalid statement list statement type; expected ast.Stmt, got %T", stmt)
+	return nil, errutil.Newf("invalid block item list block item type; expected ast.BlockItem, got %T", item)
 }
 
 // NewBinaryExpr returns a new binary experssion node, based on the following
@@ -493,12 +497,12 @@ func NewExprList(x interface{}) ([]ast.Expr, error) {
 //       : ExprList "," Expr
 //    ;
 func AppendExpr(list, x interface{}) ([]ast.Expr, error) {
-	l, ok := list.([]ast.Expr)
+	lst, ok := list.([]ast.Expr)
 	if !ok {
 		return nil, errutil.Newf("invalid expression list type; expected []ast.Expr, got %T", list)
 	}
 	if x, ok := x.(ast.Expr); ok {
-		return append(l, x), nil
+		return append(lst, x), nil
 	}
 	return nil, errutil.Newf("invalid expression list expression type; expected ast.Expr, got %T", x)
 }

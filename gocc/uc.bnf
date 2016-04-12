@@ -89,28 +89,37 @@ _char_lit     : '\'' ( _ascii_char | '"' | _escaped_char ) '\'' ;
 	"github.com/mewmew/uc/types"
 ) >>
 
-Program
-	: TopLevelDecls                     << astx.NewFile($0) >>
+File
+	: Decls                             << astx.NewFile($0) >>
 ;
 
-TopLevelDecls
+Decls
 	: empty
-	| TopLevelDeclList
+	| DeclList
 ;
 
-TopLevelDeclList
-	: TopLevelDecl                      << astx.NewTopLevelDeclList($0) >>
-	| TopLevelDeclList TopLevelDecl     << astx.AppendTopLevelDecl($0, $1) >>
+DeclList
+	: Decl                              << astx.NewDeclList($0) >>
+	| DeclList Decl                     << astx.AppendDecl($0, $1) >>
 ;
 
-TopLevelDecl
-	: VarDecl ";"
-	// BasicType : "char" | "int" | "void" ;
-	| FuncDecl
+Decl
+	: VarDecl ";"                       << $0, nil >>
+	| FuncDecl ";"                      << $0, nil >>
+	| FuncDef
 ;
 
 FuncDecl
-	: BasicType ident "(" Params ")" FuncBody     << astx.NewFuncDecl($0, $1, $3, $5) >>
+	: FuncHeader
+;
+
+FuncHeader
+	// BasicType : "char" | "int" | "void" ;
+	: BasicType ident "(" Params ")"    << astx.NewFuncDecl($0, $1, $3) >>
+;
+
+FuncDef
+	: FuncHeader BlockStmt              << astx.SetFuncBody($0, $1) >>
 ;
 
 VarDecl
@@ -134,11 +143,6 @@ BasicType
 	: ident                             << astx.NewBasicType($0) >>
 ;
 
-FuncBody
-	: BlockStmt
-	| ";"                               << nil, nil >>
-;
-
 // TODO: Allow empty parameter list, as was intended by the original K&R C, i.e.
 // allow `int foo()` as an alternative to `int foo(void)`.
 
@@ -158,8 +162,7 @@ Field
 ;
 
 Stmt
-	: VarDecl ";"                       << astx.NewDeclStmt($0) >>
-	| Expr ";"                          << astx.NewExprStmt($0) >>
+	: Expr ";"                          << astx.NewExprStmt($0) >>
 	| "return" Expr ";"                 << astx.NewReturnStmt($1) >>
 	| "return" ";"                      << &ast.ReturnStmt{}, nil >>
 	| "while" Condition Stmt            << astx.NewWhileStmt($1, $2) >>
@@ -169,7 +172,7 @@ Stmt
 ;
 
 BlockStmt
-	: "{" Stmts "}"                     << astx.NewBlockStmt($1) >>
+	: "{" BlockItems "}"                << astx.NewBlockStmt($1) >>
 ;
 
 ElsePart
@@ -181,14 +184,19 @@ Condition
 	: ParenExpr
 ;
 
-Stmts
+BlockItems
 	: empty
-	| StmtList
+	| BlockItemList
 ;
 
-StmtList
-	: Stmt                              << astx.NewStmtList($0) >>
-	| StmtList Stmt                     << astx.AppendStmt($0, $1) >>
+BlockItemList
+	: BlockItem                         << astx.NewBlockItemList($0) >>
+	| BlockItemList BlockItem           << astx.AppendBlockItem($0, $1) >>
+;
+
+BlockItem
+	: Decl
+	| Stmt
 ;
 
 Expr
