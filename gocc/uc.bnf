@@ -181,7 +181,7 @@ ElsePart
 ;
 
 Condition
-	: ParenExpr
+	: "(" Expr ")"                      << $1, nil >>
 ;
 
 BlockItems
