@@ -93,7 +93,7 @@ const (
 type Field struct {
 	// Field type.
 	Type Type
-	// Field name.
+	// Field name; or empty.
 	Name string
 }
 
