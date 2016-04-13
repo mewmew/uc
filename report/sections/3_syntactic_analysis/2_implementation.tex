@@ -8,7 +8,7 @@ The parser was generated using Gocc from a BNF grammar of the uC language, the l
 
 \subsubsection{Precedence of Binary Operators}
 
-Precedence of binary operators is implemented in the BNF grammar through a tree-like structure of production rules (actually a graph structure, as nodes may be self-referential and refer to parental nodes), having operators with low precedence near the root of the tree and operators with high precedence near the leafs of the tree.
+Precedence of binary operators is implemented in the BNF grammar through a tree-like structure of production rules (actually a graph structure, as nodes may be self-referential and refer to parental nodes), having operators with lower precedence near the root of the tree and operators with higher precedence near the leafs of the tree.
 
 An example of the production rules used to assign a higher precedence to multiplicative operators than additive operators is presented in listing \ref{lst:precedence}.
 
@@ -34,7 +34,28 @@ Expr13L
 
 \subsubsection{Associativity of Binary Operators}
 
-foo
+The implementation of left- and right-associativity of binary operators relies on the same tree-like structure as the implementation of operator precedence. The non-terminal node on the right side of a right-associative binary operator (e.g. \texttt{Expr2R} of \texttt{Expr5L ``='' Expr2R}) is self-referential, while the non-terminal node on the left side of the operator (e.g. \texttt{Expr5L} of \texttt{Expr5L ``='' Expr2R}) refers to a node closer to the leaf nodes of the tree. Left-associativity is defined analogously, with a self-referential left side node.
+
+An example of the production rules used to define right-associativity to assignment operators and left-associativity to logical AND operators is presented in listing \ref{lst:associativity}.
+
+\begin{lstlisting}[language=go,style=go,caption={\label{lst:associativity}Associativity of binary expressions.}]
+// Right-associative binary expressions with precedence 2.
+//
+//    2R: =
+Expr2R
+	: Expr5L
+	// Right-associative.
+	| Expr5L "=" Expr2R
+;
+
+// Left-associative binary expressions with precedence 5.
+//
+//    5L: &&
+Expr5L
+	: Expr9L
+	| Expr5L "&&" Expr9L
+;
+\end{lstlisting}
 
 \subsubsection{Syntax Tree Representation}
 
