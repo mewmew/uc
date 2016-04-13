@@ -21,6 +21,187 @@ func TestParser(t *testing.T) {
 		want *ast.File
 	}{
 		{
+			path: "../../testdata/quiet/lexer/l05.c",
+			want: &ast.File{
+				Decls: []ast.Decl{
+					&ast.FuncDecl{
+						Type: &types.Func{
+							Result: &types.Basic{
+								Kind: types.Int,
+							},
+							Params: []*types.Field{
+								&types.Field{
+									Type: &types.Basic{
+										Kind: types.Void,
+									},
+								},
+							},
+						},
+						Name: &ast.Ident{
+							Name: "main",
+						},
+						Body: &ast.BlockStmt{
+							Items: []ast.BlockItem{
+								&ast.VarDecl{
+									Type: &types.Basic{
+										Kind: types.Int,
+									},
+									Name: &ast.Ident{
+										Name: "i",
+									},
+								},
+								&ast.ExprStmt{
+									X: &ast.BinaryExpr{
+										X: &ast.BasicLit{
+											Kind: token.IntLit,
+											Val:  "1",
+										},
+										Op: token.Ne,
+										Y: &ast.UnaryExpr{
+											Op: token.Not,
+											X: &ast.BasicLit{
+												Kind: token.IntLit,
+												Val:  "3",
+											},
+										},
+									},
+								},
+								&ast.ExprStmt{
+									X: &ast.BinaryExpr{
+										X: &ast.BasicLit{
+											Kind: token.IntLit,
+											Val:  "4",
+										},
+										Op: token.Land,
+										Y: &ast.ParenExpr{
+											X: &ast.BasicLit{
+												Kind: token.IntLit,
+												Val:  "6",
+											},
+										},
+									},
+								},
+								&ast.ExprStmt{
+									X: &ast.BinaryExpr{
+										X: &ast.BinaryExpr{
+											X: &ast.BasicLit{
+												Kind: token.IntLit,
+												Val:  "7",
+											},
+											Op: token.Mul,
+											Y: &ast.BasicLit{
+												Kind: token.IntLit,
+												Val:  "8",
+											},
+										},
+										Op: token.Add,
+										Y: &ast.BasicLit{
+											Kind: token.IntLit,
+											Val:  "10",
+										},
+									},
+								},
+								&ast.ExprStmt{
+									X: &ast.BinaryExpr{
+										X: &ast.ParenExpr{
+											X: &ast.BinaryExpr{
+												X: &ast.BasicLit{
+													Kind: token.IntLit,
+													Val:  "11",
+												},
+												Op: token.Sub,
+												Y: &ast.BasicLit{
+													Kind: token.IntLit,
+													Val:  "12",
+												},
+											},
+										},
+										Op: token.Add,
+										Y: &ast.ParenExpr{
+											X: &ast.BinaryExpr{
+												X: &ast.BasicLit{
+													Kind: token.IntLit,
+													Val:  "12",
+												},
+												Op: token.Div,
+												Y: &ast.BasicLit{
+													Kind: token.IntLit,
+													Val:  "16",
+												},
+											},
+										},
+									},
+								},
+								&ast.ExprStmt{
+									X: &ast.BinaryExpr{
+										X: &ast.BinaryExpr{
+											X: &ast.BasicLit{
+												Kind: token.IntLit,
+												Val:  "17",
+											},
+											Op: token.Le,
+											Y: &ast.BasicLit{
+												Kind: token.IntLit,
+												Val:  "18",
+											},
+										},
+										Op: token.Lt,
+										Y: &ast.UnaryExpr{
+											Op: token.Sub,
+											X: &ast.BasicLit{
+												Kind: token.IntLit,
+												Val:  "20",
+											},
+										},
+									},
+								},
+								&ast.ExprStmt{
+									X: &ast.BinaryExpr{
+										X: &ast.Ident{
+											Name: "i",
+										},
+										Op: token.Assign,
+										Y: &ast.BinaryExpr{
+											X: &ast.BasicLit{
+												Kind: token.IntLit,
+												Val:  "21",
+											},
+											Op: token.Eq,
+											Y: &ast.BasicLit{
+												Kind: token.IntLit,
+												Val:  "22",
+											},
+										},
+									},
+								},
+								&ast.ExprStmt{
+									X: &ast.BinaryExpr{
+										X: &ast.BinaryExpr{
+											X: &ast.BasicLit{
+												Kind: token.IntLit,
+												Val:  "25",
+											},
+											Op: token.Ge,
+											Y: &ast.BasicLit{
+												Kind: token.IntLit,
+												Val:  "27",
+											},
+										},
+										Op: token.Gt,
+										Y: &ast.BasicLit{
+											Kind: token.IntLit,
+											Val:  "28",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		{
 			path: "../../testdata/quiet/parser/p01.c",
 			want: &ast.File{
 				Decls: []ast.Decl{
