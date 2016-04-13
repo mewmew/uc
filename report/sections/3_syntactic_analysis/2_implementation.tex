@@ -2,11 +2,35 @@
 
 The parser was generated using Gocc from a BNF grammar of the uC language, the listing of which is presented in Appendix~\ref{app:parser_uc_bnf}.
 
+% TODO: Add uc.bnf to appendix.
+
 % Construct AST using production actions
 
 \subsubsection{Precedence of Binary Operators}
 
-foo
+Precedence of binary operators is implemented in the BNF grammar through a tree-like structure of production rules (actually a graph structure, as nodes may be self-referential and refer to parental nodes), having operators with low precedence near the root of the tree and operators with high precedence near the leafs of the tree.
+
+An example of the production rules used to assign a higher precedence to multiplicative operators than additive operators is presented in listing \ref{lst:precedence}.
+
+\begin{lstlisting}[language=go,style=go,caption={\label{lst:precedence}Precedence of binary expressions.}]
+// Left-associative binary expressions with precedence 12.
+//
+//    12L: + -
+Expr12L
+	: Expr13L
+	| Expr12L "+" Expr13L
+	| Expr12L "-" Expr13L
+;
+
+// Left-associative binary expressions with precedence 13.
+//
+//    13L: * /
+Expr13L
+	: Expr14
+	| Expr13L "*" Expr14
+	| Expr13L "/" Expr14
+;
+\end{lstlisting}
 
 \subsubsection{Associativity of Binary Operators}
 
