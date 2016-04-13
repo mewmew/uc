@@ -9,6 +9,9 @@ import (
 
 // NewError returns a user-friendly parse error.
 func NewError(err *errors.Error) error {
+	if err.Err != nil {
+		return err.Err
+	}
 	// TODO: Add line:col positional tracking.
 	var expected []string
 	for _, tok := range err.ExpectedTokens {

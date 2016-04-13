@@ -846,7 +846,7 @@ func TestParserError(t *testing.T) {
 			got = err.Error()
 		}
 		if got != g.want {
-			t.Errorf("%q: error mismatch; expected %q, got %q", g.path, g.want, got)
+			t.Errorf("%q: error mismatch; expected `%v`, got `%v`", g.path, g.want, got)
 		}
 	}
 }
