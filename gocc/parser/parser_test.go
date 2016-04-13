@@ -8,8 +8,9 @@ import (
 
 	"github.com/kr/pretty"
 	"github.com/mewmew/uc/ast"
-	"github.com/mewmew/uc/gocc/lexer"
+	"github.com/mewmew/uc/gocc/errors"
 	"github.com/mewmew/uc/gocc/parser"
+	"github.com/mewmew/uc/gocc/scanner"
 	"github.com/mewmew/uc/token"
 	"github.com/mewmew/uc/types"
 )
@@ -731,39 +732,11 @@ func TestParser(t *testing.T) {
 				},
 			},
 		},
-
-		// {path: "../../testdata/incorrect/parser/p01.c"},
-
-		// {path: "../../testdata/incorrect/parser/p02.c"},
-
-		// {path: "../../testdata/incorrect/parser/p03.c"},
-
-		// {path: "../../testdata/incorrect/parser/p04.c"},
-
-		// {path: "../../testdata/incorrect/parser/p05.c"},
-
-		// {path: "../../testdata/incorrect/parser/p06.c"},
-
-		// {path: "../../testdata/incorrect/parser/p07.c"},
-
-		// {path: "../../testdata/incorrect/parser/p08.c"},
-
-		// {path: "../../testdata/incorrect/parser/p09.c"},
-
-		// {path: "../../testdata/incorrect/parser/p10.c"},
-
-		// {path: "../../testdata/incorrect/parser/p11.c"},
-
-		// {path: "../../testdata/incorrect/parser/p12.c"},
-
-		// {path: "../../testdata/incorrect/parser/p13.c"},
-
-		// {path: "../../testdata/incorrect/parser/p14.c"},
 	}
 
 	for _, g := range golden {
 		log.Println("path:", g.path)
-		s, err := lexer.NewLexerFile(g.path)
+		s, err := scanner.Open(g.path)
 		if err != nil {
 			t.Error(err)
 			continue
@@ -776,8 +749,104 @@ func TestParser(t *testing.T) {
 		}
 		got := file.(*ast.File)
 		if !reflect.DeepEqual(got, g.want) {
-			t.Errorf("%q: ast tree mismatch:\nWant: %v\nGot: %v", g.path, g.want, got)
+			t.Errorf("%q: AST mismatch; expected %#v, got %#v", g.path, g.want, got)
 			fmt.Println(pretty.Diff(g.want, got))
+		}
+	}
+}
+
+func TestParserError(t *testing.T) {
+	var golden = []struct {
+		path string
+		want string
+	}{
+		{
+			path: "../../testdata/incorrect/parser/pe01.c",
+			want: `102: unexpected ")", expected ["!" "(" "-" "ident" "int_lit"]`,
+		},
+		{
+			path: "../../testdata/incorrect/parser/pe02.c",
+			want: `112: unexpected "}", expected ["!=" "&&" "*" "+" "-" "/" ";" "<" "<=" "=" "==" ">" ">="]`,
+		},
+		{
+			path: "../../testdata/incorrect/parser/pe03.c",
+			want: `129: unexpected "}", expected ["!" "(" "-" ";" "ident" "if" "int_lit" "return" "while" "{"]`,
+		},
+		{
+			path: "../../testdata/incorrect/parser/pe04.c",
+			want: `111: unexpected "a", expected ["!=" "&&" "(" "*" "+" "-" "/" ";" "<" "<=" "=" "==" ">" ">=" "["]`,
+		},
+		{
+			path: "../../testdata/incorrect/parser/pe05.c",
+			want: `71: unexpected "else", expected ["ident"]`,
+		},
+		{
+			path: "../../testdata/incorrect/parser/pe06.c",
+			want: `73: unexpected "b", expected ["(" ";" "["]`,
+		},
+		{
+			path: "../../testdata/incorrect/parser/pe07.c",
+			want: `72: unexpected ",", expected ["(" ";" "["]`,
+		},
+		{
+			path: "../../testdata/incorrect/parser/pe08.c",
+			want: `86: unexpected "42", expected [";" "{"]`,
+		},
+		{
+			// TODO: The ';' at offset 80 in pe09.c shuold probably be a '{', as
+			// indicated by the comment "// '}' missing "
+			//
+			// Update this test case if the test file is fixed.
+			path: "../../testdata/incorrect/parser/pe09.c",
+			want: `87: unexpected ";", expected ["$" "ident"]`,
+		},
+		{
+			path: "../../testdata/incorrect/parser/pe10.c",
+			want: `135: unexpected ")", expected ["!" "(" "-" "ident" "int_lit"]`,
+		},
+		{
+			path: "../../testdata/incorrect/parser/pe11.c",
+			want: `70: unexpected "(", expected ["ident"]`,
+		},
+		{
+			path: "../../testdata/incorrect/parser/pe12.c",
+			want: `77: unexpected "{", expected ["(" ";" "["]`,
+		},
+		{
+			path: "../../testdata/incorrect/parser/pe13.c",
+			want: `126: unexpected ")", expected ["ident"]`,
+		},
+		{
+			path: "../../testdata/incorrect/parser/pe14.c",
+			// Note, nested procedures is explicitly allowed by the parser, as the
+			// validation is postponed to the semantic analysis checker.
+			//
+			// References.
+			//    https://github.com/mewmew/uc/issues/38
+			//    https://github.com/mewmew/uc/issues/43
+			want: "",
+		},
+	}
+
+	for _, g := range golden {
+		log.Println("path:", g.path)
+		s, err := scanner.Open(g.path)
+		if err != nil {
+			t.Error(err)
+			continue
+		}
+		p := parser.NewParser()
+		_, err = p.Parse(s)
+		got := ""
+		if err != nil {
+			if e, ok := err.(*errors.Error); ok {
+				// Unwrap Gocc error.
+				err = parser.NewError(e)
+			}
+			got = err.Error()
+		}
+		if got != g.want {
+			t.Errorf("%q: error mismatch; expected %q, got %q", g.path, g.want, got)
 		}
 	}
 }
