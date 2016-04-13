@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"sort"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/kr/pretty"
@@ -86,7 +85,7 @@ func parseFile(path string, hand bool) (err error) {
 	if err != nil {
 		if err, ok := err.(*errors.Error); ok {
 			// Unwrap Gocc error.
-			return newParseError(err)
+			return parser.NewError(err)
 		}
 		return errutil.Err(err)
 	}
@@ -106,19 +105,4 @@ func parseFile(path string, hand bool) (err error) {
 	}
 
 	return nil
-}
-
-// newParseError returns a user-friendly parse error.
-func newParseError(err *errors.Error) error {
-	// TODO: Add line:col positional tracking.
-	var expected []string
-	for _, tok := range err.ExpectedTokens {
-		if tok == "error" {
-			// Remove "error" production rule from the set of expected tokens.
-			continue
-		}
-		expected = append(expected, tok)
-	}
-	sort.Strings(expected)
-	return fmt.Errorf("%d: unexpected %q, expected %q", err.ErrorToken.Pos.Offset, string(err.ErrorToken.Lit), expected)
 }
