@@ -35,6 +35,6 @@ parse: 3_parse.pdf clean_aux
 
 2_lex.pdf: inc
 
-3_parse.pdf:
+3_parse.pdf: inc
 
 tmpsec: 1_intro.pdf 2_lex.pdf 3_parse.pdf 4_sem.pdf 5_ir.pdf 6_ir_gen.pdf 7_con.pdf app.pdf
