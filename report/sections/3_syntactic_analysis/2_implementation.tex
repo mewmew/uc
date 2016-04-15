@@ -57,10 +57,6 @@ Expr5L
 
 See Appendix~\ref{app:parser/ast_doc}.
 
-% You should also describe the representation of syntax trees and list the different kinds of nodes.
-
-% TODO: Add syntax tree representation.
-
 \subsubsection{Dangling Else}
 
 The dangling else problem is the canonical example of a shift-reduce conflict for LR grammars, and it is present in the µC grammar presented in Appendix~\ref{app:parser/gocc}. When generating a parser from this grammar, Gocc was capable of identifying the shift-reduce conflict introduce by the dangling else problem. Furthermore, Gocc provided an option for automatically resolving shift-reduce conflicts\footnote{Dangling else: \url{https://github.com/mewmew/uc/issues/31}} by applying \textit{maximum-munch}, as further described by the following extract from the Gocc user guide \cite{gocc_user_guide}.

@@ -6,6 +6,8 @@ The design of the parser has been guided by the KISS philosophy, were simplicity
 
 To simplify the design of the syntactic analysis phase, types have been given a unified representation in the grammar. As a consequence of this design decision, certain invalid type declarations are syntactically valid, such as \texttt{void x[10];}. To facilitate separation of concern between components of the compiler, proper type checking has initially been postponed to the semantic analysis phase\footnote{Postpone type checking to the semantic analysis phase: \url{https://github.com/mewmew/uc/issues/33}}.
 
+Furthermore, this design decision is essential for future extensions of the language to support larger subsets of C, which include the type \texttt{void *}.
+
 \subsubsection{Unified Declarations}
 
 To further simplify the grammar, variable and function declarations have been given a unified representation in the grammar\footnote{Evaluate merging TopLevelDecl with Decl to simplify grammar: \url{https://github.com/mewmew/uc/issues/38}}. As a consequence of this design decision, nested function declarations are syntactically valid (see listing \ref{fig:nested_func_decl}), but not necessarily semantically valid.
