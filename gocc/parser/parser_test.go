@@ -645,7 +645,7 @@ func TestParser(t *testing.T) {
 							Name: "main",
 						},
 						Body: &ast.BlockStmt{
-							[]ast.BlockItem{
+							Items: []ast.BlockItem{
 								&ast.EmptyStmt{},
 							},
 						},
@@ -733,7 +733,7 @@ func TestParser(t *testing.T) {
 									},
 								},
 								&ast.ExprStmt{
-									&ast.CallExpr{
+									X: &ast.CallExpr{
 										Name: &ast.Ident{
 											Name: "g",
 										},
