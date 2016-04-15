@@ -12,12 +12,11 @@ PDF = $(TEX:.tex=.pdf)
 
 .PHONY: clean inc
 
-inc:
+inc/%:
 	make -C $@/
 
 clean_aux:
 	rm -f *.aux *.log *.out *.toc *.bbl *.blg *.dvi *.rtf *.bcf *-blx.bib *.run.xml sections/*.aux
-	make -C inc/ clean_aux
 
 clean: clean_aux
 	rm -f uc.pdf 1_intro.pdf 2_lex.pdf 3_parse.pdf 4_sem.pdf 5_ir.pdf 6_ir_gen.pdf 7_con.pdf app.pdf
@@ -34,8 +33,8 @@ parse: 3_parse.pdf clean_aux
 	pdflatex $<
 	pdflatex $<
 
-2_lex.pdf: inc
+2_lex.pdf: inc/ulex
 
-3_parse.pdf: inc
+3_parse.pdf: inc/uparse
 
 tmpsec: 1_intro.pdf 2_lex.pdf 3_parse.pdf 4_sem.pdf 5_ir.pdf 6_ir_gen.pdf 7_con.pdf app.pdf
