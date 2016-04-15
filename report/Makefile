@@ -10,9 +10,9 @@ uc.pdf: inc
 TEX = $(wildcard *.tex)
 PDF = $(TEX:.tex=.pdf)
 
-.PHONY: clean inc
+.PHONY: clean inc inc/ulex inc/uparse
 
-inc/%:
+inc inc/uparse inc/ulex:
 	make -C $@/
 
 clean_aux:
