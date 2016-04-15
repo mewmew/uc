@@ -2,11 +2,27 @@
 
 foo
 
-\subsubsection{Postpone Type Checking}
+\subsubsection{Unified Types}
 
-To simplify the design of the syntactic analysis phase, types have been given a unified representation in the grammar. As a consequence of this design decision, certain invalid type declarations are syntactically valid, such as \texttt{void x[10];}. To enable separation of concern between the components of the compiler, proper type checking has intentially been postponed to the semantic analysis phase\footnote{Postpone type checking to the semantic analysis phase: \url{https://github.com/mewmew/uc/issues/33}}.
+To simplify the design of the syntactic analysis phase, types have been given a unified representation in the grammar. As a consequence of this design decision, certain invalid type declarations are syntactically valid, such as \texttt{void x[10];}. To facilitate separation of concern between components of the compiler, proper type checking has intentially been postponed to the semantic analysis phase\footnote{Postpone type checking to the semantic analysis phase: \url{https://github.com/mewmew/uc/issues/33}}.
 
-\subsubsection{Ignore Comments to Simplify Grammar}
+\subsubsection{Unified Declarations}
+
+To further simplify the grammar, variable and function declarations have been given a unified representation in the grammar\footnote{Evaluate merging TopLevelDecl with Decl to simplify grammar: \url{https://github.com/mewmew/uc/issues/38}}. As a consequence of this design decision, nested function declarations are syntactially valid (see listing \ref{fig:nested_func_decl}), but not necessarily semantically valid.
+
+\begin{lstlisting}[language=C,style=c,caption={\label{fig:nested_func_decl}Nested function declarations.}]
+int add(int a, int b) {
+	// Nested function declarations are syntactially valid.
+	int nested(void) {
+		return a + b;
+	}
+	return nested();
+}
+\end{lstlisting}
+
+The static checker of the semantic analysis phase will ensure that functions contain no nested function declarations, unless the relevant GNU extension has been enabled\footnote{Add support for nested functions (GNU extension): \url{https://github.com/mewmew/uc/issues/43}}.
+
+\subsubsection{Ignored Comments}
 
 % Having comment tokens emitted by the lexer into the stream of tokens, presents an issue when parsing source files; as the current grammar does not handle comments within its production rules.
 %
@@ -26,52 +42,3 @@ To simplify the design of the syntactic analysis phase, types have been given a 
 foo
 
 \footnote{Production rules made more complex by comment tokens: \url{https://github.com/mewmew/uc/issues/30}}
-
-\subsubsection{Unify Declarations}
-
-% // TODO: Evaluate whether TopLevelDecl should be merged with Decl, to simplify
-% // the structure of the AST; in which case a semantic analysis pass would be
-% // added to ensure that function declarations are not nested (even if this would
-% // be an interesting extension to C).
-
-% After discussions, we've decided to remove the TopLevelDecl special case and make function declarations behave like any other declaration. This should simplify the grammar and the AST, while semantic checks should be added to ensure that declarations within functions are not function declarations (unless the GNU extension of nested functions is enabled; see issue #43).
-
-% TopLevelDecl and Decl were merged in commit 3db3068. Closing this issue.
-
-foo
-
-\footnote{Evaluate merging TopLevelDecl with Decl to simplify grammar: \url{https://github.com/mewmew/uc/issues/38}}
-
-foo
-
-% Example source file containing nested functions.
-%
-% int main() {
-%     int f(int a, int b) {
-%         return a+b;
-%     }
-%     return f(2,3);
-% }
-%
-% Compilation using GCC.
-%
-% u@x1 ~/Desktop> gcc -std=c99 -pedantic -o a a.c
-% a.c: In function ‘main’:
-% a.c:2:2: warning: ISO C forbids nested functions [-Wpedantic]
-%   int f(int a, int b) {
-%   ^
-% u@x1 ~/Desktop> ./a ; echo $status
-% 5
-% u@x1 ~/Desktop>
-%
-% Clang has intentionally omitted support for nested functions:
-%
-%     clang does not support nested functions; this is a complex feature which is infrequently used, so it is unlikely to be implemented anytime soon. In C++11 it can be emulated by assigning lambda functions to local variables.
-%
-% Motivation
-%
-% Adding support for nested functions would simplify the grammar and allow the TopLevelDecl special case to be removed, as functions would be considered regular declarations (see issue #38).
-
-% Code generation for nested functions is considered a future ambition of this project. Closing this issue for now.
-
-\footnote{Add support for nested functions (GNU extension): \url{https://github.com/mewmew/uc/issues/43}}
