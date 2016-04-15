@@ -7,15 +7,15 @@
 \subsubsection{Quiet Test Cases}
 
 For listings, see Appendix~\ref{app:lex/quiet}: \nameref{app:lex/quiet}:
-\input{inc/testoutput/quiet/lexer/listref.tex}
+\input{inc/ulex/quiet/lexer/listref.tex}
 
 \subsubsection{Incorrect Test Cases}
 
-The test cases \nameref{lst:incorrect/lexer/good.c} unintentionally included a trailing new line, as indicated by the final line comment of the file (see listing \ref{lst:last_line_comment_of_good_c}). This trailing new line has been removed from the test suite against which \texttt{ulex} is validated.
+The test cases \nameref{lst:ulex/incorrect/lexer/good.c} unintentionally included a trailing new line, as indicated by the final line comment of the file (see listing \ref{lst:last_line_comment_of_good_c}). This trailing new line has been removed from the test suite against which \texttt{ulex} is validated.
 
 \begin{lstlisting}[language=C,style=c,caption={Last line comment within \texttt{incorrect/lexer/good.c}.},label={lst:last_line_comment_of_good_c}]
 // It is legal to end the code like this, without an ending newline.
 \end{lstlisting}
 
 For listings, see Appendix~\ref{app:lex/incorrect}: \nameref{app:lex/incorrect}:
-\input{inc/testoutput/incorrect/lexer/listref.tex}
+\input{inc/ulex/incorrect/lexer/listref.tex}
