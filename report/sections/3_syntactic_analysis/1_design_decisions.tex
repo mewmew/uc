@@ -4,17 +4,7 @@ foo
 
 \subsubsection{Postpone Type Checking}
 
-% To simplify the design of the parser and the parser generator, I suggest we postpone the type checking to the semantic analysis phase. This design decision would be supported by the KISS mentality, let each component focus on one thing, and do it well.
-
-% Alex, what are your thoughts? We could go either direction, and for uC it would be trivial to enforce type checking already in the parser. My main concern is that such an approach could make the parser sufficiently more complex in the future, once we start supporting a larger subset of C.
-
-% If we were to postpone the type checking to the semantic analysis phase, it should be possible to merge VarDecl and ParamDecl production rules, and let the type checker validate their uses within function signatures and bodies.
-
-% `void x[10];` is a valid array declaration during parsing, and would be marked as invalid during the semantic analysis.
-
-foo
-
-\footnote{Postpone type checking to the semantic analysis phase: \url{https://github.com/mewmew/uc/issues/33}}
+To simplify the design of the syntactic analysis phase, types have been given a unified representation in the grammar. As a consequence of this design decision, certain invalid type declarations are syntactically valid, such as \texttt{void x[10];}. To enable separation of concern between the components of the compiler, proper type checking has intentially been postponed to the semantic analysis phase\footnote{Postpone type checking to the semantic analysis phase: \url{https://github.com/mewmew/uc/issues/33}}.
 
 \subsubsection{Ignore Comments to Simplify Grammar}
 

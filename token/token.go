@@ -19,6 +19,7 @@ func (tok Token) String() string {
 }
 
 //go:generate stringer -type Kind
+//go:generate gorename -from kind_string.go::i -to kind
 
 // Kind is the set of lexical token types of the µC programming language.
 type Kind uint16
