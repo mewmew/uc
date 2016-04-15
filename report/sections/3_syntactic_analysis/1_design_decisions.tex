@@ -1,0 +1,27 @@
+\subsection{Design Decisions}
+
+foo
+
+\subsubsection{Unified Types}
+
+To simplify the design of the syntactic analysis phase, types have been given a unified representation in the grammar. As a consequence of this design decision, certain invalid type declarations are syntactically valid, such as \texttt{void x[10];}. To facilitate separation of concern between components of the compiler, proper type checking has initially been postponed to the semantic analysis phase\footnote{Postpone type checking to the semantic analysis phase: \url{https://github.com/mewmew/uc/issues/33}}.
+
+\subsubsection{Unified Declarations}
+
+To further simplify the grammar, variable and function declarations have been given a unified representation in the grammar\footnote{Evaluate merging TopLevelDecl with Decl to simplify grammar: \url{https://github.com/mewmew/uc/issues/38}}. As a consequence of this design decision, nested function declarations are syntactically valid (see listing \ref{fig:nested_func_decl}), but not necessarily semantically valid.
+
+\begin{lstlisting}[language=C,style=c,caption={\label{fig:nested_func_decl}Nested function declarations.}]
+int add(int a, int b) {
+	// Nested function declarations are syntactically valid.
+	int nested(void) {
+		return a + b;
+	}
+	return nested();
+}
+\end{lstlisting}
+
+The static checker of the semantic analysis phase will ensure that functions contain no nested function declarations, unless the relevant GNU extension has been enabled\footnote{Add support for nested functions (GNU extension): \url{https://github.com/mewmew/uc/issues/43}}.
+
+\subsubsection{Ignored Comments}
+
+As comments may appear between any two tokens of the input stream, the production rules of the grammar would be significantly more complex if forced to deal with the possible occurrences of comments. For this reason, comments have been filtered from the token stream before the syntactic analysis stage. This design decision simplifies the grammar, but prevents the parser from being used for the development of source code rewriting and documentation generation tools, both of which require access to comments\footnote{Production rules made more complex by comment tokens: \url{https://github.com/mewmew/uc/issues/30}}.

@@ -21,3 +21,13 @@ The lexer have extended support for the following C11 features:
 \subsubsection{Gocc Lexer}
 
 Analogously to the functionality of Lex, Gocc is capable of generating lexers from a language grammar described using a variant of Backus–Naur Form. The original µC grammar was made Gocc compatible and extended to specify the lexical elements of µC, and is presented in Listing~\ref{lst:bnflisting} in Appendix~\ref{app:lex/gocc}.
+
+% TODO: Mention how comments ending with EOF are handled.
+
+% The previous "solution" to handling line comments ending with EOF, turned out to fall apart for real use cases. Commit 1488a8a removes the special case for handling line comments ending with new line.
+
+% However, with commit 1488a8a, comments ending with EOF were incorrectly labeled as invalid. The hand-written lexer is capable of handling such line comments, but for now a solution to the Gocc lexer is needed.
+
+% An alternative solution would be to insert trailing new line characters for files not ending with new line. This approach has been implemented in commit 0bc2ab7. Perhaps we will find a better solution in the future, but this works. Closing the issue for now.
+
+% \footnote{Handle line comments not ending with new line: \url{https://github.com/mewmew/uc/issues/44}}

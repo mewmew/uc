@@ -1,7 +1,0 @@
-errors/
-lexer/acttab.go
-lexer/lexer.go
-lexer/transitiontable.go
-parser/
-token/
-util/
