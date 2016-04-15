@@ -30,7 +30,7 @@ func TestParser(t *testing.T) {
 								Kind: types.Int,
 							},
 							Params: []*types.Field{
-								&types.Field{
+								{
 									Type: &types.Basic{
 										Kind: types.Void,
 									},
@@ -211,7 +211,7 @@ func TestParser(t *testing.T) {
 								Kind: types.Int,
 							},
 							Params: []*types.Field{
-								&types.Field{
+								{
 									Type: &types.Basic{
 										Kind: types.Void,
 									},
@@ -286,7 +286,7 @@ func TestParser(t *testing.T) {
 								Kind: types.Int,
 							},
 							Params: []*types.Field{
-								&types.Field{
+								{
 									Type: &types.Basic{
 										Kind: types.Void,
 									},
@@ -378,7 +378,7 @@ func TestParser(t *testing.T) {
 								Kind: types.Int,
 							},
 							Params: []*types.Field{
-								&types.Field{
+								{
 									Type: &types.Basic{
 										Kind: types.Void,
 									},
@@ -452,7 +452,7 @@ func TestParser(t *testing.T) {
 								Kind: types.Int,
 							},
 							Params: []*types.Field{
-								&types.Field{
+								{
 									Type: &types.Basic{
 										Kind: types.Void,
 									},
@@ -605,7 +605,7 @@ func TestParser(t *testing.T) {
 								Kind: types.Void,
 							},
 							Params: []*types.Field{
-								&types.Field{
+								{
 									Type: &types.Array{
 										Elem: &types.Basic{
 											Kind: types.Int,
@@ -613,7 +613,7 @@ func TestParser(t *testing.T) {
 									},
 									Name: "h",
 								},
-								&types.Field{
+								{
 									Type: &types.Array{
 										Elem: &types.Basic{
 											Kind: types.Char,
@@ -634,7 +634,7 @@ func TestParser(t *testing.T) {
 								Kind: types.Int,
 							},
 							Params: []*types.Field{
-								&types.Field{
+								{
 									Type: &types.Basic{
 										Kind: types.Void,
 									},
@@ -664,7 +664,7 @@ func TestParser(t *testing.T) {
 								Kind: types.Void,
 							},
 							Params: []*types.Field{
-								&types.Field{
+								{
 									Type: &types.Basic{
 										Kind: types.Void,
 									},
@@ -686,7 +686,7 @@ func TestParser(t *testing.T) {
 								Kind: types.Int,
 							},
 							Params: []*types.Field{
-								&types.Field{
+								{
 									Type: &types.Basic{
 										Kind: types.Void,
 									},
@@ -713,7 +713,7 @@ func TestParser(t *testing.T) {
 								Kind: types.Int,
 							},
 							Params: []*types.Field{
-								&types.Field{
+								{
 									Type: &types.Basic{
 										Kind: types.Void,
 									},
@@ -756,7 +756,7 @@ func TestParser(t *testing.T) {
 								Kind: types.Int,
 							},
 							Params: []*types.Field{
-								&types.Field{
+								{
 									Type: &types.Basic{
 										Kind: types.Void,
 									},
@@ -845,7 +845,7 @@ func TestParser(t *testing.T) {
 								Kind: types.Int,
 							},
 							Params: []*types.Field{
-								&types.Field{
+								{
 									Type: &types.Basic{
 										Kind: types.Void,
 									},

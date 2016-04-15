@@ -148,7 +148,7 @@ func NewVoidParam(typ interface{}) ([]*types.Field, error) {
 		switch typ.Kind {
 		case types.Void:
 			// Valid void parameter.
-			return []*types.Field{&types.Field{Type: typ}}, nil
+			return []*types.Field{{Type: typ}}, nil
 		default:
 			return nil, errutil.Newf("invalid void parameter kind; expected Void, got %v", typ.Kind)
 		}
