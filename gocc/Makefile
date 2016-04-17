@@ -1,13 +1,13 @@
-gen:
-	gocc -a uc.bnf
+gen: uc.bnf
+	gocc -a $<
 	find . -type f -name '*.go' | xargs goimports -w
 
-debug_lexer:
-	gocc -debug_lexer -v -a uc.bnf
+debug_lexer: uc.bnf
+	gocc -debug_lexer -v -a $<
 	find . -type f -name '*.go' | xargs goimports -w
 
-debug_parser:
-	gocc -debug_parser -v -a uc.bnf
+debug_parser: uc.bnf
+	gocc -debug_parser -v -a $<
 	find . -type f -name '*.go' | xargs goimports -w
 
 clean:
@@ -30,4 +30,4 @@ clean:
 	-rmdir --ignore-fail-on-non-empty util
 	rm -f terminals.txt LR1_conflicts.txt LR1_sets.txt first.txt lexer_sets.txt
 
-.PHONY: gen debug clean
+.PHONY: gen debug_lexer debug_parser clean
