@@ -36,24 +36,29 @@ package types
 //    *Basic
 //    *Array
 //    *Func
-//
-// All type nodes implement the ast.Node interface.
 type Type interface {
-	// Start returns the start position of the node within the input stream.
-	Start() int
 	// isType ensures that only µC types can be assigned to the Type interface.
 	isType()
 }
 
 type (
-
 	// A Basic represents a basic type.
+	//
+	// Examples.
+	//
+	//    char
+	//    int
 	Basic struct {
 		// Kind of basic type.
 		Kind BasicKind
 	}
 
 	// An Array represents an array type.
+	//
+	// Examples.
+	//
+	//    int[]
+	//    char[128]
 	Array struct {
 		// Element type.
 		Elem Type
@@ -62,6 +67,11 @@ type (
 	}
 
 	// A Func represents a function signature.
+	//
+	// Examples.
+	//
+	//    int(void)
+	//    int(int a, int b)
 	Func struct {
 		// Return type.
 		Result Type
@@ -87,24 +97,17 @@ const (
 
 // A Field represents a field declaration in a struct type, or a parameter
 // declaration in a function signature.
+//
+// Examples.
+//
+//    char
+//    int a
 type Field struct {
 	// Field type.
 	Type Type
 	// Field name; or empty.
 	Name string
 }
-
-// Start returns the start position of the node within the input stream.
-func (n *Basic) Start() int { panic("ast.Basic.Start: not yet implemented") }
-
-// Start returns the start position of the node within the input stream.
-func (n *Array) Start() int { panic("ast.Array.Start: not yet implemented") }
-
-// Start returns the start position of the node within the input stream.
-func (n *Func) Start() int { panic("ast.Func.Start: not yet implemented") }
-
-// Start returns the start position of the node within the input stream.
-func (n *Field) Start() int { panic("ast.Field.Start: not yet implemented") }
 
 // isType ensures that only µC types can be assigned to the Type interface.
 func (n *Basic) isType() {}
