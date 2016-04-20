@@ -12,7 +12,6 @@ import (
 	"github.com/mewmew/uc/gocc/parser"
 	"github.com/mewmew/uc/gocc/scanner"
 	"github.com/mewmew/uc/token"
-	"github.com/mewmew/uc/types"
 )
 
 func TestParser(t *testing.T) {
@@ -25,43 +24,54 @@ func TestParser(t *testing.T) {
 			want: &ast.File{
 				Decls: []ast.Decl{
 					&ast.FuncDecl{
-						Type: &types.Func{
-							Result: &types.Basic{
-								Kind: types.Int,
+						Type: &ast.FuncType{
+							Result: &ast.Ident{
+								NamePos: 0,
+								Name:    "int",
 							},
-							Params: []*types.Field{
+							Lparen: 8,
+							Params: []*ast.Field{
 								{
-									Type: &types.Basic{
-										Kind: types.Void,
+									Type: &ast.Ident{
+										NamePos: 9,
+										Name:    "void",
 									},
 								},
 							},
+							Rparen: 13,
 						},
 						Name: &ast.Ident{
-							Name: "main",
+							NamePos: 4,
+							Name:    "main",
 						},
 						Body: &ast.BlockStmt{
+							Lbrace: 15,
 							Items: []ast.BlockItem{
 								&ast.VarDecl{
-									Type: &types.Basic{
-										Kind: types.Int,
+									Type: &ast.Ident{
+										NamePos: 19,
+										Name:    "int",
 									},
 									Name: &ast.Ident{
-										Name: "i",
+										NamePos: 23,
+										Name:    "i",
 									},
 								},
 								&ast.ExprStmt{
 									X: &ast.BinaryExpr{
 										X: &ast.BasicLit{
-											Kind: token.IntLit,
-											Val:  "1",
+											ValPos: 28,
+											Kind:   token.IntLit,
+											Val:    "1",
 										},
 										Op: token.Ne,
 										Y: &ast.UnaryExpr{
-											Op: token.Not,
+											OpPos: 31,
+											Op:    token.Not,
 											X: &ast.BasicLit{
-												Kind: token.IntLit,
-												Val:  "3",
+												ValPos: 32,
+												Kind:   token.IntLit,
+												Val:    "3",
 											},
 										},
 									},
@@ -69,15 +79,19 @@ func TestParser(t *testing.T) {
 								&ast.ExprStmt{
 									X: &ast.BinaryExpr{
 										X: &ast.BasicLit{
-											Kind: token.IntLit,
-											Val:  "4",
+											ValPos: 37,
+											Kind:   token.IntLit,
+											Val:    "4",
 										},
 										Op: token.Land,
 										Y: &ast.ParenExpr{
+											Lparen: 40,
 											X: &ast.BasicLit{
-												Kind: token.IntLit,
-												Val:  "6",
+												ValPos: 41,
+												Kind:   token.IntLit,
+												Val:    "6",
 											},
+											Rparen: 42,
 										},
 									},
 								},
@@ -85,50 +99,61 @@ func TestParser(t *testing.T) {
 									X: &ast.BinaryExpr{
 										X: &ast.BinaryExpr{
 											X: &ast.BasicLit{
-												Kind: token.IntLit,
-												Val:  "7",
+												ValPos: 47,
+												Kind:   token.IntLit,
+												Val:    "7",
 											},
 											Op: token.Mul,
 											Y: &ast.BasicLit{
-												Kind: token.IntLit,
-												Val:  "8",
+												ValPos: 50,
+												Kind:   token.IntLit,
+												Val:    "8",
 											},
 										},
 										Op: token.Add,
 										Y: &ast.BasicLit{
-											Kind: token.IntLit,
-											Val:  "10",
+											ValPos: 52,
+											Kind:   token.IntLit,
+											Val:    "10",
 										},
 									},
 								},
 								&ast.ExprStmt{
 									X: &ast.BinaryExpr{
 										X: &ast.ParenExpr{
+											Lparen: 58,
 											X: &ast.BinaryExpr{
 												X: &ast.BasicLit{
-													Kind: token.IntLit,
-													Val:  "11",
+													ValPos: 59,
+													Kind:   token.IntLit,
+													Val:    "11",
 												},
 												Op: token.Sub,
 												Y: &ast.BasicLit{
-													Kind: token.IntLit,
-													Val:  "12",
+													ValPos: 62,
+													Kind:   token.IntLit,
+													Val:    "12",
 												},
 											},
+											Rparen: 64,
 										},
 										Op: token.Add,
 										Y: &ast.ParenExpr{
+											Lparen: 66,
 											X: &ast.BinaryExpr{
 												X: &ast.BasicLit{
-													Kind: token.IntLit,
-													Val:  "12",
+													ValPos: 67,
+													Kind:   token.IntLit,
+													Val:    "12",
 												},
 												Op: token.Div,
 												Y: &ast.BasicLit{
-													Kind: token.IntLit,
-													Val:  "16",
+													ValPos: 70,
+													Kind:   token.IntLit,
+													Val:    "16",
 												},
 											},
+											Rparen: 72,
 										},
 									},
 								},
@@ -136,21 +161,25 @@ func TestParser(t *testing.T) {
 									X: &ast.BinaryExpr{
 										X: &ast.BinaryExpr{
 											X: &ast.BasicLit{
-												Kind: token.IntLit,
-												Val:  "17",
+												ValPos: 77,
+												Kind:   token.IntLit,
+												Val:    "17",
 											},
 											Op: token.Le,
 											Y: &ast.BasicLit{
-												Kind: token.IntLit,
-												Val:  "18",
+												ValPos: 81,
+												Kind:   token.IntLit,
+												Val:    "18",
 											},
 										},
 										Op: token.Lt,
 										Y: &ast.UnaryExpr{
-											Op: token.Sub,
+											OpPos: 85,
+											Op:    token.Sub,
 											X: &ast.BasicLit{
-												Kind: token.IntLit,
-												Val:  "20",
+												ValPos: 86,
+												Kind:   token.IntLit,
+												Val:    "20",
 											},
 										},
 									},
@@ -158,18 +187,21 @@ func TestParser(t *testing.T) {
 								&ast.ExprStmt{
 									X: &ast.BinaryExpr{
 										X: &ast.Ident{
-											Name: "i",
+											NamePos: 92,
+											Name:    "i",
 										},
 										Op: token.Assign,
 										Y: &ast.BinaryExpr{
 											X: &ast.BasicLit{
-												Kind: token.IntLit,
-												Val:  "21",
+												ValPos: 94,
+												Kind:   token.IntLit,
+												Val:    "21",
 											},
 											Op: token.Eq,
 											Y: &ast.BasicLit{
-												Kind: token.IntLit,
-												Val:  "22",
+												ValPos: 98,
+												Kind:   token.IntLit,
+												Val:    "22",
 											},
 										},
 									},
@@ -178,23 +210,27 @@ func TestParser(t *testing.T) {
 									X: &ast.BinaryExpr{
 										X: &ast.BinaryExpr{
 											X: &ast.BasicLit{
-												Kind: token.IntLit,
-												Val:  "25",
+												ValPos: 104,
+												Kind:   token.IntLit,
+												Val:    "25",
 											},
 											Op: token.Ge,
 											Y: &ast.BasicLit{
-												Kind: token.IntLit,
-												Val:  "27",
+												ValPos: 109,
+												Kind:   token.IntLit,
+												Val:    "27",
 											},
 										},
 										Op: token.Gt,
 										Y: &ast.BasicLit{
-											Kind: token.IntLit,
-											Val:  "28",
+											ValPos: 112,
+											Kind:   token.IntLit,
+											Val:    "28",
 										},
 									},
 								},
 							},
+							Rbrace: 116,
 						},
 					},
 				},
@@ -206,14 +242,14 @@ func TestParser(t *testing.T) {
 			want: &ast.File{
 				Decls: []ast.Decl{
 					&ast.FuncDecl{
-						Type: &types.Func{
-							Result: &types.Basic{
-								Kind: types.Int,
+						Type: &ast.FuncType{
+							Result: &ast.Ident{
+								Name: "int",
 							},
-							Params: []*types.Field{
+							Params: []*ast.Field{
 								{
-									Type: &types.Basic{
-										Kind: types.Void,
+									Type: &ast.Ident{
+										Name: "void",
 									},
 								},
 							},
@@ -224,16 +260,16 @@ func TestParser(t *testing.T) {
 						Body: &ast.BlockStmt{
 							Items: []ast.BlockItem{
 								&ast.VarDecl{
-									Type: &types.Basic{
-										Kind: types.Int,
+									Type: &ast.Ident{
+										Name: "int",
 									},
 									Name: &ast.Ident{
 										Name: "x",
 									},
 								},
 								&ast.VarDecl{
-									Type: &types.Basic{
-										Kind: types.Int,
+									Type: &ast.Ident{
+										Name: "int",
 									},
 									Name: &ast.Ident{
 										Name: "y",
@@ -281,14 +317,14 @@ func TestParser(t *testing.T) {
 			want: &ast.File{
 				Decls: []ast.Decl{
 					&ast.FuncDecl{
-						Type: &types.Func{
-							Result: &types.Basic{
-								Kind: types.Int,
+						Type: &ast.FuncType{
+							Result: &ast.Ident{
+								Name: "int",
 							},
-							Params: []*types.Field{
+							Params: []*ast.Field{
 								{
-									Type: &types.Basic{
-										Kind: types.Void,
+									Type: &ast.Ident{
+										Name: "void",
 									},
 								},
 							},
@@ -299,8 +335,8 @@ func TestParser(t *testing.T) {
 						Body: &ast.BlockStmt{
 							Items: []ast.BlockItem{
 								&ast.VarDecl{
-									Type: &types.Basic{
-										Kind: types.Int,
+									Type: &ast.Ident{
+										Name: "int",
 									},
 									Name: &ast.Ident{
 										Name: "x",
@@ -373,14 +409,14 @@ func TestParser(t *testing.T) {
 			want: &ast.File{
 				Decls: []ast.Decl{
 					&ast.FuncDecl{
-						Type: &types.Func{
-							Result: &types.Basic{
-								Kind: types.Int,
+						Type: &ast.FuncType{
+							Result: &ast.Ident{
+								Name: "int",
 							},
-							Params: []*types.Field{
+							Params: []*ast.Field{
 								{
-									Type: &types.Basic{
-										Kind: types.Void,
+									Type: &ast.Ident{
+										Name: "void",
 									},
 								},
 							},
@@ -391,8 +427,8 @@ func TestParser(t *testing.T) {
 						Body: &ast.BlockStmt{
 							Items: []ast.BlockItem{
 								&ast.VarDecl{
-									Type: &types.Basic{
-										Kind: types.Int,
+									Type: &ast.Ident{
+										Name: "int",
 									},
 									Name: &ast.Ident{
 										Name: "x",
@@ -447,14 +483,14 @@ func TestParser(t *testing.T) {
 			want: &ast.File{
 				Decls: []ast.Decl{
 					&ast.FuncDecl{
-						Type: &types.Func{
-							Result: &types.Basic{
-								Kind: types.Int,
+						Type: &ast.FuncType{
+							Result: &ast.Ident{
+								Name: "int",
 							},
-							Params: []*types.Field{
+							Params: []*ast.Field{
 								{
-									Type: &types.Basic{
-										Kind: types.Void,
+									Type: &ast.Ident{
+										Name: "void",
 									},
 								},
 							},
@@ -465,24 +501,24 @@ func TestParser(t *testing.T) {
 						Body: &ast.BlockStmt{
 							Items: []ast.BlockItem{
 								&ast.VarDecl{
-									Type: &types.Basic{
-										Kind: types.Int,
+									Type: &ast.Ident{
+										Name: "int",
 									},
 									Name: &ast.Ident{
 										Name: "x",
 									},
 								},
 								&ast.VarDecl{
-									Type: &types.Basic{
-										Kind: types.Int,
+									Type: &ast.Ident{
+										Name: "int",
 									},
 									Name: &ast.Ident{
 										Name: "y",
 									},
 								},
 								&ast.VarDecl{
-									Type: &types.Basic{
-										Kind: types.Int,
+									Type: &ast.Ident{
+										Name: "int",
 									},
 									Name: &ast.Ident{
 										Name: "z",
@@ -578,9 +614,9 @@ func TestParser(t *testing.T) {
 			want: &ast.File{
 				Decls: []ast.Decl{
 					&ast.VarDecl{
-						Type: &types.Array{
-							Elem: &types.Basic{
-								Kind: types.Int,
+						Type: &ast.ArrayType{
+							Elem: &ast.Ident{
+								Name: "int",
 							},
 							Len: 10,
 						},
@@ -589,9 +625,9 @@ func TestParser(t *testing.T) {
 						},
 					},
 					&ast.VarDecl{
-						Type: &types.Array{
-							Elem: &types.Basic{
-								Kind: types.Char,
+						Type: &ast.ArrayType{
+							Elem: &ast.Ident{
+								Name: "char",
 							},
 							Len: 10,
 						},
@@ -600,26 +636,30 @@ func TestParser(t *testing.T) {
 						},
 					},
 					&ast.FuncDecl{
-						Type: &types.Func{
-							Result: &types.Basic{
-								Kind: types.Void,
+						Type: &ast.FuncType{
+							Result: &ast.Ident{
+								Name: "void",
 							},
-							Params: []*types.Field{
+							Params: []*ast.Field{
 								{
-									Type: &types.Array{
-										Elem: &types.Basic{
-											Kind: types.Int,
+									Type: &ast.ArrayType{
+										Elem: &ast.Ident{
+											Name: "int",
 										},
 									},
-									Name: "h",
+									Name: &ast.Ident{
+										Name: "h",
+									},
 								},
 								{
-									Type: &types.Array{
-										Elem: &types.Basic{
-											Kind: types.Char,
+									Type: &ast.ArrayType{
+										Elem: &ast.Ident{
+											Name: "char",
 										},
 									},
-									Name: "i",
+									Name: &ast.Ident{
+										Name: "i",
+									},
 								},
 							},
 						},
@@ -629,14 +669,14 @@ func TestParser(t *testing.T) {
 						Body: &ast.BlockStmt{},
 					},
 					&ast.FuncDecl{
-						Type: &types.Func{
-							Result: &types.Basic{
-								Kind: types.Int,
+						Type: &ast.FuncType{
+							Result: &ast.Ident{
+								Name: "int",
 							},
-							Params: []*types.Field{
+							Params: []*ast.Field{
 								{
-									Type: &types.Basic{
-										Kind: types.Void,
+									Type: &ast.Ident{
+										Name: "void",
 									},
 								},
 							},
@@ -659,14 +699,14 @@ func TestParser(t *testing.T) {
 			want: &ast.File{
 				Decls: []ast.Decl{
 					&ast.FuncDecl{
-						Type: &types.Func{
-							Result: &types.Basic{
-								Kind: types.Void,
+						Type: &ast.FuncType{
+							Result: &ast.Ident{
+								Name: "void",
 							},
-							Params: []*types.Field{
+							Params: []*ast.Field{
 								{
-									Type: &types.Basic{
-										Kind: types.Void,
+									Type: &ast.Ident{
+										Name: "void",
 									},
 								},
 							},
@@ -681,14 +721,14 @@ func TestParser(t *testing.T) {
 						},
 					},
 					&ast.FuncDecl{
-						Type: &types.Func{
-							Result: &types.Basic{
-								Kind: types.Int,
+						Type: &ast.FuncType{
+							Result: &ast.Ident{
+								Name: "int",
 							},
-							Params: []*types.Field{
+							Params: []*ast.Field{
 								{
-									Type: &types.Basic{
-										Kind: types.Void,
+									Type: &ast.Ident{
+										Name: "void",
 									},
 								},
 							},
@@ -708,14 +748,14 @@ func TestParser(t *testing.T) {
 						},
 					},
 					&ast.FuncDecl{
-						Type: &types.Func{
-							Result: &types.Basic{
-								Kind: types.Int,
+						Type: &ast.FuncType{
+							Result: &ast.Ident{
+								Name: "int",
 							},
-							Params: []*types.Field{
+							Params: []*ast.Field{
 								{
-									Type: &types.Basic{
-										Kind: types.Void,
+									Type: &ast.Ident{
+										Name: "void",
 									},
 								},
 							},
@@ -751,14 +791,14 @@ func TestParser(t *testing.T) {
 			want: &ast.File{
 				Decls: []ast.Decl{
 					&ast.FuncDecl{
-						Type: &types.Func{
-							Result: &types.Basic{
-								Kind: types.Int,
+						Type: &ast.FuncType{
+							Result: &ast.Ident{
+								Name: "int",
 							},
-							Params: []*types.Field{
+							Params: []*ast.Field{
 								{
-									Type: &types.Basic{
-										Kind: types.Void,
+									Type: &ast.Ident{
+										Name: "void",
 									},
 								},
 							},
@@ -769,16 +809,16 @@ func TestParser(t *testing.T) {
 						Body: &ast.BlockStmt{
 							Items: []ast.BlockItem{
 								&ast.VarDecl{
-									Type: &types.Basic{
-										Kind: types.Int,
+									Type: &ast.Ident{
+										Name: "int",
 									},
 									Name: &ast.Ident{
 										Name: "x",
 									},
 								},
 								&ast.VarDecl{
-									Type: &types.Basic{
-										Kind: types.Int,
+									Type: &ast.Ident{
+										Name: "int",
 									},
 									Name: &ast.Ident{
 										Name: "y",
@@ -840,14 +880,14 @@ func TestParser(t *testing.T) {
 			want: &ast.File{
 				Decls: []ast.Decl{
 					&ast.FuncDecl{
-						Type: &types.Func{
-							Result: &types.Basic{
-								Kind: types.Int,
+						Type: &ast.FuncType{
+							Result: &ast.Ident{
+								Name: "int",
 							},
-							Params: []*types.Field{
+							Params: []*ast.Field{
 								{
-									Type: &types.Basic{
-										Kind: types.Void,
+									Type: &ast.Ident{
+										Name: "void",
 									},
 								},
 							},
@@ -858,16 +898,16 @@ func TestParser(t *testing.T) {
 						Body: &ast.BlockStmt{
 							Items: []ast.BlockItem{
 								&ast.VarDecl{
-									Type: &types.Basic{
-										Kind: types.Int,
+									Type: &ast.Ident{
+										Name: "int",
 									},
 									Name: &ast.Ident{
 										Name: "x",
 									},
 								},
 								&ast.VarDecl{
-									Type: &types.Basic{
-										Kind: types.Int,
+									Type: &ast.Ident{
+										Name: "int",
 									},
 									Name: &ast.Ident{
 										Name: "y",
@@ -932,6 +972,8 @@ func TestParser(t *testing.T) {
 		if !reflect.DeepEqual(got, g.want) {
 			t.Errorf("%q: AST mismatch; expected %#v, got %#v", g.path, g.want, got)
 			fmt.Println(pretty.Diff(g.want, got))
+		} else {
+			fmt.Printf("%q: PASS\n", g.path) // TODO: Remove.
 		}
 	}
 }
