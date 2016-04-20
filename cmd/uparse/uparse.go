@@ -61,7 +61,7 @@ func main() {
 
 // parseFile parses the given file and pretty-prints its abstract syntax tree to
 // standard output, optionally using the hand-written lexer.
-func parseFile(path string, hand bool) (err error) {
+func parseFile(path string, hand bool) error {
 	// Create lexer for the input.
 	buf, err := ioutilx.ReadFile(path)
 	if err != nil {

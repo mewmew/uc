@@ -10,7 +10,6 @@ import (
 	"github.com/mewmew/uc/gocc/errors"
 	gocctoken "github.com/mewmew/uc/gocc/token"
 	"github.com/mewmew/uc/token"
-	"github.com/mewmew/uc/types"
 )
 
 // NewFile returns a new µC source file, based on the following production rule.
@@ -65,7 +64,7 @@ func AppendDecl(list, decl interface{}) ([]ast.Decl, error) {
 //    FuncHeader
 //       : BasicType ident "(" Params ")"
 //    ;
-func NewFuncDecl(resultType, name, params interface{}) (*ast.FuncDecl, error) {
+func NewFuncDecl(resultType, name, lparen, params, rparen interface{}) (*ast.FuncDecl, error) {
 	resType, err := NewType(resultType)
 	if err != nil {
 		return nil, errutil.Newf("invalid function result type; %v", err)
@@ -74,11 +73,19 @@ func NewFuncDecl(resultType, name, params interface{}) (*ast.FuncDecl, error) {
 	if err != nil {
 		return nil, errutil.Newf("invalid function name identifier; %v", err)
 	}
-	fields, ok := params.([]*types.Field)
+	lpar, ok := lparen.(*gocctoken.Token)
 	if !ok {
-		return nil, errutil.Newf("invalid function parameters type; expected []*types.Field, got %T", params)
+		return nil, errutil.Newf("invalid left-parenthesis type; expectd *gocctoken.Token, got %T", lparen)
 	}
-	typ := &types.Func{Params: fields, Result: resType}
+	fields, ok := params.([]*ast.Field)
+	if !ok {
+		return nil, errutil.Newf("invalid function parameters type; expected []*ast.Field, got %T", params)
+	}
+	rpar, ok := rparen.(*gocctoken.Token)
+	if !ok {
+		return nil, errutil.Newf("invalid right-parenthesis type; expectd *gocctoken.Token, got %T", rparen)
+	}
+	typ := &ast.FuncType{Result: resType, Lparen: lpar.Offset, Params: fields, Rparen: rpar.Offset}
 	return &ast.FuncDecl{Type: typ, Name: ident}, nil
 }
 
@@ -123,10 +130,10 @@ func NewScalarDecl(typ, name interface{}) (*ast.VarDecl, error) {
 // production rule.
 //
 //    ArrayDecl
-//       : TypeName ident "[" int_lit "]"
+//       : BasicType ident "[" int_lit "]"
 //    ;
-func NewArrayDecl(elem, name, length interface{}) (*ast.VarDecl, error) {
-	typ, err := NewArrayType(elem, length)
+func NewArrayDecl(elem, name, lbracket, length, rbracket interface{}) (*ast.VarDecl, error) {
+	typ, err := NewArrayType(elem, lbracket, length, rbracket)
 	if err != nil {
 		return nil, errutil.Newf("invalid array type; %v", err)
 	}
@@ -141,19 +148,18 @@ func NewArrayDecl(elem, name, length interface{}) (*ast.VarDecl, error) {
 // rule.
 //
 //    Params
-//    	: TypeName // "void"
+//    	: BasicType // "void"
 //    ;
-func NewVoidParam(typ interface{}) ([]*types.Field, error) {
-	if typ, ok := typ.(*types.Basic); ok {
-		switch typ.Kind {
-		case types.Void:
+func NewVoidParam(typ interface{}) ([]*ast.Field, error) {
+	if ident, ok := typ.(*ast.Ident); ok {
+		if ident.Name == "void" {
 			// Valid void parameter.
-			return []*types.Field{{Type: typ}}, nil
-		default:
-			return nil, errutil.Newf("invalid void parameter kind; expected Void, got %v", typ.Kind)
+			return []*ast.Field{{Type: ident}}, nil
+		} else {
+			return nil, errutil.Newf(`invalid void parameter; expected "void", got %q`, ident.Name)
 		}
 	}
-	return nil, errutil.Newf("invalid void parameter type; expected *types.Basic, got %T", typ)
+	return nil, errutil.Newf("invalid void parameter type; expected *ast.Ident, got %T", typ)
 }
 
 // NewFieldList returns a new field list, based on the following production
@@ -162,11 +168,11 @@ func NewVoidParam(typ interface{}) ([]*types.Field, error) {
 //    FieldList
 //       : Field
 //    ;
-func NewFieldList(field interface{}) ([]*types.Field, error) {
-	if field, ok := field.(*types.Field); ok {
-		return []*types.Field{field}, nil
+func NewFieldList(field interface{}) ([]*ast.Field, error) {
+	if field, ok := field.(*ast.Field); ok {
+		return []*ast.Field{field}, nil
 	}
-	return nil, errutil.Newf("invalid field list field type; expected *types.Field, got %T", field)
+	return nil, errutil.Newf("invalid field list field type; expected *ast.Field, got %T", field)
 }
 
 // AppendField appends field to the field list, based on the following
@@ -175,15 +181,15 @@ func NewFieldList(field interface{}) ([]*types.Field, error) {
 //    FieldList
 //       : FieldList "," Field
 //    ;
-func AppendField(list, field interface{}) ([]*types.Field, error) {
-	lst, ok := list.([]*types.Field)
+func AppendField(list, field interface{}) ([]*ast.Field, error) {
+	lst, ok := list.([]*ast.Field)
 	if !ok {
-		return nil, errutil.Newf("invalid field list type; expected []*types.Field, got %T", list)
+		return nil, errutil.Newf("invalid field list type; expected []*ast.Field, got %T", list)
 	}
-	if field, ok := field.(*types.Field); ok {
+	if field, ok := field.(*ast.Field); ok {
 		return append(lst, field), nil
 	}
-	return nil, errutil.Newf("invalid field list field type; expected *types.Field, got %T", field)
+	return nil, errutil.Newf("invalid field list field type; expected *ast.Field, got %T", field)
 }
 
 // NewField returns a new field, based on the following production rules.
@@ -192,9 +198,9 @@ func AppendField(list, field interface{}) ([]*types.Field, error) {
 //       : ScalarDecl
 //       | TypeName ident "[" "]"
 //    ;
-func NewField(decl interface{}) (*types.Field, error) {
+func NewField(decl interface{}) (*ast.Field, error) {
 	if decl, ok := decl.(*ast.VarDecl); ok {
-		return &types.Field{Type: decl.Type, Name: decl.Name.Name}, nil
+		return &ast.Field{Type: decl.Type, Name: decl.Name}, nil
 	}
 	return nil, errutil.Newf("invalid field type; expected *ast.VarDecl, got %T", decl)
 }
@@ -218,9 +224,16 @@ func NewExprStmt(x interface{}) (*ast.ExprStmt, error) {
 //    Stmt
 //       : "return" Expr ";"
 //    ;
-func NewReturnStmt(result interface{}) (*ast.ReturnStmt, error) {
+func NewReturnStmt(returnToken, result interface{}) (*ast.ReturnStmt, error) {
+	retTok, ok := returnToken.(*gocctoken.Token)
+	if !ok {
+		return nil, errutil.Newf("invalid return keyword type; expected *gocctoken.Token, got %T", returnToken)
+	}
+	if result == nil {
+		return &ast.ReturnStmt{Return: retTok.Offset}, nil
+	}
 	if result, ok := result.(ast.Expr); ok {
-		return &ast.ReturnStmt{Result: result}, nil
+		return &ast.ReturnStmt{Return: retTok.Offset, Result: result}, nil
 	}
 	return nil, errutil.Newf("invalid return statement result type; expected ast.Expr, got %T", result)
 }
@@ -231,7 +244,11 @@ func NewReturnStmt(result interface{}) (*ast.ReturnStmt, error) {
 //    Stmt
 //       : "while" Condition Stmt
 //    ;
-func NewWhileStmt(cond, body interface{}) (*ast.WhileStmt, error) {
+func NewWhileStmt(whileToken, cond, body interface{}) (*ast.WhileStmt, error) {
+	whileTok, ok := whileToken.(*gocctoken.Token)
+	if !ok {
+		return nil, errutil.Newf("invalid while keyword type; expected *gocctoken.Token, got %T", whileToken)
+	}
 	condExpr, ok := cond.(ast.Expr)
 	if !ok {
 		return nil, errutil.Newf("invalid while statement condition type; expected ast.Expr, got %T", cond)
@@ -240,7 +257,7 @@ func NewWhileStmt(cond, body interface{}) (*ast.WhileStmt, error) {
 	if !ok {
 		return nil, errutil.Newf("invalid while statement body type; expected ast.Stmt, got %T", body)
 	}
-	return &ast.WhileStmt{Cond: condExpr, Body: bodyStmt}, nil
+	return &ast.WhileStmt{While: whileTok.Offset, Cond: condExpr, Body: bodyStmt}, nil
 }
 
 // NewIfStmt returns a new if statement, based on the following production
@@ -254,7 +271,11 @@ func NewWhileStmt(cond, body interface{}) (*ast.WhileStmt, error) {
 //       : empty
 //       | "else" Stmt
 //    ;
-func NewIfStmt(cond, trueBranch, falseBranch interface{}) (*ast.IfStmt, error) {
+func NewIfStmt(ifToken, cond, trueBranch, falseBranch interface{}) (*ast.IfStmt, error) {
+	ifTok, ok := ifToken.(*gocctoken.Token)
+	if !ok {
+		return nil, errutil.Newf("invalid if keyword type; expected *gocctoken.Token, got %T", ifToken)
+	}
 	condExpr, ok := cond.(ast.Expr)
 	if !ok {
 		return nil, errutil.Newf("invalid if statement condition type; expected ast.Expr, got %T", cond)
@@ -264,10 +285,10 @@ func NewIfStmt(cond, trueBranch, falseBranch interface{}) (*ast.IfStmt, error) {
 		return nil, errutil.Newf("invalid if statement body type; expected ast.Stmt, got %T", trueBranch)
 	}
 	if falseBranch == nil {
-		return &ast.IfStmt{Cond: condExpr, Body: bodyStmt}, nil
+		return &ast.IfStmt{If: ifTok.Offset, Cond: condExpr, Body: bodyStmt}, nil
 	}
 	if elseStmt, ok := falseBranch.(ast.Stmt); ok {
-		return &ast.IfStmt{Cond: condExpr, Body: bodyStmt, Else: elseStmt}, nil
+		return &ast.IfStmt{If: ifTok.Offset, Cond: condExpr, Body: bodyStmt, Else: elseStmt}, nil
 	}
 	return nil, errutil.Newf("invalid if statement else-body type; expected ast.Stmt, got %T", falseBranch)
 }
@@ -278,12 +299,20 @@ func NewIfStmt(cond, trueBranch, falseBranch interface{}) (*ast.IfStmt, error) {
 //    BlockStmt
 //       : "{" BlockItems "}"
 //    ;
-func NewBlockStmt(items interface{}) (*ast.BlockStmt, error) {
+func NewBlockStmt(lbrace, items, rbrace interface{}) (*ast.BlockStmt, error) {
+	lbra, ok := lbrace.(*gocctoken.Token)
+	if !ok {
+		return nil, errutil.Newf("invalid left-brace type; expectd *gocctoken.Token, got %T", lbrace)
+	}
+	rbra, ok := rbrace.(*gocctoken.Token)
+	if !ok {
+		return nil, errutil.Newf("invalid right-brace type; expectd *gocctoken.Token, got %T", rbrace)
+	}
 	if items == nil {
-		return &ast.BlockStmt{}, nil
+		return &ast.BlockStmt{Lbrace: lbra.Offset, Rbrace: rbra.Offset}, nil
 	}
 	if items, ok := items.([]ast.BlockItem); ok {
-		return &ast.BlockStmt{Items: items}, nil
+		return &ast.BlockStmt{Lbrace: lbra.Offset, Items: items, Rbrace: rbra.Offset}, nil
 	}
 	return nil, errutil.Newf("invalid block statements type; expected []ast.BlockItem, got %T", items)
 }
@@ -318,6 +347,20 @@ func AppendBlockItem(list, item interface{}) ([]ast.BlockItem, error) {
 	return nil, errutil.Newf("invalid block item list block item type; expected ast.BlockItem, got %T", item)
 }
 
+// NewEmptyStmt returns a new empty statement, based on the following production
+// rules.
+//
+//    Stmt
+//       : ";"
+//    ;
+func NewEmptyStmt(semicolonToken interface{}) (*ast.EmptyStmt, error) {
+	semiTok, ok := semicolonToken.(*gocctoken.Token)
+	if !ok {
+		return nil, errutil.Newf("invalid semicolon type; expected *gocctoken.Token, got %T", semicolonToken)
+	}
+	return &ast.EmptyStmt{Semicolon: semiTok.Offset}, nil
+}
+
 // NewBinaryExpr returns a new binary experssion node, based on the following
 // production rules.
 //
@@ -350,18 +393,41 @@ func AppendBlockItem(list, item interface{}) ([]ast.BlockItem, error) {
 //       : Expr13L "*" Expr14
 //       | Expr13L "/" Expr14
 //    ;
-func NewBinaryExpr(x interface{}, op token.Kind, y interface{}) (*ast.BinaryExpr, error) {
-	switch op {
-	case token.Assign,
-		token.Land,
-		token.Eq, token.Ne,
-		token.Lt, token.Gt, token.Le, token.Ge,
-		token.Add, token.Sub,
-		token.Mul, token.Div:
-		// Valid binary operator.
-	default:
-		return nil, errutil.Newf("invalid binary operator; expected Assign, Land, Eq, Ne, Lt, Gt, Le, Ge, Add, Sub, Mul or Div, got %v", op)
+func NewBinaryExpr(x, opToken, y interface{}) (*ast.BinaryExpr, error) {
+	opTok, ok := opToken.(*gocctoken.Token)
+	if !ok {
+		return nil, errutil.Newf("invalid binary operator type; expectd *gocctoken.Token, got %T", opToken)
 	}
+	var op token.Kind
+	switch lit := string(opTok.Lit); lit {
+	case "=":
+		op = token.Assign
+	case "&&":
+		op = token.Land
+	case "==":
+		op = token.Eq
+	case "!=":
+		op = token.Ne
+	case "<":
+		op = token.Lt
+	case ">":
+		op = token.Gt
+	case "<=":
+		op = token.Le
+	case ">=":
+		op = token.Ge
+	case "+":
+		op = token.Add
+	case "-":
+		op = token.Sub
+	case "*":
+		op = token.Mul
+	case "/":
+		op = token.Div
+	default:
+		return nil, errutil.Newf(`invalid binary operator; expected "=", "&&", "==", "!=", "<", ">", "<=", ">=", "+", "-", "*" or "/", got %q`, lit)
+	}
+
 	arg0, ok := x.(ast.Expr)
 	if !ok {
 		return nil, errutil.Newf("invalid first binary operand type; expected ast.Expr, got %T", x)
@@ -380,15 +446,22 @@ func NewBinaryExpr(x interface{}, op token.Kind, y interface{}) (*ast.BinaryExpr
 //       : "-" Expr15
 //       | "!" Expr15
 //    ;
-func NewUnaryExpr(op token.Kind, x interface{}) (*ast.UnaryExpr, error) {
-	switch op {
-	case token.Sub, token.Not:
-		// Valid unary operator.
+func NewUnaryExpr(opToken, x interface{}) (*ast.UnaryExpr, error) {
+	opTok, ok := opToken.(*gocctoken.Token)
+	if !ok {
+		return nil, errutil.Newf("invalid unary operator type; expectd *gocctoken.Token, got %T", opToken)
+	}
+	var op token.Kind
+	switch lit := string(opTok.Lit); lit {
+	case "-":
+		op = token.Sub
+	case "!":
+		op = token.Not
 	default:
-		return nil, errutil.Newf("invalid unary operator; expected Sub or Not, got %v", op)
+		return nil, errutil.Newf(`invalid unary operator; expected "-" or "!", got %q`, lit)
 	}
 	if x, ok := x.(ast.Expr); ok {
-		return &ast.UnaryExpr{Op: op, X: x}, nil
+		return &ast.UnaryExpr{OpPos: opTok.Offset, Op: op, X: x}, nil
 	}
 	return nil, errutil.Newf("invalid unary operand type; expected ast.Expr, got %T", x)
 }
@@ -402,10 +475,10 @@ func NewUnaryExpr(op token.Kind, x interface{}) (*ast.UnaryExpr, error) {
 //    Expr15
 //       : int_lit
 //    ;
-func NewBasicLit(val interface{}, kind token.Kind) (*ast.BasicLit, error) {
-	s, err := tokenString(val)
-	if err != nil {
-		return nil, errutil.Newf("invalid basic literal value; %v", err)
+func NewBasicLit(valToken interface{}, kind token.Kind) (*ast.BasicLit, error) {
+	valTok, ok := valToken.(*gocctoken.Token)
+	if !ok {
+		return nil, errutil.Newf("invalid basic literal type; expected *gocctoken.Token, got %T", valToken)
 	}
 	switch kind {
 	case token.CharLit, token.IntLit:
@@ -413,7 +486,7 @@ func NewBasicLit(val interface{}, kind token.Kind) (*ast.BasicLit, error) {
 	default:
 		return nil, errutil.Newf("invalid basic literal kind; expected CharLit or IntLit, got %v", kind)
 	}
-	return &ast.BasicLit{Kind: kind, Val: s}, nil
+	return &ast.BasicLit{ValPos: valTok.Offset, Kind: kind, Val: string(valTok.Lit)}, nil
 }
 
 // NewIdent returns a new identifier experssion node, based on the following
@@ -422,12 +495,12 @@ func NewBasicLit(val interface{}, kind token.Kind) (*ast.BasicLit, error) {
 //    Expr15
 //       : ident
 //    ;
-func NewIdent(name interface{}) (*ast.Ident, error) {
-	s, err := tokenString(name)
-	if err != nil {
-		return nil, errutil.Newf("invalid identifier; %v", err)
+func NewIdent(nameToken interface{}) (*ast.Ident, error) {
+	nameTok, ok := nameToken.(*gocctoken.Token)
+	if !ok {
+		return nil, errutil.Newf("invalid identifier type; expected *gocctoken.Token, got %T", nameToken)
 	}
-	return &ast.Ident{Name: s}, nil
+	return &ast.Ident{NamePos: nameTok.Offset, Name: string(nameTok.Lit)}, nil
 }
 
 // NewIndexExpr returns a new index expression, based on the following
@@ -436,13 +509,21 @@ func NewIdent(name interface{}) (*ast.Ident, error) {
 //    Expr15
 //       : ident "[" Expr "]"
 //    ;
-func NewIndexExpr(name, index interface{}) (*ast.IndexExpr, error) {
+func NewIndexExpr(name, lbracket, index, rbracket interface{}) (*ast.IndexExpr, error) {
 	ident, err := NewIdent(name)
 	if err != nil {
 		return nil, errutil.Newf("invalid array name; %v", err)
 	}
+	lbrack, ok := lbracket.(*gocctoken.Token)
+	if !ok {
+		return nil, errutil.Newf("invalid left-bracket type; expectd *gocctoken.Token, got %T", lbracket)
+	}
+	rbrack, ok := rbracket.(*gocctoken.Token)
+	if !ok {
+		return nil, errutil.Newf("invalid right-bracket type; expectd *gocctoken.Token, got %T", rbracket)
+	}
 	if index, ok := index.(ast.Expr); ok {
-		return &ast.IndexExpr{Name: ident, Index: index}, nil
+		return &ast.IndexExpr{Name: ident, Lbracket: lbrack.Offset, Index: index, Rbracket: rbrack.Offset}, nil
 	}
 	return nil, errutil.Newf("invalid index expression type; expected ast.Expr, got %T", index)
 }
@@ -453,16 +534,24 @@ func NewIndexExpr(name, index interface{}) (*ast.IndexExpr, error) {
 //    Expr15
 //       : ident "(" Args ")"
 //    ;
-func NewCallExpr(name, args interface{}) (*ast.CallExpr, error) {
+func NewCallExpr(name, lparen, args, rparen interface{}) (*ast.CallExpr, error) {
 	ident, err := NewIdent(name)
 	if err != nil {
 		return nil, errutil.Newf("invalid function name; %v", err)
 	}
+	lpar, ok := lparen.(*gocctoken.Token)
+	if !ok {
+		return nil, errutil.Newf("invalid left-parenthesis type; expectd *gocctoken.Token, got %T", lparen)
+	}
+	rpar, ok := rparen.(*gocctoken.Token)
+	if !ok {
+		return nil, errutil.Newf("invalid right-parenthesis type; expectd *gocctoken.Token, got %T", rparen)
+	}
 	if args == nil {
-		return &ast.CallExpr{Name: ident}, nil
+		return &ast.CallExpr{Name: ident, Lparen: lpar.Offset, Rparen: rpar.Offset}, nil
 	}
 	if args, ok := args.([]ast.Expr); ok {
-		return &ast.CallExpr{Name: ident, Args: args}, nil
+		return &ast.CallExpr{Name: ident, Lparen: lpar.Offset, Args: args, Rparen: rpar.Offset}, nil
 	}
 	return nil, errutil.Newf("invalid function arguments type; expected []ast.Expr, got %T", args)
 }
@@ -473,9 +562,17 @@ func NewCallExpr(name, args interface{}) (*ast.CallExpr, error) {
 //    ParenExpr
 //       : "(" Expr ")"
 //    ;
-func NewParenExpr(x interface{}) (*ast.ParenExpr, error) {
+func NewParenExpr(lparen, x, rparen interface{}) (*ast.ParenExpr, error) {
+	lpar, ok := lparen.(*gocctoken.Token)
+	if !ok {
+		return nil, errutil.Newf("invalid left-parenthesis type; expectd *gocctoken.Token, got %T", lparen)
+	}
+	rpar, ok := rparen.(*gocctoken.Token)
+	if !ok {
+		return nil, errutil.Newf("invalid right-parenthesis type; expectd *gocctoken.Token, got %T", rparen)
+	}
 	if x, ok := x.(ast.Expr); ok {
-		return &ast.ParenExpr{X: x}, nil
+		return &ast.ParenExpr{Lparen: lpar.Offset, X: x, Rparen: rpar.Offset}, nil
 	}
 	return nil, errutil.Newf("invalid parenthesized expression type; expected ast.Expr, got %T", x)
 }
@@ -510,14 +607,6 @@ func AppendExpr(list, x interface{}) ([]ast.Expr, error) {
 	return nil, errutil.Newf("invalid expression list expression type; expected ast.Expr, got %T", x)
 }
 
-// tokenString returns the lexeme of the given token.
-func tokenString(tok interface{}) (string, error) {
-	if tok, ok := tok.(*gocctoken.Token); ok {
-		return string(tok.Lit), nil
-	}
-	return "", errutil.Newf("invalid tok type; expected *gocctoken.Token, got %T", tok)
-}
-
 // TODO: Remove NewExpectedError if it is not in use after the parser error
 // handling has matured.
 
@@ -530,7 +619,7 @@ func tokenString(tok interface{}) (string, error) {
 // production.
 func NewExpectedError(err interface{}, expected string) (ast.Node, error) {
 	if err, ok := err.(*errors.Error); ok {
-		pos := err.ErrorToken.Pos.Offset
+		pos := err.ErrorToken.Offset
 		return nil, fmt.Errorf("%d: unexpected %q, expected %v", pos, string(err.ErrorToken.Lit), expected)
 	}
 	return nil, errutil.Newf("invalid error type; expected *errors.Error, got %T", err)

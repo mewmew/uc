@@ -17,7 +17,7 @@
 // ## Characters
 //
 
-// An arbitrary ASCII character except null (0x00), new line (0x0A), carriage
+// An arbitrary ASCII character except null (0x00), new lines (0x0A), carriage
 // return (0x0D), apostrophe (0x27), double quote (0x22) and backslash (0x5C).
 _ascii_char
 	: '\x01' - '\x09'
@@ -44,10 +44,7 @@ _decimals      : _decimal_digit { _decimal_digit } ;
 // ## Comments
 //
 
-_line_comment
-	: '/' '/' { . } '\n'
-;
-
+_line_comment  : '/' '/' { . } '\n' ;
 _block_comment : '/' '*' { . | '*' } '*' '/' ;
 !comment       : _line_comment | _block_comment ;
 
@@ -111,7 +108,7 @@ FuncDecl
 
 FuncHeader
 	// BasicType : "char" | "int" | "void" ;
-	: BasicType ident "(" Params ")"    << astx.NewFuncDecl($0, $1, $3) >>
+	: BasicType ident "(" Params ")"    << astx.NewFuncDecl($0, $1, $2, $3, $4) >>
 ;
 
 FuncDef
@@ -130,13 +127,13 @@ ScalarDecl
 
 ArrayDecl
 	// BasicType : "char" | "int" ;
-	: BasicType ident "[" int_lit "]"   << astx.NewArrayDecl($0, $1, $3) >>
-	| BasicType ident "[" "]"           << astx.NewArrayDecl($0, $1, 0) >>
+	: BasicType ident "[" int_lit "]"   << astx.NewArrayDecl($0, $1, $2, $3, $4) >>
+	| BasicType ident "[" "]"           << astx.NewArrayDecl($0, $1, $2, 0, $3) >>
 ;
 
 BasicType
 	// BasicType : "char" | "int" | "void" ;
-	: ident                             << astx.NewBasicType($0) >>
+	: ident                             << astx.NewIdent($0) >>
 ;
 
 // TODO: Allow empty parameter list, as was intended by the original K&R C, i.e.
@@ -159,16 +156,16 @@ Field
 
 Stmt
 	: Expr ";"                          << astx.NewExprStmt($0) >>
-	| "return" Expr ";"                 << astx.NewReturnStmt($1) >>
-	| "return" ";"                      << &ast.ReturnStmt{}, nil >>
-	| "while" Condition Stmt            << astx.NewWhileStmt($1, $2) >>
-	| "if" Condition Stmt ElsePart      << astx.NewIfStmt($1, $2, $3) >>
+	| "return" Expr ";"                 << astx.NewReturnStmt($0, $1) >>
+	| "return" ";"                      << astx.NewReturnStmt($0, nil) >>
+	| "while" Condition Stmt            << astx.NewWhileStmt($0, $1, $2) >>
+	| "if" Condition Stmt ElsePart      << astx.NewIfStmt($0, $1, $2, $3) >>
 	| BlockStmt
-	| ";"                               << &ast.EmptyStmt{}, nil >>
+	| ";"                               << astx.NewEmptyStmt($0) >>
 ;
 
 BlockStmt
-	: "{" BlockItems "}"                << astx.NewBlockStmt($1) >>
+	: "{" BlockItems "}"                << astx.NewBlockStmt($0, $1, $2) >>
 ;
 
 ElsePart
@@ -205,7 +202,7 @@ Expr
 Expr2R
 	: Expr5L
 	// Right-associative.
-	| Expr5L "=" Expr2R                 << astx.NewBinaryExpr($0, token.Assign, $2) >>
+	| Expr5L "=" Expr2R                 << astx.NewBinaryExpr($0, $1, $2) >>
 ;
 
 // Left-associative binary expressions with precedence 5.
@@ -213,7 +210,7 @@ Expr2R
 //    5L: &&
 Expr5L
 	: Expr9L
-	| Expr5L "&&" Expr9L                << astx.NewBinaryExpr($0, token.Land, $2) >>
+	| Expr5L "&&" Expr9L                << astx.NewBinaryExpr($0, $1, $2) >>
 ;
 
 // Left-associative binary expressions with precedence 9.
@@ -221,8 +218,8 @@ Expr5L
 //    9L: == !=
 Expr9L
 	: Expr10L
-	| Expr9L "==" Expr10L               << astx.NewBinaryExpr($0, token.Eq, $2) >>
-	| Expr9L "!=" Expr10L               << astx.NewBinaryExpr($0, token.Ne, $2) >>
+	| Expr9L "==" Expr10L               << astx.NewBinaryExpr($0, $1, $2) >>
+	| Expr9L "!=" Expr10L               << astx.NewBinaryExpr($0, $1, $2) >>
 ;
 
 // Left-associative binary expressions with precedence 10.
@@ -230,10 +227,10 @@ Expr9L
 //    10L: < > <= >=
 Expr10L
 	: Expr12L
-	| Expr10L "<" Expr12L               << astx.NewBinaryExpr($0, token.Lt, $2) >>
-	| Expr10L ">" Expr12L               << astx.NewBinaryExpr($0, token.Gt, $2) >>
-	| Expr10L "<=" Expr12L              << astx.NewBinaryExpr($0, token.Le, $2) >>
-	| Expr10L ">=" Expr12L              << astx.NewBinaryExpr($0, token.Ge, $2) >>
+	| Expr10L "<" Expr12L               << astx.NewBinaryExpr($0, $1, $2) >>
+	| Expr10L ">" Expr12L               << astx.NewBinaryExpr($0, $1, $2) >>
+	| Expr10L "<=" Expr12L              << astx.NewBinaryExpr($0, $1, $2) >>
+	| Expr10L ">=" Expr12L              << astx.NewBinaryExpr($0, $1, $2) >>
 ;
 
 // Left-associative binary expressions with precedence 12.
@@ -241,8 +238,8 @@ Expr10L
 //    12L: + -
 Expr12L
 	: Expr13L
-	| Expr12L "+" Expr13L               << astx.NewBinaryExpr($0, token.Add, $2) >>
-	| Expr12L "-" Expr13L               << astx.NewBinaryExpr($0, token.Sub, $2) >>
+	| Expr12L "+" Expr13L               << astx.NewBinaryExpr($0, $1, $2) >>
+	| Expr12L "-" Expr13L               << astx.NewBinaryExpr($0, $1, $2) >>
 ;
 
 // Left-associative binary expressions with precedence 13.
@@ -250,8 +247,8 @@ Expr12L
 //    13L: * /
 Expr13L
 	: Expr14
-	| Expr13L "*" Expr14                << astx.NewBinaryExpr($0, token.Mul, $2) >>
-	| Expr13L "/" Expr14                << astx.NewBinaryExpr($0, token.Div, $2) >>
+	| Expr13L "*" Expr14                << astx.NewBinaryExpr($0, $1, $2) >>
+	| Expr13L "/" Expr14                << astx.NewBinaryExpr($0, $1, $2) >>
 ;
 
 // Unary expressions with precedence 14.
@@ -259,8 +256,8 @@ Expr13L
 //    14: - !
 Expr14
 	: Expr15
-	| "-" Expr14                        << astx.NewUnaryExpr(token.Sub, $1) >>
-	| "!" Expr14                        << astx.NewUnaryExpr(token.Not, $1) >>
+	| "-" Expr14                        << astx.NewUnaryExpr($0, $1) >>
+	| "!" Expr14                        << astx.NewUnaryExpr($0, $1) >>
 ;
 
 // TODO: Handle char_lit explicitly?
@@ -274,8 +271,8 @@ Expr14
 // Expressions with precedence 15.
 Expr15
 	: PrimaryExpr
-	| ident "[" Expr "]"                << astx.NewIndexExpr($0, $2) >>
-	| ident "(" Args ")"                << astx.NewCallExpr($0, $2) >>
+	| ident "[" Expr "]"                << astx.NewIndexExpr($0, $1, $2, $3) >>
+	| ident "(" Args ")"                << astx.NewCallExpr($0, $1, $2, $3) >>
 ;
 
 // Primary expressions with the highest precedence (§A.2.1).
@@ -286,7 +283,7 @@ PrimaryExpr
 ;
 
 ParenExpr
-	: "(" Expr ")"                      << astx.NewParenExpr($1) >>
+	: "(" Expr ")"                      << astx.NewParenExpr($0, $1, $2) >>
 ;
 
 Args

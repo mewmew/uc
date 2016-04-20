@@ -4,54 +4,26 @@ import (
 	"strconv"
 
 	"github.com/mewkiz/pkg/errutil"
+	"github.com/mewmew/uc/ast"
 	gocctoken "github.com/mewmew/uc/gocc/token"
-	"github.com/mewmew/uc/types"
 )
 
 // NewType returns a new type of µC.
-func NewType(typ interface{}) (types.Type, error) {
-	if typ, ok := typ.(types.Type); ok {
+func NewType(typ interface{}) (ast.Type, error) {
+	if typ, ok := typ.(ast.Type); ok {
 		return typ, nil
 	}
-	return nil, errutil.Newf("invalid type; expected types.Type, got %T", typ)
-}
-
-// NewBasicType returns a new basic type of µC, based on the following
-// production rules.
-//
-//    TypeName
-//       : "char"
-//       | "int"
-//       | "void"
-//    ;
-func NewBasicType(typ interface{}) (*types.Basic, error) {
-	s, err := tokenString(typ)
-	if err != nil {
-		return nil, errutil.Newf("invalid basic type; %v", err)
-	}
-	switch s {
-	case "char":
-		return &types.Basic{Kind: types.Char}, nil
-	case "int":
-		return &types.Basic{Kind: types.Int}, nil
-	case "void":
-		return &types.Basic{Kind: types.Void}, nil
-	default:
-		return nil, errutil.Newf(`invalid basic type; expected Char, Int or Void, got %q`, s)
-	}
+	return nil, errutil.Newf("invalid type; expected ast.Type, got %T", typ)
 }
 
 // NewArrayType returns a new array type based on the given element type and
 // length.
-func NewArrayType(elem, length interface{}) (*types.Array, error) {
+func NewArrayType(elem, lbracket, length, rbracket interface{}) (*ast.ArrayType, error) {
 	var len int
 	switch length := length.(type) {
 	case *gocctoken.Token:
-		s, err := tokenString(length)
-		if err != nil {
-			return nil, errutil.Newf("invalid array length; %v", err)
-		}
-		len, err = strconv.Atoi(s)
+		var err error
+		len, err = strconv.Atoi(string(length.Lit))
 		if err != nil {
 			return nil, errutil.Newf("invalid array length; %v", err)
 		}
@@ -60,9 +32,28 @@ func NewArrayType(elem, length interface{}) (*types.Array, error) {
 	default:
 		return nil, errutil.Newf("invalid array length type; %T", length)
 	}
+
+	var lbrack, rbrack int
+	switch lbracket := lbracket.(type) {
+	case *gocctoken.Token:
+		lbrack = lbracket.Offset
+	case int:
+		lbrack = lbracket
+	default:
+		return nil, errutil.Newf("invalid left-bracket type; expectd *gocctoken.Token or int, got %T", lbracket)
+	}
+	switch rbracket := rbracket.(type) {
+	case *gocctoken.Token:
+		rbrack = rbracket.Offset
+	case int:
+		rbrack = rbracket
+	default:
+		return nil, errutil.Newf("invalid right-bracket type; expectd *gocctoken.Token or int, got %T", rbracket)
+	}
+
 	elemType, err := NewType(elem)
 	if err != nil {
 		return nil, errutil.Newf("invalid array element type; %v", err)
 	}
-	return &types.Array{Elem: elemType, Len: len}, nil
+	return &ast.ArrayType{Elem: elemType, Lbracket: lbrack, Len: len, Rbracket: rbrack}, nil
 }

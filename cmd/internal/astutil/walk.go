@@ -8,7 +8,6 @@ import (
 
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
-	"github.com/mewmew/uc/types"
 )
 
 // Walk walks the given parse tree in depth first order.
@@ -55,15 +54,19 @@ func Walk(node ast.Node, f func(ast.Node)) error {
 	case *ast.UnaryExpr:
 		return walkUnaryExpr(n, f)
 
-	// Types.
-	case *types.Basic:
-		return walkBasicType(n, f)
-	case *types.Array:
-		return walkArrayType(n, f)
-	case *types.Func:
-		return walkFuncType(n, f)
-	case *types.Field:
-		return walkTypeField(n, f)
+		// TODO: Add support for ast.Type
+
+		/*
+			// Types.
+			case *types.Basic:
+				return walkBasicType(n, f)
+			case *types.Array:
+				return walkArrayType(n, f)
+			case *types.Func:
+				return walkFuncType(n, f)
+			case *types.Field:
+				return walkTypeField(n, f)
+		*/
 
 	case nil:
 		// Nothing to do.
@@ -269,6 +272,8 @@ func walkUnaryExpr(expr *ast.UnaryExpr, f func(ast.Node)) error {
 
 // === [ Types ] ===
 
+/*
+
 // walkBasicType walks the parse tree of the given basic type in depth first
 // order.
 func walkBasicType(typ *types.Basic, f func(ast.Node)) error {
@@ -311,3 +316,5 @@ func walkTypeField(field *types.Field, f func(ast.Node)) error {
 	// TODO: Make field.Name an *ast.Ident and walk field.Name?
 	return nil
 }
+
+*/
