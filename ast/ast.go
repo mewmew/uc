@@ -1,15 +1,14 @@
-// TODO: Add source position tracking of nodes.
-
 // Package ast declares the types used to represent abstract syntax trees of µC
 // soure code.
 package ast
 
-import (
-	"github.com/mewmew/uc/token"
-	"github.com/mewmew/uc/types"
-)
+import "github.com/mewmew/uc/token"
 
 // A File represents a µC source file.
+//
+// Examples.
+//
+//    int x; int main(void) { x = 42; return x; }
 type File struct {
 	// Top-level declarations.
 	Decls []Decl
@@ -22,6 +21,8 @@ type File struct {
 //    Decl
 //    Stmt
 //    Expr
+//    Type
+//    *Field
 type Node interface {
 	// Start returns the start position of the node within the input stream.
 	Start() int
@@ -43,11 +44,11 @@ type (
 	//
 	// Examples.
 	//
-	//    int add(int a, int b) { return a+b; }
 	//    int puts(char s[]);
+	//    int add(int a, int b) { return a+b; }
 	FuncDecl struct {
 		// Function signature.
-		Type *types.Func
+		Type *FuncType
 		// Function name.
 		Name *Ident
 		// Function body; or nil if function declaration (i.e. not function
@@ -63,7 +64,7 @@ type (
 	//    char buf[128];
 	VarDecl struct {
 		// Variable type.
-		Type types.Type
+		Type Type
 		// Variable name.
 		Name *Ident
 		// Variable value expression; or nil if variable declaration (i.e. not
@@ -97,21 +98,44 @@ type (
 	//    {}
 	//    { int x; x = 42; }
 	BlockStmt struct {
+		// Position of left-brace `{`.
+		Lbrace int
 		// List of block items contained within the block.
 		Items []BlockItem
+		// Position of right-brace `}`.
+		Rbrace int
 	}
 
 	// An EmptyStmt node represents an empty statement (i.e. ";").
-	EmptyStmt struct{}
+	//
+	// Examples.
+	//
+	//    ;
+	EmptyStmt struct {
+		// Position of semicolon `;`.
+		Semicolon int
+	}
 
 	// An ExprStmt node represents a stand-alone expression in a statement list.
+	//
+	// Examples.
+	//
+	//    42;
+	//    f();
 	ExprStmt struct {
 		// Stand-alone expression.
 		X Expr
 	}
 
 	// An IfStmt node represents an if statement.
+	//
+	// Examples.
+	//
+	//    if (x != 0) { x++; }
+	//    if (i < max) { i; } else { max; }
 	IfStmt struct {
+		// Position of `if` keyword.
+		If int
 		// Condition.
 		Cond Expr
 		// True branch.
@@ -120,18 +144,31 @@ type (
 		Else Stmt
 	}
 
+	// A ReturnStmt node represents a return statement.
+	//
+	// Examples.
+	//
+	//    return;
+	//    return 42;
+	ReturnStmt struct {
+		// Position of `return` keyword.
+		Return int
+		// Result expression; or nil if void return.
+		Result Expr
+	}
+
 	// A WhileStmt node represents a while statement.
+	//
+	// Examples.
+	//
+	//    while (i < 10) { i++; }
 	WhileStmt struct {
+		// Position of `while` keyword.
+		While int
 		// Condition.
 		Cond Expr
 		// Loop body.
 		Body Stmt
-	}
-
-	// A ReturnStmt node represents a return statement.
-	ReturnStmt struct {
-		// Result expression; or nil if void return.
-		Result Expr
 	}
 )
 
@@ -166,14 +203,15 @@ type Expr interface {
 
 // Expression nodes.
 type (
-	// An Ident node represents an identifier.
-	Ident struct {
-		// Identifier name.
-		Name string
-	}
-
 	// A BasicLit node represents a basic literal.
+	//
+	// Examples.
+	//
+	//    42
+	//    'a'
 	BasicLit struct {
+		// Position of basic literal.
+		ValPos int
 		// Basic literal type, one of the following.
 		//
 		//    token.CharLit
@@ -183,17 +221,12 @@ type (
 		Val string
 	}
 
-	// An UnaryExpr node represents an unary expression; op X.
-	UnaryExpr struct {
-		// Operator, one of the following.
-		//    token.Sub   // -
-		//    token.Not   // !
-		Op token.Kind
-		// Operand.
-		X Expr
-	}
-
 	// An BinaryExpr node represents a binary expression; X op Y.
+	//
+	// Examples.
+	//
+	//    x + y
+	//    x = 42
 	BinaryExpr struct {
 		// First operand.
 		X Expr
@@ -216,86 +249,253 @@ type (
 	}
 
 	// A CallExpr node represents a call expression.
+	//
+	// Examples.
+	//
+	//    foo()
+	//    bar(42)
 	CallExpr struct {
 		// Function name.
 		Name *Ident
+		// Position of left-parenthesis `(`.
+		Lparen int
 		// Function arguments.
 		Args []Expr
+		// Position of right-parenthesis `)`.
+		Rparen int
+	}
+
+	// An Ident node represents an identifier.
+	//
+	// Examples.
+	//
+	//    x
+	//    int
+	Ident struct {
+		// Position of identifier.
+		NamePos int
+		// Identifier name.
+		Name string
+	}
+
+	// An IndexExpr node represents an array index expression.
+	//
+	// Examples.
+	//
+	//    buf[i]
+	IndexExpr struct {
+		// Array name.
+		Name *Ident
+		// Position of left-bracket `[`.
+		Lbracket int
+		// Array index.
+		Index Expr
+		// Position of right-bracket `]`.
+		Rbracket int
 	}
 
 	// A ParenExpr node represents a parenthesised expression.
 	ParenExpr struct {
+		// Position of left-parenthesis `(`.
+		Lparen int
 		// Parenthesised expression.
 		X Expr
+		// Position of right-parenthesis `)`.
+		Rparen int
 	}
 
-	// An IndexExpr node represents an array index expression.
-	IndexExpr struct {
-		// Array name.
+	// An UnaryExpr node represents an unary expression; op X.
+	//
+	// Examples.
+	//
+	//    -42
+	//    !(x == 3 || x == 10)
+	UnaryExpr struct {
+		// Position of unary operator.
+		OpPos int
+		// Operator, one of the following.
+		//    token.Sub   // -
+		//    token.Not   // !
+		Op token.Kind
+		// Operand.
+		X Expr
+	}
+)
+
+// A Type node represents a type of µC, and has one of the following underlying
+// types.
+//
+//    *ArrayType
+//    *FuncType
+//    *Ident
+type Type interface {
+	Node
+	// isType ensures that only type nodes can be assigned to the Type interface.
+	isType()
+}
+
+// Type nodes.
+type (
+	// An ArrayType node represents an array type.
+	//
+	// Examples.
+	//
+	//    int[]
+	//    char[128]
+	ArrayType struct {
+		// Element type.
+		Elem Type
+		// Position of left-bracket `[`.
+		Lbracket int
+		// Array length.
+		Len int
+		// Position of right-bracket `]`.
+		Rbracket int
+	}
+
+	// A FuncType node represents a function signature.
+	//
+	// Examples.
+	//
+	//    int(void)
+	//    int(int a, int b)
+	FuncType struct {
+		// Return type.
+		Result Type
+		// Position of left-parenthesis `(`.
+		Lparen int
+		// Function parameters.
+		Params []*Field
+		// Position of right-parenthesis `)`.
+		Rparen int
+	}
+
+	// A Field node represents a field declaration in a struct type, or a
+	// parameter declaration in a function signature.
+	//
+	// Examples.
+	//
+	//    char
+	//    int a
+	Field struct {
+		// Field type.
+		Type Type
+		// Field name; or nil.
 		Name *Ident
-		// Array index.
-		Index Expr
 	}
 )
 
 // Start returns the start position of the node within the input stream.
-func (n *BasicLit) Start() int { panic("ast.BasicLit.Start: not yet implemented") }
+func (n *ArrayType) Start() int {
+	return n.Elem.Start()
+}
 
 // Start returns the start position of the node within the input stream.
-func (n *BinaryExpr) Start() int { panic("ast.BinaryExpr.Start: not yet implemented") }
+func (n *BasicLit) Start() int {
+	return n.ValPos
+}
 
 // Start returns the start position of the node within the input stream.
-func (n *BlockStmt) Start() int { panic("ast.BlockStmt.Start: not yet implemented") }
+func (n *BinaryExpr) Start() int {
+	return n.X.Start()
+}
 
 // Start returns the start position of the node within the input stream.
-func (n *CallExpr) Start() int { panic("ast.CallExpr.Start: not yet implemented") }
+func (n *BlockStmt) Start() int {
+	return n.Lbrace
+}
 
 // Start returns the start position of the node within the input stream.
-func (n *EmptyStmt) Start() int { panic("ast.EmptyStmt.Start: not yet implemented") }
+func (n *CallExpr) Start() int {
+	return n.Name.Start()
+}
 
 // Start returns the start position of the node within the input stream.
-func (n *ExprStmt) Start() int { panic("ast.ExprStmt.Start: not yet implemented") }
+func (n *EmptyStmt) Start() int {
+	return n.Semicolon
+}
 
 // Start returns the start position of the node within the input stream.
-func (n *File) Start() int { panic("ast.File.Start: not yet implemented") }
+func (n *ExprStmt) Start() int {
+	return n.X.Start()
+}
 
 // Start returns the start position of the node within the input stream.
-func (n *FuncDecl) Start() int { panic("ast.FuncDecl.Start: not yet implemented") }
+func (n *Field) Start() int {
+	return n.Type.Start()
+}
 
 // Start returns the start position of the node within the input stream.
-func (n *Ident) Start() int { panic("ast.Ident.Start: not yet implemented") }
+func (n *File) Start() int {
+	if len(n.Decls) > 0 {
+		return n.Decls[0].Start()
+	}
+	return 0
+}
 
 // Start returns the start position of the node within the input stream.
-func (n *IfStmt) Start() int { panic("ast.IfStmt.Start: not yet implemented") }
+func (n *FuncDecl) Start() int {
+	return n.Type.Start()
+}
 
 // Start returns the start position of the node within the input stream.
-func (n *IndexExpr) Start() int { panic("ast.IndexExpr.Start: not yet implemented") }
+func (n *FuncType) Start() int {
+	return n.Result.Start()
+}
 
 // Start returns the start position of the node within the input stream.
-func (n *ParenExpr) Start() int { panic("ast.ParenExpr.Start: not yet implemented") }
+func (n *Ident) Start() int {
+	return n.NamePos
+}
 
 // Start returns the start position of the node within the input stream.
-func (n *ReturnStmt) Start() int { panic("ast.ReturnStmt.Start: not yet implemented") }
+func (n *IfStmt) Start() int {
+	return n.If
+}
 
 // Start returns the start position of the node within the input stream.
-func (n *UnaryExpr) Start() int { panic("ast.UnaryExpr.Start: not yet implemented") }
+func (n *IndexExpr) Start() int {
+	return n.Name.Start()
+}
 
 // Start returns the start position of the node within the input stream.
-func (n *VarDecl) Start() int { panic("ast.VarDecl.Start: not yet implemented") }
+func (n *ParenExpr) Start() int {
+	return n.Lparen
+}
 
 // Start returns the start position of the node within the input stream.
-func (n *WhileStmt) Start() int { panic("ast.WhileStmt.Start: not yet implemented") }
+func (n *ReturnStmt) Start() int {
+	return n.Return
+}
+
+// Start returns the start position of the node within the input stream.
+func (n *UnaryExpr) Start() int {
+	return n.OpPos
+}
+
+// Start returns the start position of the node within the input stream.
+func (n *VarDecl) Start() int {
+	return n.Type.Start()
+}
+
+// Start returns the start position of the node within the input stream.
+func (n *WhileStmt) Start() int {
+	return n.While
+}
 
 // Verify that all nodes implement the Node interface.
 var (
+	_ Node = &ArrayType{}
 	_ Node = &BasicLit{}
 	_ Node = &BinaryExpr{}
 	_ Node = &BlockStmt{}
 	_ Node = &CallExpr{}
 	_ Node = &EmptyStmt{}
 	_ Node = &ExprStmt{}
+	_ Node = &Field{}
 	_ Node = &File{}
 	_ Node = &FuncDecl{}
+	_ Node = &FuncType{}
 	_ Node = &Ident{}
 	_ Node = &IfStmt{}
 	_ Node = &IndexExpr{}
@@ -378,4 +578,16 @@ var (
 	_ Expr = &IndexExpr{}
 	_ Expr = &ParenExpr{}
 	_ Expr = &UnaryExpr{}
+)
+
+// isType ensures that only type nodes can be assigned to the Type interface.
+func (n *Ident) isType()     {}
+func (n *ArrayType) isType() {}
+func (n *FuncType) isType()  {}
+
+// Verify that the type nodes implement the Type interface.
+var (
+	_ Type = &Ident{}
+	_ Type = &ArrayType{}
+	_ Type = &FuncType{}
 )
