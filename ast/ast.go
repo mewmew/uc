@@ -2,7 +2,10 @@
 // soure code.
 package ast
 
-import "github.com/mewmew/uc/token"
+import (
+	"github.com/mewmew/uc/token"
+	"github.com/mewmew/uc/types"
+)
 
 // A File represents a µC source file.
 //
@@ -40,7 +43,7 @@ type Node interface {
 type Decl interface {
 	Node
 	// Type returns the type of the declared identifier.
-	Type() Type
+	Type() types.Type
 	// Name returns the name of the declared identifier.
 	Name() *Ident
 	// Value returns the initializing value of the defined identifier; or nil if
@@ -536,13 +539,15 @@ var (
 )
 
 // Type returns the type of the declared identifier.
-func (n *FuncDecl) Type() Type {
-	return n.FuncType
+func (n *FuncDecl) Type() types.Type {
+	// TODO: Consider caching the types.Type.
+	return newType(n.FuncType)
 }
 
 // Type returns the type of the declared identifier.
-func (n *VarDecl) Type() Type {
-	return n.VarType
+func (n *VarDecl) Type() types.Type {
+	// TODO: Consider caching the types.Type.
+	return newType(n.VarType)
 }
 
 // Name returns the name of the declared identifier.
