@@ -37,8 +37,8 @@ package types
 //    *Array
 //    *Func
 type Type interface {
-	// isType ensures that only µC types can be assigned to the Type interface.
-	isType()
+	// Equal reports whether t and u are of equal type.
+	Equal(u Type) bool
 }
 
 type (
@@ -109,10 +109,45 @@ type Field struct {
 	Name string
 }
 
-// isType ensures that only µC types can be assigned to the Type interface.
-func (n *Basic) isType() {}
-func (n *Array) isType() {}
-func (n *Func) isType()  {}
+// Equal reports whether t and u are of equal type.
+func (t *Basic) Equal(u Type) bool {
+	if u, ok := u.(*Basic); ok {
+		return t.Kind == u.Kind
+	}
+	return false
+}
+
+// Equal reports whether t and u are of equal type.
+func (t *Array) Equal(u Type) bool {
+	if u, ok := u.(*Array); ok {
+		return t.Len == u.Len && Equal(t.Elem, u.Elem)
+	}
+	return false
+}
+
+// Equal reports whether t and u are of equal type.
+func (t *Func) Equal(u Type) bool {
+	if u, ok := u.(*Func); ok {
+		if !Equal(t.Result, u.Result) {
+			return false
+		}
+		if len(u.Params) != len(t.Params) {
+			return false
+		}
+		for i := range t.Params {
+			if !Equal(t.Params[i].Type, u.Params[i].Type) {
+				return false
+			}
+		}
+		return true
+	}
+	return false
+}
+
+// Equal reports whether t and u are of equal type.
+func Equal(t, u Type) bool {
+	return t.Equal(u)
+}
 
 // Verify that the µC types implement the Type interface.
 var (
