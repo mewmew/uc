@@ -86,7 +86,7 @@ func NewFuncDecl(resultType, name, lparen, params, rparen interface{}) (*ast.Fun
 		return nil, errutil.Newf("invalid right-parenthesis type; expectd *gocctoken.Token, got %T", rparen)
 	}
 	typ := &ast.FuncType{Result: resType, Lparen: lpar.Offset, Params: fields, Rparen: rpar.Offset}
-	return &ast.FuncDecl{Type: typ, Name: ident}, nil
+	return &ast.FuncDecl{FuncType: typ, FuncName: ident}, nil
 }
 
 // SetFuncBody sets the function body of the given function declaration, based
@@ -123,7 +123,7 @@ func NewScalarDecl(typ, name interface{}) (*ast.VarDecl, error) {
 	if err != nil {
 		return nil, errutil.Newf("invalid scalar declaration identifier; %v", err)
 	}
-	return &ast.VarDecl{Type: scalarType, Name: ident}, nil
+	return &ast.VarDecl{VarType: scalarType, VarName: ident}, nil
 }
 
 // NewArrayDecl returns a new array declaration node, based on the following
@@ -141,7 +141,7 @@ func NewArrayDecl(elem, name, lbracket, length, rbracket interface{}) (*ast.VarD
 	if err != nil {
 		return nil, errutil.Newf("invalid array declaration identifier; %v", err)
 	}
-	return &ast.VarDecl{Type: typ, Name: ident}, nil
+	return &ast.VarDecl{VarType: typ, VarName: ident}, nil
 }
 
 // NewVoidParam returns a new void parameter, based on the following production
@@ -200,7 +200,7 @@ func AppendField(list, field interface{}) ([]*ast.Field, error) {
 //    ;
 func NewField(decl interface{}) (*ast.Field, error) {
 	if decl, ok := decl.(*ast.VarDecl); ok {
-		return &ast.Field{Type: decl.Type, Name: decl.Name}, nil
+		return &ast.Field{Type: decl.VarType, Name: decl.VarName}, nil
 	}
 	return nil, errutil.Newf("invalid field type; expected *ast.VarDecl, got %T", decl)
 }

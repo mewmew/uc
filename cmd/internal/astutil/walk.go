@@ -95,10 +95,10 @@ func walkFile(file *ast.File, f func(ast.Node)) error {
 // first order.
 func walkFuncDecl(decl *ast.FuncDecl, f func(ast.Node)) error {
 	f(decl)
-	if err := Walk(decl.Name, f); err != nil {
+	if err := Walk(decl.FuncName, f); err != nil {
 		return errutil.Err(err)
 	}
-	if err := Walk(decl.Type, f); err != nil {
+	if err := Walk(decl.FuncType, f); err != nil {
 		return errutil.Err(err)
 	}
 	if err := Walk(decl.Body, f); err != nil {
@@ -111,10 +111,10 @@ func walkFuncDecl(decl *ast.FuncDecl, f func(ast.Node)) error {
 // first order.
 func walkVarDecl(decl *ast.VarDecl, f func(ast.Node)) error {
 	f(decl)
-	if err := Walk(decl.Type, f); err != nil {
+	if err := Walk(decl.VarType, f); err != nil {
 		return errutil.Err(err)
 	}
-	if err := Walk(decl.Name, f); err != nil {
+	if err := Walk(decl.VarName, f); err != nil {
 		return errutil.Err(err)
 	}
 	if err := Walk(decl.Val, f); err != nil {
