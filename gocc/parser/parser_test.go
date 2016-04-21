@@ -64,7 +64,8 @@ func TestParser(t *testing.T) {
 											Kind:   token.IntLit,
 											Val:    "1",
 										},
-										Op: token.Ne,
+										OpPos: 29,
+										Op:    token.Ne,
 										Y: &ast.UnaryExpr{
 											OpPos: 31,
 											Op:    token.Not,
@@ -83,7 +84,8 @@ func TestParser(t *testing.T) {
 											Kind:   token.IntLit,
 											Val:    "4",
 										},
-										Op: token.Land,
+										OpPos: 38,
+										Op:    token.Land,
 										Y: &ast.ParenExpr{
 											Lparen: 40,
 											X: &ast.BasicLit{
@@ -103,14 +105,16 @@ func TestParser(t *testing.T) {
 												Kind:   token.IntLit,
 												Val:    "7",
 											},
-											Op: token.Mul,
+											OpPos: 48,
+											Op:    token.Mul,
 											Y: &ast.BasicLit{
 												ValPos: 50,
 												Kind:   token.IntLit,
 												Val:    "8",
 											},
 										},
-										Op: token.Add,
+										OpPos: 51,
+										Op:    token.Add,
 										Y: &ast.BasicLit{
 											ValPos: 52,
 											Kind:   token.IntLit,
@@ -128,7 +132,8 @@ func TestParser(t *testing.T) {
 													Kind:   token.IntLit,
 													Val:    "11",
 												},
-												Op: token.Sub,
+												OpPos: 61,
+												Op:    token.Sub,
 												Y: &ast.BasicLit{
 													ValPos: 62,
 													Kind:   token.IntLit,
@@ -137,7 +142,8 @@ func TestParser(t *testing.T) {
 											},
 											Rparen: 64,
 										},
-										Op: token.Add,
+										OpPos: 65,
+										Op:    token.Add,
 										Y: &ast.ParenExpr{
 											Lparen: 66,
 											X: &ast.BinaryExpr{
@@ -146,7 +152,8 @@ func TestParser(t *testing.T) {
 													Kind:   token.IntLit,
 													Val:    "12",
 												},
-												Op: token.Div,
+												OpPos: 69,
+												Op:    token.Div,
 												Y: &ast.BasicLit{
 													ValPos: 70,
 													Kind:   token.IntLit,
@@ -165,14 +172,16 @@ func TestParser(t *testing.T) {
 												Kind:   token.IntLit,
 												Val:    "17",
 											},
-											Op: token.Le,
+											OpPos: 79,
+											Op:    token.Le,
 											Y: &ast.BasicLit{
 												ValPos: 81,
 												Kind:   token.IntLit,
 												Val:    "18",
 											},
 										},
-										Op: token.Lt,
+										OpPos: 84,
+										Op:    token.Lt,
 										Y: &ast.UnaryExpr{
 											OpPos: 85,
 											Op:    token.Sub,
@@ -190,14 +199,16 @@ func TestParser(t *testing.T) {
 											NamePos: 92,
 											Name:    "i",
 										},
-										Op: token.Assign,
+										OpPos: 93,
+										Op:    token.Assign,
 										Y: &ast.BinaryExpr{
 											X: &ast.BasicLit{
 												ValPos: 94,
 												Kind:   token.IntLit,
 												Val:    "21",
 											},
-											Op: token.Eq,
+											OpPos: 96,
+											Op:    token.Eq,
 											Y: &ast.BasicLit{
 												ValPos: 98,
 												Kind:   token.IntLit,
@@ -214,14 +225,16 @@ func TestParser(t *testing.T) {
 												Kind:   token.IntLit,
 												Val:    "25",
 											},
-											Op: token.Ge,
+											OpPos: 107,
+											Op:    token.Ge,
 											Y: &ast.BasicLit{
 												ValPos: 109,
 												Kind:   token.IntLit,
 												Val:    "27",
 											},
 										},
-										Op: token.Gt,
+										OpPos: 111,
+										Op:    token.Gt,
 										Y: &ast.BasicLit{
 											ValPos: 112,
 											Kind:   token.IntLit,
@@ -244,68 +257,87 @@ func TestParser(t *testing.T) {
 					&ast.FuncDecl{
 						Type: &ast.FuncType{
 							Result: &ast.Ident{
-								Name: "int",
+								NamePos: 0,
+								Name:    "int",
 							},
+							Lparen: 8,
 							Params: []*ast.Field{
 								{
 									Type: &ast.Ident{
-										Name: "void",
+										NamePos: 9,
+										Name:    "void",
 									},
 								},
 							},
+							Rparen: 13,
 						},
 						Name: &ast.Ident{
-							Name: "main",
+							NamePos: 4,
+							Name:    "main",
 						},
 						Body: &ast.BlockStmt{
+							Lbrace: 15,
 							Items: []ast.BlockItem{
 								&ast.VarDecl{
 									Type: &ast.Ident{
-										Name: "int",
+										NamePos: 19,
+										Name:    "int",
 									},
 									Name: &ast.Ident{
-										Name: "x",
+										NamePos: 23,
+										Name:    "x",
 									},
 								},
 								&ast.VarDecl{
 									Type: &ast.Ident{
-										Name: "int",
+										NamePos: 28,
+										Name:    "int",
 									},
 									Name: &ast.Ident{
-										Name: "y",
+										NamePos: 32,
+										Name:    "y",
 									},
 								},
 								&ast.ExprStmt{
 									X: &ast.BinaryExpr{
 										X: &ast.Ident{
-											Name: "x",
+											NamePos: 37,
+											Name:    "x",
 										},
-										Op: token.Assign,
+										OpPos: 39,
+										Op:    token.Assign,
 										Y: &ast.BasicLit{
-											Kind: token.IntLit,
-											Val:  "42",
+											ValPos: 41,
+											Kind:   token.IntLit,
+											Val:    "42",
 										},
 									},
 								},
 								&ast.ExprStmt{
 									X: &ast.BinaryExpr{
 										X: &ast.Ident{
-											Name: "x",
+											NamePos: 47,
+											Name:    "x",
 										},
-										Op: token.Assign,
+										OpPos: 48,
+										Op:    token.Assign,
 										Y: &ast.BinaryExpr{
 											X: &ast.Ident{
-												Name: "y",
+												NamePos: 49,
+												Name:    "y",
 											},
-											Op: token.Assign,
+											OpPos: 50,
+											Op:    token.Assign,
 											Y: &ast.BasicLit{
-												Kind: token.IntLit,
-												Val:  "4711",
+												ValPos: 51,
+												Kind:   token.IntLit,
+												Val:    "4711",
 											},
 										},
 									},
 								},
 							},
+							Rbrace: 57,
 						},
 					},
 				},

@@ -251,6 +251,8 @@ type (
 	BinaryExpr struct {
 		// First operand.
 		X Expr
+		// Position of operator.
+		OpPos int
 		// Operator, one of the following.
 		//    token.Add      // +
 		//    token.Sub      // -

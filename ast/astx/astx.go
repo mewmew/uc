@@ -436,7 +436,7 @@ func NewBinaryExpr(x, opToken, y interface{}) (*ast.BinaryExpr, error) {
 	if !ok {
 		return nil, errutil.Newf("invalid second binary operand type; expected ast.Expr, got %T", y)
 	}
-	return &ast.BinaryExpr{X: arg0, Op: op, Y: arg1}, nil
+	return &ast.BinaryExpr{X: arg0, OpPos: opTok.Offset, Op: op, Y: arg1}, nil
 }
 
 // NewUnaryExpr returns a new unary experssion node, based on the following
