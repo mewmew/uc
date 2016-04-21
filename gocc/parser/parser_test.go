@@ -257,68 +257,87 @@ func TestParser(t *testing.T) {
 					&ast.FuncDecl{
 						Type: &ast.FuncType{
 							Result: &ast.Ident{
-								Name: "int",
+								NamePos: 0,
+								Name:    "int",
 							},
+							Lparen: 8,
 							Params: []*ast.Field{
 								{
 									Type: &ast.Ident{
-										Name: "void",
+										NamePos: 9,
+										Name:    "void",
 									},
 								},
 							},
+							Rparen: 13,
 						},
 						Name: &ast.Ident{
-							Name: "main",
+							NamePos: 4,
+							Name:    "main",
 						},
 						Body: &ast.BlockStmt{
+							Lbrace: 15,
 							Items: []ast.BlockItem{
 								&ast.VarDecl{
 									Type: &ast.Ident{
-										Name: "int",
+										NamePos: 19,
+										Name:    "int",
 									},
 									Name: &ast.Ident{
-										Name: "x",
+										NamePos: 23,
+										Name:    "x",
 									},
 								},
 								&ast.VarDecl{
 									Type: &ast.Ident{
-										Name: "int",
+										NamePos: 28,
+										Name:    "int",
 									},
 									Name: &ast.Ident{
-										Name: "y",
+										NamePos: 32,
+										Name:    "y",
 									},
 								},
 								&ast.ExprStmt{
 									X: &ast.BinaryExpr{
 										X: &ast.Ident{
-											Name: "x",
+											NamePos: 37,
+											Name:    "x",
 										},
-										Op: token.Assign,
+										OpPos: 39,
+										Op:    token.Assign,
 										Y: &ast.BasicLit{
-											Kind: token.IntLit,
-											Val:  "42",
+											ValPos: 41,
+											Kind:   token.IntLit,
+											Val:    "42",
 										},
 									},
 								},
 								&ast.ExprStmt{
 									X: &ast.BinaryExpr{
 										X: &ast.Ident{
-											Name: "x",
+											NamePos: 47,
+											Name:    "x",
 										},
-										Op: token.Assign,
+										OpPos: 48,
+										Op:    token.Assign,
 										Y: &ast.BinaryExpr{
 											X: &ast.Ident{
-												Name: "y",
+												NamePos: 49,
+												Name:    "y",
 											},
-											Op: token.Assign,
+											OpPos: 50,
+											Op:    token.Assign,
 											Y: &ast.BasicLit{
-												Kind: token.IntLit,
-												Val:  "4711",
+												ValPos: 51,
+												Kind:   token.IntLit,
+												Val:    "4711",
 											},
 										},
 									},
 								},
 							},
+							Rbrace: 57,
 						},
 					},
 				},
