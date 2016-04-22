@@ -24,7 +24,7 @@ func TestParser(t *testing.T) {
 			want: &ast.File{
 				Decls: []ast.Decl{
 					&ast.FuncDecl{
-						Type: &ast.FuncType{
+						FuncType: &ast.FuncType{
 							Result: &ast.Ident{
 								NamePos: 0,
 								Name:    "int",
@@ -40,7 +40,7 @@ func TestParser(t *testing.T) {
 							},
 							Rparen: 13,
 						},
-						Name: &ast.Ident{
+						FuncName: &ast.Ident{
 							NamePos: 4,
 							Name:    "main",
 						},
@@ -48,11 +48,11 @@ func TestParser(t *testing.T) {
 							Lbrace: 15,
 							Items: []ast.BlockItem{
 								&ast.VarDecl{
-									Type: &ast.Ident{
+									VarType: &ast.Ident{
 										NamePos: 19,
 										Name:    "int",
 									},
-									Name: &ast.Ident{
+									VarName: &ast.Ident{
 										NamePos: 23,
 										Name:    "i",
 									},
@@ -255,7 +255,7 @@ func TestParser(t *testing.T) {
 			want: &ast.File{
 				Decls: []ast.Decl{
 					&ast.FuncDecl{
-						Type: &ast.FuncType{
+						FuncType: &ast.FuncType{
 							Result: &ast.Ident{
 								NamePos: 0,
 								Name:    "int",
@@ -271,7 +271,7 @@ func TestParser(t *testing.T) {
 							},
 							Rparen: 13,
 						},
-						Name: &ast.Ident{
+						FuncName: &ast.Ident{
 							NamePos: 4,
 							Name:    "main",
 						},
@@ -279,21 +279,21 @@ func TestParser(t *testing.T) {
 							Lbrace: 15,
 							Items: []ast.BlockItem{
 								&ast.VarDecl{
-									Type: &ast.Ident{
+									VarType: &ast.Ident{
 										NamePos: 19,
 										Name:    "int",
 									},
-									Name: &ast.Ident{
+									VarName: &ast.Ident{
 										NamePos: 23,
 										Name:    "x",
 									},
 								},
 								&ast.VarDecl{
-									Type: &ast.Ident{
+									VarType: &ast.Ident{
 										NamePos: 28,
 										Name:    "int",
 									},
-									Name: &ast.Ident{
+									VarName: &ast.Ident{
 										NamePos: 32,
 										Name:    "y",
 									},
@@ -349,7 +349,7 @@ func TestParser(t *testing.T) {
 			want: &ast.File{
 				Decls: []ast.Decl{
 					&ast.FuncDecl{
-						Type: &ast.FuncType{
+						FuncType: &ast.FuncType{
 							Result: &ast.Ident{
 								NamePos: 1,
 								Name:    "int",
@@ -365,7 +365,7 @@ func TestParser(t *testing.T) {
 							},
 							Rparen: 14,
 						},
-						Name: &ast.Ident{
+						FuncName: &ast.Ident{
 							NamePos: 5,
 							Name:    "main",
 						},
@@ -373,11 +373,11 @@ func TestParser(t *testing.T) {
 							Lbrace: 16,
 							Items: []ast.BlockItem{
 								&ast.VarDecl{
-									Type: &ast.Ident{
+									VarType: &ast.Ident{
 										NamePos: 20,
 										Name:    "int",
 									},
-									Name: &ast.Ident{
+									VarName: &ast.Ident{
 										NamePos: 24,
 										Name:    "x",
 									},
@@ -468,7 +468,7 @@ func TestParser(t *testing.T) {
 			want: &ast.File{
 				Decls: []ast.Decl{
 					&ast.FuncDecl{
-						Type: &ast.FuncType{
+						FuncType: &ast.FuncType{
 							Result: &ast.Ident{
 								NamePos: 1,
 								Name:    "int",
@@ -484,7 +484,7 @@ func TestParser(t *testing.T) {
 							},
 							Rparen: 14,
 						},
-						Name: &ast.Ident{
+						FuncName: &ast.Ident{
 							NamePos: 5,
 							Name:    "main",
 						},
@@ -492,11 +492,11 @@ func TestParser(t *testing.T) {
 							Lbrace: 16,
 							Items: []ast.BlockItem{
 								&ast.VarDecl{
-									Type: &ast.Ident{
+									VarType: &ast.Ident{
 										NamePos: 20,
 										Name:    "int",
 									},
-									Name: &ast.Ident{
+									VarName: &ast.Ident{
 										NamePos: 24,
 										Name:    "x",
 									},
@@ -561,7 +561,7 @@ func TestParser(t *testing.T) {
 			want: &ast.File{
 				Decls: []ast.Decl{
 					&ast.FuncDecl{
-						Type: &ast.FuncType{
+						FuncType: &ast.FuncType{
 							Result: &ast.Ident{
 								NamePos: 0,
 								Name:    "int",
@@ -577,7 +577,7 @@ func TestParser(t *testing.T) {
 							},
 							Rparen: 13,
 						},
-						Name: &ast.Ident{
+						FuncName: &ast.Ident{
 							NamePos: 4,
 							Name:    "main",
 						},
@@ -585,31 +585,31 @@ func TestParser(t *testing.T) {
 							Lbrace: 15,
 							Items: []ast.BlockItem{
 								&ast.VarDecl{
-									Type: &ast.Ident{
+									VarType: &ast.Ident{
 										NamePos: 19,
 										Name:    "int",
 									},
-									Name: &ast.Ident{
+									VarName: &ast.Ident{
 										NamePos: 23,
 										Name:    "x",
 									},
 								},
 								&ast.VarDecl{
-									Type: &ast.Ident{
+									VarType: &ast.Ident{
 										NamePos: 28,
 										Name:    "int",
 									},
-									Name: &ast.Ident{
+									VarName: &ast.Ident{
 										NamePos: 32,
 										Name:    "y",
 									},
 								},
 								&ast.VarDecl{
-									Type: &ast.Ident{
+									VarType: &ast.Ident{
 										NamePos: 37,
 										Name:    "int",
 									},
-									Name: &ast.Ident{
+									VarName: &ast.Ident{
 										NamePos: 41,
 										Name:    "z",
 									},
@@ -729,7 +729,7 @@ func TestParser(t *testing.T) {
 			want: &ast.File{
 				Decls: []ast.Decl{
 					&ast.VarDecl{
-						Type: &ast.ArrayType{
+						VarType: &ast.ArrayType{
 							Elem: &ast.Ident{
 								NamePos: 0,
 								Name:    "int",
@@ -738,13 +738,13 @@ func TestParser(t *testing.T) {
 							Len:      10,
 							Rbracket: 8,
 						},
-						Name: &ast.Ident{
+						VarName: &ast.Ident{
 							NamePos: 4,
 							Name:    "c",
 						},
 					},
 					&ast.VarDecl{
-						Type: &ast.ArrayType{
+						VarType: &ast.ArrayType{
 							Elem: &ast.Ident{
 								NamePos: 11,
 								Name:    "char",
@@ -753,13 +753,13 @@ func TestParser(t *testing.T) {
 							Len:      10,
 							Rbracket: 20,
 						},
-						Name: &ast.Ident{
+						VarName: &ast.Ident{
 							NamePos: 16,
 							Name:    "d",
 						},
 					},
 					&ast.FuncDecl{
-						Type: &ast.FuncType{
+						FuncType: &ast.FuncType{
 							Result: &ast.Ident{
 								NamePos: 24,
 								Name:    "void",
@@ -797,7 +797,7 @@ func TestParser(t *testing.T) {
 							},
 							Rparen: 48,
 						},
-						Name: &ast.Ident{
+						FuncName: &ast.Ident{
 							NamePos: 29,
 							Name:    "f",
 						},
@@ -807,7 +807,7 @@ func TestParser(t *testing.T) {
 						},
 					},
 					&ast.FuncDecl{
-						Type: &ast.FuncType{
+						FuncType: &ast.FuncType{
 							Result: &ast.Ident{
 								NamePos: 56,
 								Name:    "int",
@@ -823,7 +823,7 @@ func TestParser(t *testing.T) {
 							},
 							Rparen: 69,
 						},
-						Name: &ast.Ident{
+						FuncName: &ast.Ident{
 							NamePos: 60,
 							Name:    "main",
 						},
@@ -846,7 +846,7 @@ func TestParser(t *testing.T) {
 			want: &ast.File{
 				Decls: []ast.Decl{
 					&ast.FuncDecl{
-						Type: &ast.FuncType{
+						FuncType: &ast.FuncType{
 							Result: &ast.Ident{
 								NamePos: 0,
 								Name:    "void",
@@ -862,7 +862,7 @@ func TestParser(t *testing.T) {
 							},
 							Rparen: 11,
 						},
-						Name: &ast.Ident{
+						FuncName: &ast.Ident{
 							NamePos: 5,
 							Name:    "f",
 						},
@@ -877,7 +877,7 @@ func TestParser(t *testing.T) {
 						},
 					},
 					&ast.FuncDecl{
-						Type: &ast.FuncType{
+						FuncType: &ast.FuncType{
 							Result: &ast.Ident{
 								NamePos: 28,
 								Name:    "int",
@@ -893,7 +893,7 @@ func TestParser(t *testing.T) {
 							},
 							Rparen: 38,
 						},
-						Name: &ast.Ident{
+						FuncName: &ast.Ident{
 							NamePos: 32,
 							Name:    "g",
 						},
@@ -913,7 +913,7 @@ func TestParser(t *testing.T) {
 						},
 					},
 					&ast.FuncDecl{
-						Type: &ast.FuncType{
+						FuncType: &ast.FuncType{
 							Result: &ast.Ident{
 								NamePos: 58,
 								Name:    "int",
@@ -929,7 +929,7 @@ func TestParser(t *testing.T) {
 							},
 							Rparen: 71,
 						},
-						Name: &ast.Ident{
+						FuncName: &ast.Ident{
 							NamePos: 62,
 							Name:    "main",
 						},
@@ -969,7 +969,7 @@ func TestParser(t *testing.T) {
 			want: &ast.File{
 				Decls: []ast.Decl{
 					&ast.FuncDecl{
-						Type: &ast.FuncType{
+						FuncType: &ast.FuncType{
 							Result: &ast.Ident{
 								NamePos: 0,
 								Name:    "int",
@@ -985,7 +985,7 @@ func TestParser(t *testing.T) {
 							},
 							Rparen: 13,
 						},
-						Name: &ast.Ident{
+						FuncName: &ast.Ident{
 							NamePos: 4,
 							Name:    "main",
 						},
@@ -993,21 +993,21 @@ func TestParser(t *testing.T) {
 							Lbrace: 14,
 							Items: []ast.BlockItem{
 								&ast.VarDecl{
-									Type: &ast.Ident{
+									VarType: &ast.Ident{
 										NamePos: 18,
 										Name:    "int",
 									},
-									Name: &ast.Ident{
+									VarName: &ast.Ident{
 										NamePos: 22,
 										Name:    "x",
 									},
 								},
 								&ast.VarDecl{
-									Type: &ast.Ident{
+									VarType: &ast.Ident{
 										NamePos: 27,
 										Name:    "int",
 									},
-									Name: &ast.Ident{
+									VarName: &ast.Ident{
 										NamePos: 31,
 										Name:    "y",
 									},
@@ -1083,7 +1083,7 @@ func TestParser(t *testing.T) {
 			want: &ast.File{
 				Decls: []ast.Decl{
 					&ast.FuncDecl{
-						Type: &ast.FuncType{
+						FuncType: &ast.FuncType{
 							Result: &ast.Ident{
 								NamePos: 70,
 								Name:    "int",
@@ -1099,7 +1099,7 @@ func TestParser(t *testing.T) {
 							},
 							Rparen: 83,
 						},
-						Name: &ast.Ident{
+						FuncName: &ast.Ident{
 							NamePos: 74,
 							Name:    "main",
 						},
@@ -1107,21 +1107,21 @@ func TestParser(t *testing.T) {
 							Lbrace: 84,
 							Items: []ast.BlockItem{
 								&ast.VarDecl{
-									Type: &ast.Ident{
+									VarType: &ast.Ident{
 										NamePos: 88,
 										Name:    "int",
 									},
-									Name: &ast.Ident{
+									VarName: &ast.Ident{
 										NamePos: 92,
 										Name:    "x",
 									},
 								},
 								&ast.VarDecl{
-									Type: &ast.Ident{
+									VarType: &ast.Ident{
 										NamePos: 97,
 										Name:    "int",
 									},
-									Name: &ast.Ident{
+									VarName: &ast.Ident{
 										NamePos: 101,
 										Name:    "y",
 									},
