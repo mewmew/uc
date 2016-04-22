@@ -2,7 +2,10 @@
 // soure code.
 package ast
 
-import "github.com/mewmew/uc/token"
+import (
+	"github.com/mewmew/uc/token"
+	"github.com/mewmew/uc/types"
+)
 
 // A File represents a µC source file.
 //
@@ -33,8 +36,29 @@ type Node interface {
 //
 //    *FuncDecl
 //    *VarDecl
+//
+// Pseudo-code representation of a declaration.
+//
+//    type ident [= value]
 type Decl interface {
 	Node
+	// Type returns the type of the declared identifier.
+	Type() types.Type
+	// Name returns the name of the declared identifier.
+	Name() *Ident
+	// Value returns the initializing value of the defined identifier; or nil if
+	// declaration or tentative definition.
+	//
+	// Underlying type for function declarations.
+	//
+	//    *BlockStmt
+	//
+	// Underlying type for variable declarations.
+	//
+	//    Expr
+	Value() Node
+	// isDecl ensures that only declaration nodes can be assigned to the Decl
+	// interface.
 	isDecl()
 }
 
@@ -48,9 +72,9 @@ type (
 	//    int add(int a, int b) { return a+b; }
 	FuncDecl struct {
 		// Function signature.
-		Type *FuncType
+		FuncType *FuncType
 		// Function name.
-		Name *Ident
+		FuncName *Ident
 		// Function body; or nil if function declaration (i.e. not function
 		// definition).
 		Body *BlockStmt
@@ -64,9 +88,9 @@ type (
 	//    char buf[128];
 	VarDecl struct {
 		// Variable type.
-		Type Type
+		VarType Type
 		// Variable name.
-		Name *Ident
+		VarName *Ident
 		// Variable value expression; or nil if variable declaration (i.e. not
 		// variable definition).
 		Val Expr
@@ -387,6 +411,12 @@ type (
 	}
 )
 
+// TODO: Implement String method for each node type.
+
+func (n *Ident) String() string {
+	return n.Name
+}
+
 // Start returns the start position of the node within the input stream.
 func (n *ArrayType) Start() int {
 	return n.Elem.Start()
@@ -437,7 +467,7 @@ func (n *File) Start() int {
 
 // Start returns the start position of the node within the input stream.
 func (n *FuncDecl) Start() int {
-	return n.Type.Start()
+	return n.FuncType.Start()
 }
 
 // Start returns the start position of the node within the input stream.
@@ -477,7 +507,7 @@ func (n *UnaryExpr) Start() int {
 
 // Start returns the start position of the node within the input stream.
 func (n *VarDecl) Start() int {
-	return n.Type.Start()
+	return n.VarType.Start()
 }
 
 // Start returns the start position of the node within the input stream.
@@ -507,6 +537,48 @@ var (
 	_ Node = &VarDecl{}
 	_ Node = &WhileStmt{}
 )
+
+// Type returns the type of the declared identifier.
+func (n *FuncDecl) Type() types.Type {
+	// TODO: Consider caching the types.Type.
+	return newType(n.FuncType)
+}
+
+// Type returns the type of the declared identifier.
+func (n *VarDecl) Type() types.Type {
+	// TODO: Consider caching the types.Type.
+	return newType(n.VarType)
+}
+
+// Name returns the name of the declared identifier.
+func (n *FuncDecl) Name() *Ident {
+	return n.FuncName
+}
+
+// Name returns the name of the declared identifier.
+func (n *VarDecl) Name() *Ident {
+	return n.VarName
+}
+
+// Value returns the initializing value of the defined identifier; or nil if
+// declaration or tentative definition.
+//
+// Underlying type for function declarations.
+//
+//    *BlockStmt
+func (n *FuncDecl) Value() Node {
+	return n.Body
+}
+
+// Value returns the initializing value of the defined identifier; or nil if
+// declaration or tentative definition.
+//
+// Underlying type for variable declarations.
+//
+//    Expr
+func (n *VarDecl) Value() Node {
+	return n.Val
+}
 
 // isDecl ensures that only declaration nodes can be assigned to the Decl
 // interface.

@@ -1,5 +1,10 @@
 package types
 
+import (
+	"bytes"
+	"fmt"
+)
+
 // TODO: Implement type checking which ensures correct uses of "void".
 // Relevant sections of the uC BNF grammar have been included below.
 //
@@ -39,8 +44,10 @@ package types
 type Type interface {
 	// Equal reports whether t and u are of equal type.
 	Equal(u Type) bool
+	fmt.Stringer
 }
 
+// Types.
 type (
 	// A Basic represents a basic type.
 	//
@@ -109,6 +116,13 @@ type Field struct {
 	Name string
 }
 
+func (field *Field) String() string {
+	if len(field.Name) > 0 {
+		return fmt.Sprintf("%v %v", field.Type, field.Name)
+	}
+	return field.Type.String()
+}
+
 // Equal reports whether t and u are of equal type.
 func (t *Basic) Equal(u Type) bool {
 	if u, ok := u.(*Basic); ok {
@@ -147,6 +161,35 @@ func (t *Func) Equal(u Type) bool {
 // Equal reports whether t and u are of equal type.
 func Equal(t, u Type) bool {
 	return t.Equal(u)
+}
+
+func (t *Basic) String() string {
+	names := map[BasicKind]string{
+		Char: "char",
+		Int:  "int",
+		Void: "void",
+	}
+	if s, ok := names[t.Kind]; ok {
+		return s
+	}
+	return fmt.Sprintf("unknown basic type (%d)", int(t.Kind))
+}
+
+func (t *Array) String() string {
+	if t.Len > 0 {
+		return fmt.Sprintf("%v[%d]", t.Elem, t.Len)
+	}
+	return fmt.Sprintf("%v[]", t.Elem)
+}
+
+func (t *Func) String() string {
+	buf := new(bytes.Buffer)
+	fmt.Fprintf(buf, "%v(", t.Result)
+	for _, param := range t.Params {
+		buf.WriteString(param.String())
+	}
+	buf.WriteString(")")
+	return buf.String()
 }
 
 // Verify that the µC types implement the Type interface.
