@@ -1,6 +1,12 @@
 // Package sem implements a set of semantic analysis passes.
 package sem
 
+import (
+	"github.com/mewkiz/pkg/errutil"
+	"github.com/mewmew/uc/ast"
+	"github.com/mewmew/uc/sem/types"
+)
+
 // TODO: Verify that all declarations occur at the beginning of the function
 // body, and after the first non-declaration statement, no other declarations
 // should be allowed to occur. Note, this pass should only be enabled for older
@@ -23,3 +29,11 @@ package sem
 //          first = i
 //       }
 //    }
+
+// Check performs a static semantic analysis check on the given file.
+func Check(file *ast.File) error {
+	if err := types.Check(file); err != nil {
+		return errutil.Err(err)
+	}
+	return nil
+}

@@ -302,6 +302,10 @@ type (
 		NamePos int
 		// Identifier name.
 		Name string
+		// Corresponding function, variable or type declaration. The declaration
+		// mapping is added during the semantic analysis phase, based on the
+		// lexical scope of the identifier.
+		Decl Decl
 	}
 
 	// An IndexExpr node represents an array index expression.

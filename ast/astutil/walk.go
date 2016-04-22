@@ -1,5 +1,3 @@
-// TODO: Consider exporting the astutil API to users outside of ./cmd
-
 // Package astutil implements utility functions for walking parse trees.
 package astutil
 
@@ -16,57 +14,88 @@ func Walk(node ast.Node, f func(ast.Node)) error {
 
 	// Source file.
 	case *ast.File:
-		return walkFile(n, f)
+		if n != nil {
+			return walkFile(n, f)
+		}
 
 	// Declarations.
 	case *ast.FuncDecl:
-		return walkFuncDecl(n, f)
+		if n != nil {
+			return walkFuncDecl(n, f)
+		}
 	case *ast.VarDecl:
-		return walkVarDecl(n, f)
-
+		if n != nil {
+			return walkVarDecl(n, f)
+		}
 	// Statements.
 	case *ast.BlockStmt:
-		return walkBlockStmt(n, f)
+		if n != nil {
+			return walkBlockStmt(n, f)
+		}
 	case *ast.EmptyStmt:
-		return walkEmptyStmt(n, f)
+		if n != nil {
+			return walkEmptyStmt(n, f)
+		}
 	case *ast.ExprStmt:
-		return walkExprStmt(n, f)
+		if n != nil {
+			return walkExprStmt(n, f)
+		}
 	case *ast.IfStmt:
-		return walkIfStmt(n, f)
+		if n != nil {
+			return walkIfStmt(n, f)
+		}
 	case *ast.ReturnStmt:
-		return walkReturnStmt(n, f)
+		if n != nil {
+			return walkReturnStmt(n, f)
+		}
 	case *ast.WhileStmt:
-		return walkWhileStmt(n, f)
+		if n != nil {
+			return walkWhileStmt(n, f)
+		}
 
 	// Expressions.
 	case *ast.BasicLit:
-		return walkBasicLit(n, f)
+		if n != nil {
+			return walkBasicLit(n, f)
+		}
 	case *ast.BinaryExpr:
-		return walkBinaryExpr(n, f)
+		if n != nil {
+			return walkBinaryExpr(n, f)
+		}
 	case *ast.CallExpr:
-		return walkCallExpr(n, f)
+		if n != nil {
+			return walkCallExpr(n, f)
+		}
 	case *ast.Ident:
-		return walkIdent(n, f)
+		if n != nil {
+			return walkIdent(n, f)
+		}
 	case *ast.IndexExpr:
-		return walkIndexExpr(n, f)
+		if n != nil {
+			return walkIndexExpr(n, f)
+		}
 	case *ast.ParenExpr:
-		return walkParenExpr(n, f)
+		if n != nil {
+			return walkParenExpr(n, f)
+		}
 	case *ast.UnaryExpr:
-		return walkUnaryExpr(n, f)
+		if n != nil {
+			return walkUnaryExpr(n, f)
+		}
 
-		// TODO: Add support for ast.Type
-
-		/*
-			// Types.
-			case *types.Basic:
-				return walkBasicType(n, f)
-			case *types.Array:
-				return walkArrayType(n, f)
-			case *types.Func:
-				return walkFuncType(n, f)
-			case *types.Field:
-				return walkTypeField(n, f)
-		*/
+	// Types.
+	case *ast.ArrayType:
+		if n != nil {
+			return walkArrayType(n, f)
+		}
+	case *ast.FuncType:
+		if n != nil {
+			return walkFuncType(n, f)
+		}
+	case *ast.Field:
+		if n != nil {
+			return walkTypeField(n, f)
+		}
 
 	case nil:
 		// Nothing to do.
@@ -74,6 +103,8 @@ func Walk(node ast.Node, f func(ast.Node)) error {
 	default:
 		panic(fmt.Sprintf("support for walking node of type %T not yet implemented", node))
 	}
+
+	return nil
 }
 
 // === [ Source file ] ===
@@ -272,18 +303,9 @@ func walkUnaryExpr(expr *ast.UnaryExpr, f func(ast.Node)) error {
 
 // === [ Types ] ===
 
-/*
-
-// walkBasicType walks the parse tree of the given basic type in depth first
-// order.
-func walkBasicType(typ *types.Basic, f func(ast.Node)) error {
-	f(typ)
-	return nil
-}
-
 // walkArrayType walks the parse tree of the given array type in depth first
 // order.
-func walkArrayType(arr *types.Array, f func(ast.Node)) error {
+func walkArrayType(arr *ast.ArrayType, f func(ast.Node)) error {
 	f(arr)
 	if err := Walk(arr.Elem, f); err != nil {
 		return errutil.Err(err)
@@ -293,28 +315,28 @@ func walkArrayType(arr *types.Array, f func(ast.Node)) error {
 
 // walkFuncType walks the parse tree of the given function signature in depth
 // first order.
-func walkFuncType(fn *types.Func, f func(ast.Node)) error {
+func walkFuncType(fn *ast.FuncType, f func(ast.Node)) error {
 	f(fn)
+	if err := Walk(fn.Result, f); err != nil {
+		return errutil.Err(err)
+	}
 	for _, param := range fn.Params {
 		if err := Walk(param, f); err != nil {
 			return errutil.Err(err)
 		}
-	}
-	if err := Walk(fn.Result, f); err != nil {
-		return errutil.Err(err)
 	}
 	return nil
 }
 
 // walkTypeField walks the parse tree of the given type field in depth first
 // order.
-func walkTypeField(field *types.Field, f func(ast.Node)) error {
+func walkTypeField(field *ast.Field, f func(ast.Node)) error {
 	f(field)
 	if err := Walk(field.Type, f); err != nil {
 		return errutil.Err(err)
 	}
-	// TODO: Make field.Name an *ast.Ident and walk field.Name?
+	if err := Walk(field.Name, f); err != nil {
+		return errutil.Err(err)
+	}
 	return nil
 }
-
-*/
