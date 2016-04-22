@@ -1196,8 +1196,6 @@ func TestParser(t *testing.T) {
 		if !reflect.DeepEqual(got, g.want) {
 			t.Errorf("%q: AST mismatch; expected %#v, got %#v", g.path, g.want, got)
 			fmt.Println(pretty.Diff(g.want, got))
-		} else {
-			fmt.Printf("%q: PASS\n", g.path) // TODO: Remove.
 		}
 	}
 }
