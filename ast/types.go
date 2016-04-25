@@ -25,8 +25,12 @@ func newType(n Node) types.Type {
 }
 
 // newField returns a new field type equivalent to the given field node.
-func newField(field *Field) *types.Field {
-	return &types.Field{Type: newType(field.Type), Name: field.Name.Name}
+func newField(decl *VarDecl) *types.Field {
+	typ := &types.Field{Type: decl.Type()}
+	if decl.VarName != nil {
+		typ.Name = decl.VarName.Name
+	}
+	return typ
 }
 
 // newBasicType returns a new basic type equivalent to the given identifier.

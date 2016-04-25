@@ -136,22 +136,25 @@ BasicType
 	: ident                             << astx.NewIdent($0) >>
 ;
 
-// TODO: Allow empty parameter list, as was intended by the original K&R C, i.e.
-// allow `int foo()` as an alternative to `int foo(void)`.
-
 Params
+	: empty
+	| ParamList
+;
+
+ParamList
+	: Param                             << astx.NewParamList($0) >>
+	| ParamList "," Param               << astx.AppendParam($0, $2) >>
+;
+
+Param
 	// BasicType : "void" ;
-	: BasicType                         << astx.NewVoidParam($0) >>
-	| FieldList
+	: Type                              << astx.NewAnonParam($0) >>
+	| VarDecl
 ;
 
-FieldList
-	: Field                             << astx.NewFieldList($0) >>
-	| FieldList "," Field               << astx.AppendField($0, $2) >>
-;
-
-Field
-	: VarDecl                           << astx.NewField($0) >>
+// TODO: Add support for array types.
+Type
+	: BasicType
 ;
 
 Stmt

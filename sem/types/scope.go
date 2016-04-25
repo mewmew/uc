@@ -1,6 +1,9 @@
 package types
 
 import (
+	"fmt"
+
+	"github.com/kr/pretty"
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
 	"github.com/mewmew/uc/ast/astutil"
@@ -25,7 +28,12 @@ func NewScope(outer *Scope) *Scope {
 // Insert inserts the given declaration into the current scope.
 func (s *Scope) Insert(decl ast.Decl) error {
 	// Early return for first-time declarations.
-	name := decl.Name().String()
+	ident := decl.Name()
+	if ident == nil {
+		// Anonymous function parameter declaration declaration.
+		return nil
+	}
+	name := ident.String()
 	prev, ok := s.Decls[name]
 	if !ok {
 		s.Decls[name] = decl
@@ -74,6 +82,15 @@ func Check(file *ast.File) error {
 	// the global function declaration bodies are traversed to resolve
 	// identifiers and deduce the types of expressions.
 
+	// TODO: Add keyword type declarations to universe scope. Remove special
+	// cases for basic types (i.e. identifiers).
+
+	// Pre-pass, add keyword types and universe declarations.
+	//universe := NewScope(nil)
+	//for _, decl := range universeDecls {
+	//	universe.Insert(decl)
+	//}
+
 	// First pass, add global declarations to file-scope.
 	fileScope := NewScope(nil)
 	for _, decl := range file.Decls {
@@ -82,36 +99,64 @@ func Check(file *ast.File) error {
 
 	// TODO: Add local declarations of functions.
 
+	scope := fileScope
+
+	// skip specifies that the block statement body of a function declaration
+	// should skip creating a nested scope, as it has already been created by its
+	// function declaration, so that function parameters are placed within the
+	// correct scope.
+	skip := false
+
 	// resolve performs identifier resolution, mapping identifiers to
 	// corresponding declarations of the closest lexical scope.
 	resolve := func(n ast.Node) error {
-		ident, ok := n.(*ast.Ident)
-		if !ok {
-			return nil
-		}
-		decl, ok := fileScope.Lookup(ident.Name)
-		if !ok {
-			// TODO: Remove hack and implement proper support for ident types
-			switch ident.Name {
-			case "char", "int", "void":
-				return nil
+		switch n := n.(type) {
+		case ast.Decl:
+			scope.Insert(n)
+			if fn, ok := n.(*ast.FuncDecl); ok && isDef(fn) {
+				skip = true
+				scope = NewScope(scope)
 			}
+		case *ast.BlockStmt:
+			if !skip {
+				scope = NewScope(scope)
+			}
+			skip = false
+		case *ast.Ident:
+			decl, ok := scope.Lookup(n.Name)
+			if !ok {
+				// TODO: Remove hack and implement proper support for ident types
+				switch n.Name {
+				case "char", "int", "void":
+					return nil
+				}
 
-			// TODO: Report undeclared identifier.
-			// TODO: Figure out how to handle basic type identifiers.
-			return errutil.Newf("undeclared identifier %q", ident)
+				return errutil.Newf("undeclared identifier %q", n)
+			}
+			n.Decl = decl
 		}
-		ident.Decl = decl
 		return nil
 	}
 
-	if err := astutil.Walk(file, resolve); err != nil {
+	// after reverts to the outer scope after traversing block statements.
+	after := func(n ast.Node) error {
+		if _, ok := n.(*ast.BlockStmt); ok {
+			pretty.Print(scope)
+			fmt.Println("===========================================")
+			scope = scope.Outer
+		}
+		return nil
+	}
+
+	if err := astutil.WalkBeforeAfter(file, resolve, after); err != nil {
 		return errutil.Err(err)
 	}
 
 	// 1) Identifier resolution.
 
 	// 2) Type deduction of expressions.
+
+	// TODO: Remove debug output.
 
 	return nil
 }

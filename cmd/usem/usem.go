@@ -15,7 +15,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/kr/pretty"
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewkiz/pkg/ioutilx"
 	"github.com/mewmew/uc/ast"
@@ -105,7 +104,7 @@ func checkFile(path string, hand bool) error {
 		return errutil.Err(err)
 	}
 
-	pretty.Print(file)
+	//pretty.Print(file)
 
 	return nil
 }

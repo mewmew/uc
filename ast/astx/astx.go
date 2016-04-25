@@ -77,15 +77,15 @@ func NewFuncDecl(resultType, name, lparen, params, rparen interface{}) (*ast.Fun
 	if !ok {
 		return nil, errutil.Newf("invalid left-parenthesis type; expectd *gocctoken.Token, got %T", lparen)
 	}
-	fields, ok := params.([]*ast.Field)
+	pars, ok := params.([]*ast.VarDecl)
 	if !ok {
-		return nil, errutil.Newf("invalid function parameters type; expected []*ast.Field, got %T", params)
+		return nil, errutil.Newf("invalid function parameters type; expected []*ast.VarDecl, got %T", pars)
 	}
 	rpar, ok := rparen.(*gocctoken.Token)
 	if !ok {
 		return nil, errutil.Newf("invalid right-parenthesis type; expectd *gocctoken.Token, got %T", rparen)
 	}
-	typ := &ast.FuncType{Result: resType, Lparen: lpar.Offset, Params: fields, Rparen: rpar.Offset}
+	typ := &ast.FuncType{Result: resType, Lparen: lpar.Offset, Params: pars, Rparen: rpar.Offset}
 	return &ast.FuncDecl{FuncType: typ, FuncName: ident}, nil
 }
 
@@ -144,65 +144,48 @@ func NewArrayDecl(elem, name, lbracket, length, rbracket interface{}) (*ast.VarD
 	return &ast.VarDecl{VarType: typ, VarName: ident}, nil
 }
 
-// NewVoidParam returns a new void parameter, based on the following production
+// NewParamList returns a new parameter list, based on the following production
 // rule.
 //
-//    Params
-//    	: BasicType // "void"
+//    ParamList
+//       : Param
 //    ;
-func NewVoidParam(typ interface{}) ([]*ast.Field, error) {
-	if ident, ok := typ.(*ast.Ident); ok {
-		if ident.Name == "void" {
-			// Valid void parameter.
-			return []*ast.Field{{Type: ident}}, nil
-		} else {
-			return nil, errutil.Newf(`invalid void parameter; expected "void", got %q`, ident.Name)
-		}
+func NewParamList(param interface{}) ([]*ast.VarDecl, error) {
+	if param, ok := param.(*ast.VarDecl); ok {
+		return []*ast.VarDecl{param}, nil
 	}
-	return nil, errutil.Newf("invalid void parameter type; expected *ast.Ident, got %T", typ)
+	return nil, errutil.Newf("invalid parameter list parameter type; expected *ast.VarDecl, got %T", param)
 }
 
-// NewFieldList returns a new field list, based on the following production
-// rule.
-//
-//    FieldList
-//       : Field
-//    ;
-func NewFieldList(field interface{}) ([]*ast.Field, error) {
-	if field, ok := field.(*ast.Field); ok {
-		return []*ast.Field{field}, nil
-	}
-	return nil, errutil.Newf("invalid field list field type; expected *ast.Field, got %T", field)
-}
-
-// AppendField appends field to the field list, based on the following
+// AppendParam appends parameter to the parameter list, based on the following
 // production rule.
 //
-//    FieldList
-//       : FieldList "," Field
+//    ParamList
+//       : ParamList "," Param
 //    ;
-func AppendField(list, field interface{}) ([]*ast.Field, error) {
-	lst, ok := list.([]*ast.Field)
+func AppendParam(list, param interface{}) ([]*ast.VarDecl, error) {
+	lst, ok := list.([]*ast.VarDecl)
 	if !ok {
-		return nil, errutil.Newf("invalid field list type; expected []*ast.Field, got %T", list)
+		return nil, errutil.Newf("invalid parameter list type; expected []*ast.VarDecl, got %T", list)
 	}
-	if field, ok := field.(*ast.Field); ok {
-		return append(lst, field), nil
+	if param, ok := param.(*ast.VarDecl); ok {
+		return append(lst, param), nil
 	}
-	return nil, errutil.Newf("invalid field list field type; expected *ast.Field, got %T", field)
+	return nil, errutil.Newf("invalid parameter list parameter type; expected *ast.VarDecl, got %T", param)
 }
 
-// NewField returns a new field, based on the following production rules.
+// NewAnonParam returns a new anonymous parameter, based on the following
+// production rules.
 //
-//    ParamDecl
-//       : ScalarDecl
-//       | TypeName ident "[" "]"
+//    Param
+//       // BasicType : "void" ;
+//       : Type
 //    ;
-func NewField(decl interface{}) (*ast.Field, error) {
-	if decl, ok := decl.(*ast.VarDecl); ok {
-		return &ast.Field{Type: decl.VarType, Name: decl.VarName}, nil
+func NewAnonParam(typ interface{}) (*ast.VarDecl, error) {
+	if typ, ok := typ.(ast.Type); ok {
+		return &ast.VarDecl{VarType: typ}, nil
 	}
-	return nil, errutil.Newf("invalid field type; expected *ast.VarDecl, got %T", decl)
+	return nil, errutil.Newf("invalid anonymous parameter type; expected ast.Type, got %T", typ)
 }
 
 // NewExprStmt returns a new expression statement, based on the following

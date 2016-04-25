@@ -102,10 +102,6 @@ func WalkBeforeAfter(node ast.Node, before, after func(ast.Node) error) error {
 		if n != nil {
 			return walkFuncType(n, before, after)
 		}
-	case *ast.Field:
-		if n != nil {
-			return walkTypeField(n, before, after)
-		}
 
 	case nil:
 		// Nothing to do.
@@ -423,24 +419,6 @@ func walkFuncType(fn *ast.FuncType, before, after func(ast.Node) error) error {
 		}
 	}
 	if err := after(fn); err != nil {
-		return errutil.Err(err)
-	}
-	return nil
-}
-
-// walkTypeField walks the parse tree of the given type field in depth first
-// order.
-func walkTypeField(field *ast.Field, before, after func(ast.Node) error) error {
-	if err := before(field); err != nil {
-		return errutil.Err(err)
-	}
-	if err := WalkBeforeAfter(field.Type, before, after); err != nil {
-		return errutil.Err(err)
-	}
-	if err := WalkBeforeAfter(field.Name, before, after); err != nil {
-		return errutil.Err(err)
-	}
-	if err := after(field); err != nil {
 		return errutil.Err(err)
 	}
 	return nil

@@ -25,7 +25,6 @@ type File struct {
 //    Stmt
 //    Expr
 //    Type
-//    *Field
 type Node interface {
 	// Start returns the start position of the node within the input stream.
 	Start() int
@@ -36,6 +35,7 @@ type Node interface {
 //
 //    *FuncDecl
 //    *VarDecl
+//    *TypeDecl
 //
 // Pseudo-code representation of a declaration.
 //
@@ -94,6 +94,10 @@ type (
 		// Variable value expression; or nil if variable declaration (i.e. not
 		// variable definition).
 		Val Expr
+	}
+
+	// TODO: Implement support for type declarations.
+	TypeDecl struct {
 	}
 )
 
@@ -395,23 +399,9 @@ type (
 		// Position of left-parenthesis `(`.
 		Lparen int
 		// Function parameters.
-		Params []*Field
+		Params []*VarDecl
 		// Position of right-parenthesis `)`.
 		Rparen int
-	}
-
-	// A Field node represents a field declaration in a struct type, or a
-	// parameter declaration in a function signature.
-	//
-	// Examples.
-	//
-	//    char
-	//    int a
-	Field struct {
-		// Field type.
-		Type Type
-		// Field name; or nil.
-		Name *Ident
 	}
 )
 
@@ -454,11 +444,6 @@ func (n *EmptyStmt) Start() int {
 // Start returns the start position of the node within the input stream.
 func (n *ExprStmt) Start() int {
 	return n.X.Start()
-}
-
-// Start returns the start position of the node within the input stream.
-func (n *Field) Start() int {
-	return n.Type.Start()
 }
 
 // Start returns the start position of the node within the input stream.
@@ -528,7 +513,6 @@ var (
 	_ Node = &CallExpr{}
 	_ Node = &EmptyStmt{}
 	_ Node = &ExprStmt{}
-	_ Node = &Field{}
 	_ Node = &File{}
 	_ Node = &FuncDecl{}
 	_ Node = &FuncType{}
