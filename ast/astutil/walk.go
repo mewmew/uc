@@ -9,7 +9,7 @@ import (
 )
 
 // Walk walks the given parse tree in depth first order.
-func Walk(node ast.Node, f func(ast.Node)) error {
+func Walk(node ast.Node, f func(ast.Node) error) error {
 	switch n := node.(type) {
 
 	// Source file.
@@ -110,8 +110,10 @@ func Walk(node ast.Node, f func(ast.Node)) error {
 // === [ Source file ] ===
 
 // walkFile walks the parse tree of the given source file in depth first order.
-func walkFile(file *ast.File, f func(ast.Node)) error {
-	f(file)
+func walkFile(file *ast.File, f func(ast.Node) error) error {
+	if err := f(file); err != nil {
+		return errutil.Err(err)
+	}
 	for _, decl := range file.Decls {
 		if err := Walk(decl, f); err != nil {
 			return errutil.Err(err)
@@ -124,8 +126,10 @@ func walkFile(file *ast.File, f func(ast.Node)) error {
 
 // walkFuncDecl walks the parse tree of the given function declaration in depth
 // first order.
-func walkFuncDecl(decl *ast.FuncDecl, f func(ast.Node)) error {
-	f(decl)
+func walkFuncDecl(decl *ast.FuncDecl, f func(ast.Node) error) error {
+	if err := f(decl); err != nil {
+		return errutil.Err(err)
+	}
 	if err := Walk(decl.FuncName, f); err != nil {
 		return errutil.Err(err)
 	}
@@ -140,8 +144,10 @@ func walkFuncDecl(decl *ast.FuncDecl, f func(ast.Node)) error {
 
 // walkVarDecl walks the parse tree of the given variable declaration in depth
 // first order.
-func walkVarDecl(decl *ast.VarDecl, f func(ast.Node)) error {
-	f(decl)
+func walkVarDecl(decl *ast.VarDecl, f func(ast.Node) error) error {
+	if err := f(decl); err != nil {
+		return errutil.Err(err)
+	}
 	if err := Walk(decl.VarType, f); err != nil {
 		return errutil.Err(err)
 	}
@@ -158,8 +164,10 @@ func walkVarDecl(decl *ast.VarDecl, f func(ast.Node)) error {
 
 // walkBlockStmt walks the parse tree of the given block statement in depth
 // first order.
-func walkBlockStmt(block *ast.BlockStmt, f func(ast.Node)) error {
-	f(block)
+func walkBlockStmt(block *ast.BlockStmt, f func(ast.Node) error) error {
+	if err := f(block); err != nil {
+		return errutil.Err(err)
+	}
 	for _, item := range block.Items {
 		if err := Walk(item, f); err != nil {
 			return errutil.Err(err)
@@ -170,15 +178,19 @@ func walkBlockStmt(block *ast.BlockStmt, f func(ast.Node)) error {
 
 // walkEmptyStmt walks the parse tree of the given empty statement in depth
 // first order.
-func walkEmptyStmt(stmt *ast.EmptyStmt, f func(ast.Node)) error {
-	f(stmt)
+func walkEmptyStmt(stmt *ast.EmptyStmt, f func(ast.Node) error) error {
+	if err := f(stmt); err != nil {
+		return errutil.Err(err)
+	}
 	return nil
 }
 
 // walkExprStmt walks the parse tree of the given expression statement in depth
 // first order.
-func walkExprStmt(stmt *ast.ExprStmt, f func(ast.Node)) error {
-	f(stmt)
+func walkExprStmt(stmt *ast.ExprStmt, f func(ast.Node) error) error {
+	if err := f(stmt); err != nil {
+		return errutil.Err(err)
+	}
 	if err := Walk(stmt.X, f); err != nil {
 		return errutil.Err(err)
 	}
@@ -187,8 +199,10 @@ func walkExprStmt(stmt *ast.ExprStmt, f func(ast.Node)) error {
 
 // walkIfStmt walks the parse tree of the given if statement in depth first
 // order.
-func walkIfStmt(stmt *ast.IfStmt, f func(ast.Node)) error {
-	f(stmt)
+func walkIfStmt(stmt *ast.IfStmt, f func(ast.Node) error) error {
+	if err := f(stmt); err != nil {
+		return errutil.Err(err)
+	}
 	if err := Walk(stmt.Cond, f); err != nil {
 		return errutil.Err(err)
 	}
@@ -203,8 +217,10 @@ func walkIfStmt(stmt *ast.IfStmt, f func(ast.Node)) error {
 
 // walkReturnStmt walks the parse tree of the given return statement in depth
 // first order.
-func walkReturnStmt(stmt *ast.ReturnStmt, f func(ast.Node)) error {
-	f(stmt)
+func walkReturnStmt(stmt *ast.ReturnStmt, f func(ast.Node) error) error {
+	if err := f(stmt); err != nil {
+		return errutil.Err(err)
+	}
 	if err := Walk(stmt.Result, f); err != nil {
 		return errutil.Err(err)
 	}
@@ -213,8 +229,10 @@ func walkReturnStmt(stmt *ast.ReturnStmt, f func(ast.Node)) error {
 
 // walkWhileStmt walks the parse tree of the given while statement in depth
 // first order.
-func walkWhileStmt(stmt *ast.WhileStmt, f func(ast.Node)) error {
-	f(stmt)
+func walkWhileStmt(stmt *ast.WhileStmt, f func(ast.Node) error) error {
+	if err := f(stmt); err != nil {
+		return errutil.Err(err)
+	}
 	if err := Walk(stmt.Cond, f); err != nil {
 		return errutil.Err(err)
 	}
@@ -228,15 +246,19 @@ func walkWhileStmt(stmt *ast.WhileStmt, f func(ast.Node)) error {
 
 // walkBasicLit walks the parse tree of the given basic literal expression in
 // depth first order.
-func walkBasicLit(lit *ast.BasicLit, f func(ast.Node)) error {
-	f(lit)
+func walkBasicLit(lit *ast.BasicLit, f func(ast.Node) error) error {
+	if err := f(lit); err != nil {
+		return errutil.Err(err)
+	}
 	return nil
 }
 
 // walkBinaryExpr walks the parse tree of the given binary expression in depth
 // first order.
-func walkBinaryExpr(expr *ast.BinaryExpr, f func(ast.Node)) error {
-	f(expr)
+func walkBinaryExpr(expr *ast.BinaryExpr, f func(ast.Node) error) error {
+	if err := f(expr); err != nil {
+		return errutil.Err(err)
+	}
 	if err := Walk(expr.X, f); err != nil {
 		return errutil.Err(err)
 	}
@@ -248,8 +270,10 @@ func walkBinaryExpr(expr *ast.BinaryExpr, f func(ast.Node)) error {
 
 // walkCallExpr walks the parse tree of the given call expression in depth first
 // order.
-func walkCallExpr(call *ast.CallExpr, f func(ast.Node)) error {
-	f(call)
+func walkCallExpr(call *ast.CallExpr, f func(ast.Node) error) error {
+	if err := f(call); err != nil {
+		return errutil.Err(err)
+	}
 	if err := Walk(call.Name, f); err != nil {
 		return errutil.Err(err)
 	}
@@ -263,15 +287,19 @@ func walkCallExpr(call *ast.CallExpr, f func(ast.Node)) error {
 
 // walkIdent walks the parse tree of the given identifier expression in depth
 // first order.
-func walkIdent(ident *ast.Ident, f func(ast.Node)) error {
-	f(ident)
+func walkIdent(ident *ast.Ident, f func(ast.Node) error) error {
+	if err := f(ident); err != nil {
+		return errutil.Err(err)
+	}
 	return nil
 }
 
 // walkIndexExpr walks the parse tree of the given index expression in depth
 // first order.
-func walkIndexExpr(expr *ast.IndexExpr, f func(ast.Node)) error {
-	f(expr)
+func walkIndexExpr(expr *ast.IndexExpr, f func(ast.Node) error) error {
+	if err := f(expr); err != nil {
+		return errutil.Err(err)
+	}
 	if err := Walk(expr.Name, f); err != nil {
 		return errutil.Err(err)
 	}
@@ -283,8 +311,10 @@ func walkIndexExpr(expr *ast.IndexExpr, f func(ast.Node)) error {
 
 // walkParenExpr walks the parse tree of the given parenthesized expression in
 // depth first order.
-func walkParenExpr(expr *ast.ParenExpr, f func(ast.Node)) error {
-	f(expr)
+func walkParenExpr(expr *ast.ParenExpr, f func(ast.Node) error) error {
+	if err := f(expr); err != nil {
+		return errutil.Err(err)
+	}
 	if err := Walk(expr.X, f); err != nil {
 		return errutil.Err(err)
 	}
@@ -293,8 +323,10 @@ func walkParenExpr(expr *ast.ParenExpr, f func(ast.Node)) error {
 
 // walkUnaryExpr walks the parse tree of the given unary expression in depth
 // first order.
-func walkUnaryExpr(expr *ast.UnaryExpr, f func(ast.Node)) error {
-	f(expr)
+func walkUnaryExpr(expr *ast.UnaryExpr, f func(ast.Node) error) error {
+	if err := f(expr); err != nil {
+		return errutil.Err(err)
+	}
 	if err := Walk(expr.X, f); err != nil {
 		return errutil.Err(err)
 	}
@@ -305,8 +337,10 @@ func walkUnaryExpr(expr *ast.UnaryExpr, f func(ast.Node)) error {
 
 // walkArrayType walks the parse tree of the given array type in depth first
 // order.
-func walkArrayType(arr *ast.ArrayType, f func(ast.Node)) error {
-	f(arr)
+func walkArrayType(arr *ast.ArrayType, f func(ast.Node) error) error {
+	if err := f(arr); err != nil {
+		return errutil.Err(err)
+	}
 	if err := Walk(arr.Elem, f); err != nil {
 		return errutil.Err(err)
 	}
@@ -315,8 +349,10 @@ func walkArrayType(arr *ast.ArrayType, f func(ast.Node)) error {
 
 // walkFuncType walks the parse tree of the given function signature in depth
 // first order.
-func walkFuncType(fn *ast.FuncType, f func(ast.Node)) error {
-	f(fn)
+func walkFuncType(fn *ast.FuncType, f func(ast.Node) error) error {
+	if err := f(fn); err != nil {
+		return errutil.Err(err)
+	}
 	if err := Walk(fn.Result, f); err != nil {
 		return errutil.Err(err)
 	}
@@ -330,8 +366,10 @@ func walkFuncType(fn *ast.FuncType, f func(ast.Node)) error {
 
 // walkTypeField walks the parse tree of the given type field in depth first
 // order.
-func walkTypeField(field *ast.Field, f func(ast.Node)) error {
-	f(field)
+func walkTypeField(field *ast.Field, f func(ast.Node) error) error {
+	if err := f(field); err != nil {
+		return errutil.Err(err)
+	}
 	if err := Walk(field.Type, f); err != nil {
 		return errutil.Err(err)
 	}

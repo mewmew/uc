@@ -84,18 +84,25 @@ func Check(file *ast.File) error {
 
 	// resolve performs identifier resolution, mapping identifiers to
 	// corresponding declarations of the closest lexical scope.
-	resolve := func(n ast.Node) {
+	resolve := func(n ast.Node) error {
 		ident, ok := n.(*ast.Ident)
 		if !ok {
-			return
+			return nil
 		}
 		decl, ok := fileScope.Lookup(ident.Name)
-		if ok {
-			ident.Decl = decl
-		} else {
+		if !ok {
+			// TODO: Remove hack and implement proper support for ident types
+			switch ident.Name {
+			case "char", "int", "void":
+				return nil
+			}
+
 			// TODO: Report undeclared identifier.
 			// TODO: Figure out how to handle basic type identifiers.
+			return errutil.Newf("undeclared identifier %q", ident)
 		}
+		ident.Decl = decl
+		return nil
 	}
 
 	if err := astutil.Walk(file, resolve); err != nil {
