@@ -8,13 +8,16 @@ import (
 	"github.com/mewmew/uc/ast"
 )
 
-// Walk walks the given parse tree in depth first order.
+// Walk traverses the given parse tree, calling f(n) for each node n in the
+// tree, in a bottom-up traversal.
 func Walk(node ast.Node, f func(ast.Node) error) error {
 	nop := func(n ast.Node) error { return nil }
 	return WalkBeforeAfter(node, nop, f)
 }
 
-// WalkBeforeAfter walks the given parse tree in depth first order.
+// WalkBeforeAfter traverses the given parse tree, calling before(n) before
+// traversing the node's children, and after(n) afterwards, in a bottom-up
+// traversal.
 func WalkBeforeAfter(node ast.Node, before, after func(ast.Node) error) error {
 	switch n := node.(type) {
 
