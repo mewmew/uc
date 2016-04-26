@@ -4,6 +4,7 @@ package sem
 import (
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
+	"github.com/mewmew/uc/sem/semcheck"
 	"github.com/mewmew/uc/sem/typecheck"
 )
 
@@ -33,6 +34,9 @@ import (
 // Check performs a static semantic analysis check on the given file.
 func Check(file *ast.File) error {
 	if err := typecheck.Check(file); err != nil {
+		return errutil.Err(err)
+	}
+	if err := semcheck.Check(file); err != nil {
 		return errutil.Err(err)
 	}
 	return nil
