@@ -158,13 +158,15 @@ func Check(file *ast.File) error {
 		return nil
 	}
 
+	// 1) Identifier resolution.
 	if err := astutil.WalkBeforeAfter(file, resolve, after); err != nil {
 		return errutil.Err(err)
 	}
 
-	// 1) Identifier resolution.
-
 	// 2) Type deduction of expressions.
+	if err := deduce(file); err != nil {
+		return errutil.Err(err)
+	}
 
 	// TODO: Remove debug output.
 

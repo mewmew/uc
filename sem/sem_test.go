@@ -42,7 +42,7 @@ func TestCheckError(t *testing.T) {
 		},
 		{
 			path: "../testdata/incorrect/semantic/se07.c",
-			want: "foo",
+			want: `91: returning "int" from a function with incompatible result type "void"`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se08.c",
