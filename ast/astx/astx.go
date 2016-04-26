@@ -64,6 +64,12 @@ func AppendDecl(list, decl interface{}) ([]ast.Decl, error) {
 //    FuncHeader
 //       : BasicType ident "(" Params ")"
 //    ;
+//
+//    Params
+//       : empty
+//       | ParamList
+//    ;
+//
 func NewFuncDecl(resultType, name, lparen, params, rparen interface{}) (*ast.FuncDecl, error) {
 	resType, err := NewType(resultType)
 	if err != nil {
