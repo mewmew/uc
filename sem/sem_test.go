@@ -18,27 +18,27 @@ func TestCheckError(t *testing.T) {
 	}{
 		{
 			path: "../testdata/incorrect/semantic/se01.c",
-			want: `undeclared identifier "b"`,
+			want: `100: undeclared identifier "b"`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se02.c",
-			want: `undeclared identifier "foo"`,
+			want: `96: undeclared identifier "foo"`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se03.c",
-			want: `undeclared identifier "output"`,
+			want: `84: undeclared identifier "output"`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se04.c",
-			want: "foo",
+			want: `79: redefinition of "a" with different type: "char" vs "int"`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se05.c",
-			want: "foo",
+			want: `79: redefinition of "a" with different type: "void(void)" vs "int"`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se06.c",
-			want: "foo",
+			want: `104: redefinition of "a"; previously declared at 70`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se07.c",

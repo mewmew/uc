@@ -39,10 +39,16 @@ func (s *Scope) Insert(decl ast.Decl) error {
 		s.Decls[name] = decl
 		return nil
 	}
+	prevIdent := prev.Name()
+
+	if prevIdent.NamePos == ident.NamePos {
+		// Identifier already added to scope.
+		return nil
+	}
 
 	// Previously declared.
 	if !types.Equal(prev.Type(), decl.Type()) {
-		return errutil.Newf("%d: redefinition of %q with different type: %q vs %q", decl.Start(), name, decl.Type(), prev.Type())
+		return errutil.Newf("%d: redefinition of %q with different type: %q vs %q", ident.Start(), name, decl.Type(), prev.Type())
 	}
 
 	// The last tentative definition becomes the definition, unless defined
@@ -54,9 +60,7 @@ func (s *Scope) Insert(decl ast.Decl) error {
 
 	// Definition already present in scope.
 	if isDef(decl) {
-		// TODO: Split into two error messages once support for "NOTE:" error
-		// messages and list of error messages have been added.
-		return errutil.Newf("%d: redefinition of %q; previously declared at %d", decl.Start(), name, prev.Start())
+		return errutil.Newf("%d: redefinition of %q; previously declared at %d", ident.Start(), name, prevIdent.Start())
 	}
 
 	// Declaration of previously declared identifier.
@@ -88,13 +92,17 @@ func Check(file *ast.File) error {
 	// Pre-pass, add keyword types and universe declarations.
 	//universe := NewScope(nil)
 	//for _, decl := range universeDecls {
-	//	universe.Insert(decl)
+	//	if err := universe.Insert(decl); err != nil {
+	//		return errutil.Err(err)
+	//	}
 	//}
 
 	// First pass, add global declarations to file-scope.
 	fileScope := NewScope(nil)
 	for _, decl := range file.Decls {
-		fileScope.Insert(decl)
+		if err := fileScope.Insert(decl); err != nil {
+			return errutil.Err(err)
+		}
 	}
 
 	// TODO: Add local declarations of functions.
@@ -112,7 +120,9 @@ func Check(file *ast.File) error {
 	resolve := func(n ast.Node) error {
 		switch n := n.(type) {
 		case ast.Decl:
-			scope.Insert(n)
+			if err := scope.Insert(n); err != nil {
+				return errutil.Err(err)
+			}
 			if fn, ok := n.(*ast.FuncDecl); ok && isDef(fn) {
 				skip = true
 				scope = NewScope(scope)
@@ -131,7 +141,7 @@ func Check(file *ast.File) error {
 					return nil
 				}
 
-				return errutil.Newf("undeclared identifier %q", n)
+				return errutil.Newf("%d: undeclared identifier %q", n.Start(), n)
 			}
 			n.Decl = decl
 		}
