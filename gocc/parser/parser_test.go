@@ -30,9 +30,9 @@ func TestParser(t *testing.T) {
 								Name:    "int",
 							},
 							Lparen: 8,
-							Params: []*ast.Field{
-								{
-									Type: &ast.Ident{
+							Params: []*ast.VarDecl{
+								&ast.VarDecl{
+									VarType: &ast.Ident{
 										NamePos: 9,
 										Name:    "void",
 									},
@@ -261,9 +261,9 @@ func TestParser(t *testing.T) {
 								Name:    "int",
 							},
 							Lparen: 8,
-							Params: []*ast.Field{
-								{
-									Type: &ast.Ident{
+							Params: []*ast.VarDecl{
+								&ast.VarDecl{
+									VarType: &ast.Ident{
 										NamePos: 9,
 										Name:    "void",
 									},
@@ -355,9 +355,9 @@ func TestParser(t *testing.T) {
 								Name:    "int",
 							},
 							Lparen: 9,
-							Params: []*ast.Field{
-								{
-									Type: &ast.Ident{
+							Params: []*ast.VarDecl{
+								&ast.VarDecl{
+									VarType: &ast.Ident{
 										NamePos: 10,
 										Name:    "void",
 									},
@@ -474,9 +474,9 @@ func TestParser(t *testing.T) {
 								Name:    "int",
 							},
 							Lparen: 9,
-							Params: []*ast.Field{
-								{
-									Type: &ast.Ident{
+							Params: []*ast.VarDecl{
+								&ast.VarDecl{
+									VarType: &ast.Ident{
 										NamePos: 10,
 										Name:    "void",
 									},
@@ -567,9 +567,9 @@ func TestParser(t *testing.T) {
 								Name:    "int",
 							},
 							Lparen: 8,
-							Params: []*ast.Field{
-								{
-									Type: &ast.Ident{
+							Params: []*ast.VarDecl{
+								&ast.VarDecl{
+									VarType: &ast.Ident{
 										NamePos: 9,
 										Name:    "void",
 									},
@@ -765,9 +765,9 @@ func TestParser(t *testing.T) {
 								Name:    "void",
 							},
 							Lparen: 30,
-							Params: []*ast.Field{
-								{
-									Type: &ast.ArrayType{
+							Params: []*ast.VarDecl{
+								&ast.VarDecl{
+									VarType: &ast.ArrayType{
 										Elem: &ast.Ident{
 											NamePos: 31,
 											Name:    "int",
@@ -775,13 +775,13 @@ func TestParser(t *testing.T) {
 										Lbracket: 36,
 										Rbracket: 37,
 									},
-									Name: &ast.Ident{
+									VarName: &ast.Ident{
 										NamePos: 35,
 										Name:    "h",
 									},
 								},
-								{
-									Type: &ast.ArrayType{
+								&ast.VarDecl{
+									VarType: &ast.ArrayType{
 										Elem: &ast.Ident{
 											NamePos: 40,
 											Name:    "char",
@@ -789,7 +789,7 @@ func TestParser(t *testing.T) {
 										Lbracket: 46,
 										Rbracket: 47,
 									},
-									Name: &ast.Ident{
+									VarName: &ast.Ident{
 										NamePos: 45,
 										Name:    "i",
 									},
@@ -813,9 +813,9 @@ func TestParser(t *testing.T) {
 								Name:    "int",
 							},
 							Lparen: 64,
-							Params: []*ast.Field{
-								{
-									Type: &ast.Ident{
+							Params: []*ast.VarDecl{
+								&ast.VarDecl{
+									VarType: &ast.Ident{
 										NamePos: 65,
 										Name:    "void",
 									},
@@ -852,9 +852,9 @@ func TestParser(t *testing.T) {
 								Name:    "void",
 							},
 							Lparen: 6,
-							Params: []*ast.Field{
-								{
-									Type: &ast.Ident{
+							Params: []*ast.VarDecl{
+								&ast.VarDecl{
+									VarType: &ast.Ident{
 										NamePos: 7,
 										Name:    "void",
 									},
@@ -883,9 +883,9 @@ func TestParser(t *testing.T) {
 								Name:    "int",
 							},
 							Lparen: 33,
-							Params: []*ast.Field{
-								{
-									Type: &ast.Ident{
+							Params: []*ast.VarDecl{
+								&ast.VarDecl{
+									VarType: &ast.Ident{
 										NamePos: 34,
 										Name:    "void",
 									},
@@ -919,9 +919,9 @@ func TestParser(t *testing.T) {
 								Name:    "int",
 							},
 							Lparen: 66,
-							Params: []*ast.Field{
-								{
-									Type: &ast.Ident{
+							Params: []*ast.VarDecl{
+								&ast.VarDecl{
+									VarType: &ast.Ident{
 										NamePos: 67,
 										Name:    "void",
 									},
@@ -975,9 +975,9 @@ func TestParser(t *testing.T) {
 								Name:    "int",
 							},
 							Lparen: 8,
-							Params: []*ast.Field{
-								{
-									Type: &ast.Ident{
+							Params: []*ast.VarDecl{
+								&ast.VarDecl{
+									VarType: &ast.Ident{
 										NamePos: 9,
 										Name:    "void",
 									},
@@ -1089,9 +1089,9 @@ func TestParser(t *testing.T) {
 								Name:    "int",
 							},
 							Lparen: 78,
-							Params: []*ast.Field{
-								{
-									Type: &ast.Ident{
+							Params: []*ast.VarDecl{
+								&ast.VarDecl{
+									VarType: &ast.Ident{
 										NamePos: 79,
 										Name:    "void",
 									},
