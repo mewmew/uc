@@ -1259,7 +1259,14 @@ func TestParserError(t *testing.T) {
 		},
 		{
 			path: "../../testdata/incorrect/parser/pe13.c",
-			want: `126: unexpected ")", expected ["ident"]`,
+			// Note, empty parameter list is explicitly allowed by the parser,
+			// and act the same as a void parameter, as per design decisions.
+			//
+			// References.
+			//    https://github.com/mewmew/uc/issues/46
+			//    https://github.com/mewmew/uc/issues/50
+			//    https://github.com/mewmew/uc/issues/33
+			want: "",
 		},
 		{
 			path: "../../testdata/incorrect/parser/pe14.c",

@@ -78,8 +78,8 @@ func NewFuncDecl(resultType, name, lparen, params, rparen interface{}) (*ast.Fun
 		return nil, errutil.Newf("invalid left-parenthesis type; expectd *gocctoken.Token, got %T", lparen)
 	}
 	pars, ok := params.([]*ast.VarDecl)
-	if !ok {
-		return nil, errutil.Newf("invalid function parameters type; expected []*ast.VarDecl, got %T", pars)
+	if !ok && params != nil {
+		return nil, errutil.Newf("invalid function parameters type; expected []*ast.VarDecl, got %T", params)
 	}
 	rpar, ok := rparen.(*gocctoken.Token)
 	if !ok {
