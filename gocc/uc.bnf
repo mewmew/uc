@@ -100,6 +100,7 @@ Decl
 	: VarDecl ";"                       << $0, nil >>
 	| FuncDecl ";"                      << $0, nil >>
 	| FuncDef
+	| TypeDef ";"                       << $0, nil >>
 ;
 
 FuncDecl
@@ -129,6 +130,10 @@ ArrayDecl
 	// BasicType : "char" | "int" ;
 	: BasicType ident "[" int_lit "]"   << astx.NewArrayDecl($0, $1, $2, $3, $4) >>
 	| BasicType ident "[" "]"           << astx.NewArrayDecl($0, $1, $2, 0, $3) >>
+;
+
+TypeDef
+	: "typedef" Type ident              << astx.NewTypeDef($0, $1, $2) >>
 ;
 
 BasicType

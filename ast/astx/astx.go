@@ -150,6 +150,28 @@ func NewArrayDecl(elem, name, lbracket, length, rbracket interface{}) (*ast.VarD
 	return &ast.VarDecl{VarType: typ, VarName: ident}, nil
 }
 
+// NewTypeDef returns a new type definition node, based on the following
+// production rule.
+//
+//    TypeDef
+//       : "typedef" Type ident
+//    ;
+func NewTypeDef(typedefTok, typ, name interface{}) (*ast.TypeDef, error) {
+	typedef, ok := typedefTok.(*gocctoken.Token)
+	if !ok {
+		return nil, errutil.Newf("invalid typedef keyword type; expectd *gocctoken.Token, got %T", typedefTok)
+	}
+	declType, err := NewType(typ)
+	if err != nil {
+		return nil, errutil.Newf("invalid type definition type; %v", err)
+	}
+	ident, err := NewIdent(name)
+	if err != nil {
+		return nil, errutil.Newf("invalid type definition identifier; %v", err)
+	}
+	return &ast.TypeDef{Typedef: typedef.Offset, DeclType: declType, TypeName: ident}, nil
+}
+
 // NewParamList returns a new parameter list, based on the following production
 // rule.
 //

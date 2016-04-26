@@ -1243,7 +1243,7 @@ func TestParserError(t *testing.T) {
 			//
 			// Update this test case if the test file is fixed.
 			path: "../../testdata/incorrect/parser/pe09.c",
-			want: `87: unexpected ";", expected ["$" "ident"]`,
+			want: `87: unexpected ";", expected ["$" "ident" "typedef"]`,
 		},
 		{
 			path: "../../testdata/incorrect/parser/pe10.c",

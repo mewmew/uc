@@ -35,7 +35,7 @@ type Node interface {
 //
 //    *FuncDecl
 //    *VarDecl
-//    *TypeDecl
+//    *TypeDef
 //
 // Pseudo-code representation of a declaration.
 //
@@ -57,7 +57,7 @@ type Decl interface {
 	//
 	//    Expr
 	//
-	// Underlying type for type declarations.
+	// Underlying type for type definitions.
 	//
 	//    Type
 	Value() Node
@@ -100,15 +100,15 @@ type (
 		Val Expr
 	}
 
-	// A TypeDecl node represents a type declaration.
+	// A TypeDef node represents a type definition.
 	//
 	// Examples.
 	//
 	//    typedef int foo;
-	TypeDecl struct {
+	TypeDef struct {
 		// Position of `typedef` keyword.
 		Typedef int
-		// Type declaration type.
+		// Underlying type of type definition.
 		DeclType Type
 		// Type name.
 		TypeName *Ident
@@ -320,7 +320,7 @@ type (
 		NamePos int
 		// Identifier name.
 		Name string
-		// Corresponding function, variable or type declaration. The declaration
+		// Corresponding function, variable or type definition. The declaration
 		// mapping is added during the semantic analysis phase, based on the
 		// lexical scope of the identifier.
 		Decl Decl
@@ -504,7 +504,7 @@ func (n *ReturnStmt) Start() int {
 }
 
 // Start returns the start position of the node within the input stream.
-func (n *TypeDecl) Start() int {
+func (n *TypeDef) Start() int {
 	return n.Typedef
 }
 
@@ -540,7 +540,7 @@ var (
 	_ Node = &IndexExpr{}
 	_ Node = &ParenExpr{}
 	_ Node = &ReturnStmt{}
-	_ Node = &TypeDecl{}
+	_ Node = &TypeDef{}
 	_ Node = &UnaryExpr{}
 	_ Node = &VarDecl{}
 	_ Node = &WhileStmt{}
@@ -559,7 +559,7 @@ func (n *VarDecl) Type() types.Type {
 }
 
 // Type returns the type of the declared identifier.
-func (n *TypeDecl) Type() types.Type {
+func (n *TypeDef) Type() types.Type {
 	// TODO: Consider caching the types.Type.
 
 	// NOTE: "A typedef declaration does not introduce a new type, only a synonym
@@ -578,7 +578,7 @@ func (n *VarDecl) Name() *Ident {
 }
 
 // Name returns the name of the declared identifier.
-func (n *TypeDecl) Name() *Ident {
+func (n *TypeDef) Name() *Ident {
 	return n.TypeName
 }
 
@@ -605,10 +605,10 @@ func (n *VarDecl) Value() Node {
 // Value returns the initializing value of the defined identifier; or nil if
 // declaration or tentative definition.
 //
-// Underlying type for type declarations.
+// Underlying type for type definitions.
 //
 //    Type
-func (n *TypeDecl) Value() Node {
+func (n *TypeDef) Value() Node {
 	return n.DeclType
 }
 
@@ -616,13 +616,13 @@ func (n *TypeDecl) Value() Node {
 // interface.
 func (n *FuncDecl) isDecl() {}
 func (n *VarDecl) isDecl()  {}
-func (n *TypeDecl) isDecl() {}
+func (n *TypeDef) isDecl()  {}
 
 // Verify that the declaration nodes implement the Decl interface.
 var (
 	_ Decl = &FuncDecl{}
 	_ Decl = &VarDecl{}
-	_ Decl = &TypeDecl{}
+	_ Decl = &TypeDef{}
 )
 
 // isStmt ensures that only statement nodes can be assigned to the Stmt
@@ -652,7 +652,7 @@ func (n *ExprStmt) isBlockItem()   {}
 func (n *FuncDecl) isBlockItem()   {}
 func (n *IfStmt) isBlockItem()     {}
 func (n *ReturnStmt) isBlockItem() {}
-func (n *TypeDecl) isBlockItem()   {}
+func (n *TypeDef) isBlockItem()    {}
 func (n *VarDecl) isBlockItem()    {}
 func (n *WhileStmt) isBlockItem()  {}
 
@@ -664,7 +664,7 @@ var (
 	_ BlockItem = &FuncDecl{}
 	_ BlockItem = &IfStmt{}
 	_ BlockItem = &ReturnStmt{}
-	_ BlockItem = &TypeDecl{}
+	_ BlockItem = &TypeDef{}
 	_ BlockItem = &VarDecl{}
 	_ BlockItem = &WhileStmt{}
 )
