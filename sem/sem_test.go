@@ -46,7 +46,7 @@ func TestCheckError(t *testing.T) {
 		},
 		{
 			path: "../testdata/incorrect/semantic/se08.c",
-			want: "foo",
+			want: `83: returning "void" from a function with incompatible result type "int"`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se09.c",
@@ -180,6 +180,8 @@ func TestCheckError(t *testing.T) {
 		}
 		if got != g.want {
 			t.Errorf("%q: error mismatch; expected `%v`, got `%v`", g.path, g.want, got)
+		} else {
+			log.Println(" ======== PASS ======== ")
 		}
 	}
 }

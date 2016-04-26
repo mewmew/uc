@@ -26,12 +26,21 @@ func deduce(file *ast.File) error {
 			}
 		case *ast.ReturnStmt:
 			curFunc := funcs[len(funcs)-1]
-			resType, err := typeOf(n.Result)
-			if err != nil {
-				return errutil.Err(err)
+			var resType types.Type
+			resType = &types.Basic{Kind: types.Void}
+			if n.Result != nil {
+				var err error
+				resType, err = typeOf(n.Result)
+				if err != nil {
+					return errutil.Err(err)
+				}
 			}
 			if !compatible(curFunc.Result, resType) {
-				return errutil.Newf("%d: returning %q from a function with incompatible result type %q", n.Result.Start(), resType, curFunc.Result)
+				resPos := n.Start()
+				if n.Result != nil {
+					resPos = n.Result.Start()
+				}
+				return errutil.Newf("%d: returning %q from a function with incompatible result type %q", resPos, resType, curFunc.Result)
 			}
 
 		}
