@@ -4,7 +4,7 @@ package sem
 import (
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
-	"github.com/mewmew/uc/sem/types"
+	"github.com/mewmew/uc/sem/typecheck"
 )
 
 // TODO: Verify that all declarations occur at the beginning of the function
@@ -32,7 +32,7 @@ import (
 
 // Check performs a static semantic analysis check on the given file.
 func Check(file *ast.File) error {
-	if err := types.Check(file); err != nil {
+	if err := typecheck.Check(file); err != nil {
 		return errutil.Err(err)
 	}
 	return nil
