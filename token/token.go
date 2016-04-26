@@ -70,10 +70,11 @@ const (
 	keywordStart
 
 	// Keywords.
-	KwElse   // else
-	KwIf     // if
-	KwReturn // return
-	KwWhile  // while
+	KwElse    // else
+	KwIf      // if
+	KwReturn  // return
+	KwTypedef // typedef
+	KwWhile   // while
 
 	keywordEnd
 )
@@ -95,8 +96,9 @@ func (kind Kind) IsOperator() bool {
 
 // Keywords is the set of valid keywords in the µC programming language.
 var Keywords = map[string]Kind{
-	"else":   KwElse,
-	"if":     KwIf,
-	"return": KwReturn,
-	"while":  KwWhile,
+	"else":    KwElse,
+	"if":      KwIf,
+	"return":  KwReturn,
+	"typedef": KwTypedef,
+	"while":   KwWhile,
 }
