@@ -11,7 +11,7 @@ import (
 	"github.com/mewmew/uc/sem"
 )
 
-func TestCheck(t *testing.T) {
+func TestCheckError(t *testing.T) {
 	var golden = []struct {
 		path string
 		want string
