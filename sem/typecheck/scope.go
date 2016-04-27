@@ -89,16 +89,23 @@ func Check(file *ast.File) error {
 	// TODO: Add keyword type declarations to universe scope. Remove special
 	// cases for basic types (i.e. identifiers).
 
+	// TODO: Verify that type keywords cannot be redeclared.
+
 	// Pre-pass, add keyword types and universe declarations.
-	//universe := NewScope(nil)
-	//for _, decl := range universeDecls {
-	//	if err := universe.Insert(decl); err != nil {
-	//		return errutil.Err(err)
-	//	}
-	//}
+	universe := NewScope(nil)
+	universeDecls := []*ast.TypeDef{
+		&ast.TypeDef{DeclType: &ast.Ident{Name: "char"}, TypeName: &ast.Ident{Name: "char"}},
+		&ast.TypeDef{DeclType: &ast.Ident{Name: "int"}, TypeName: &ast.Ident{Name: "int"}},
+		&ast.TypeDef{DeclType: &ast.Ident{Name: "void"}, TypeName: &ast.Ident{Name: "void"}},
+	}
+	for _, decl := range universeDecls {
+		if err := universe.Insert(decl); err != nil {
+			return errutil.Err(err)
+		}
+	}
 
 	// First pass, add global declarations to file-scope.
-	fileScope := NewScope(nil)
+	fileScope := NewScope(universe)
 	for _, decl := range file.Decls {
 		if err := fileScope.Insert(decl); err != nil {
 			return errutil.Err(err)
@@ -135,12 +142,6 @@ func Check(file *ast.File) error {
 		case *ast.Ident:
 			decl, ok := scope.Lookup(n.Name)
 			if !ok {
-				// TODO: Remove hack and implement proper support for ident types
-				switch n.Name {
-				case "char", "int", "void":
-					return nil
-				}
-
 				return errutil.Newf("%d: undeclared identifier %q", n.Start(), n)
 			}
 			n.Decl = decl
