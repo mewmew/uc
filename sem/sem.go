@@ -33,6 +33,10 @@ import (
 
 // Check performs a static semantic analysis check on the given file.
 func Check(file *ast.File) error {
+	// 1) Identifier resolution.
+	if err := resolve(file); err != nil {
+		return errutil.Err(err)
+	}
 	if err := typecheck.Check(file); err != nil {
 		return errutil.Err(err)
 	}

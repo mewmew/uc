@@ -67,15 +67,15 @@ func TestCheckError(t *testing.T) {
 		},
 		{
 			path: "../testdata/incorrect/semantic/se04.c",
-			want: `79: redefinition of "a" with different type: "char" vs "int"`,
+			want: `79: redefinition of "a" with type "char" instead of "int"`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se05.c",
-			want: `79: redefinition of "a" with different type: "void(void)" vs "int"`,
+			want: `79: redefinition of "a" with type "void(void)" instead of "int"`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se06.c",
-			want: `104: redefinition of "a"; previously declared at 70`,
+			want: `104: redefinition of "a"; previously defined at 70`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se07.c",
@@ -87,19 +87,19 @@ func TestCheckError(t *testing.T) {
 		},
 		{
 			path: "../testdata/incorrect/semantic/se09.c",
-			want: "foo",
+			want: `132: returning "char[1]" from a function with incompatible result type "int"`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se10.c",
-			want: "foo",
+			want: `103: invalid operation: n[2] (type "int" does not support indexing)`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se11.c",
-			want: "foo",
+			want: `84: cannot assign to "a" of type "int(void)"`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se12.c",
-			want: "foo",
+			want: `94: cannot call non-function "a" of type "int"`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se13.c",
