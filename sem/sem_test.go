@@ -11,6 +11,43 @@ import (
 	"github.com/mewmew/uc/sem"
 )
 
+func TestCheck(t *testing.T) {
+	var golden = []struct {
+		path string
+	}{
+		{path: "../testdata/quiet/semantic/s01.c"},
+		{path: "../testdata/quiet/semantic/s02.c"},
+		{path: "../testdata/quiet/semantic/s03.c"},
+		{path: "../testdata/quiet/semantic/s04.c"},
+		{path: "../testdata/quiet/semantic/s05.c"},
+		{path: "../testdata/quiet/semantic/s06.c"},
+	}
+
+	for _, g := range golden {
+		log.Println("path:", g.path)
+		s, err := scanner.Open(g.path)
+		if err != nil {
+			t.Error(err)
+			continue
+		}
+		p := parser.NewParser()
+		file, err := p.Parse(s)
+		if err != nil {
+			t.Error(err)
+			continue
+		}
+		f := file.(*ast.File)
+		err = sem.Check(f)
+		if err != nil {
+			if e, ok := err.(*errutil.ErrInfo); ok {
+				// Unwrap errutil error.
+				err = e.Err
+			}
+			t.Errorf("%q: unexpected error: `%v`", g.path, err.Error())
+		}
+	}
+}
+
 func TestCheckError(t *testing.T) {
 	var golden = []struct {
 		path string
