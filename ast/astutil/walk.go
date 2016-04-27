@@ -1,4 +1,3 @@
-// Package astutil implements utility functions for walking parse trees.
 package astutil
 
 import (
