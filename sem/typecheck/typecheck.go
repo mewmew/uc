@@ -1,23 +1,82 @@
 package typecheck
 
 import (
+	"log"
+
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
+	"github.com/mewmew/uc/ast/astutil"
+	"github.com/mewmew/uc/types"
 )
 
 // Check type-checks the given file.
 func Check(file *ast.File) error {
-	// Type-checking is done in two passes to allow for forward references.
-	// Firstly, the global declarations are added to the file-scope. Secondly,
-	// the global function declaration bodies are traversed to resolve
-	// identifiers and deduce the types of expressions.
-
-	// 2) Type deduction of expressions.
-	if err := deduce(file); err != nil {
+	// Deduce the types of expressions.
+	exprType, err := deduce(file)
+	if err != nil {
 		return errutil.Err(err)
 	}
 
-	// TODO: Remove debug output.
+	// Type-check file.
+	if err := check(file, exprType); err != nil {
+		return errutil.Err(err)
+	}
 
 	return nil
+}
+
+// check type-checks the given file.
+func check(file *ast.File, exprType map[ast.Expr]types.Type) error {
+	// funcs is a stack of function declarations, where the top-most entry
+	// represents the currently active function.
+	var funcs []*types.Func
+
+	before := func(n ast.Node) error {
+		switch n := n.(type) {
+		case *ast.FuncDecl:
+			if astutil.IsDef(n) {
+				// push function declaration.
+				funcs = append(funcs, n.Type().(*types.Func))
+			}
+		case *ast.ReturnStmt:
+			curFunc := funcs[len(funcs)-1]
+			var resType types.Type
+			resType = &types.Basic{Kind: types.Void}
+			if n.Result != nil {
+				resType = exprType[n.Result]
+			}
+			if !compatible(curFunc.Result, resType) {
+				resPos := n.Start()
+				if n.Result != nil {
+					resPos = n.Result.Start()
+				}
+				return errutil.Newf("%d: returning %q from a function with incompatible result type %q", resPos, resType, curFunc.Result)
+			}
+		default:
+			log.Printf("not type-checked: %T\n", n)
+		}
+		return nil
+	}
+
+	after := func(n ast.Node) error {
+		switch n := n.(type) {
+		case *ast.FuncDecl:
+			if astutil.IsDef(n) {
+				// pop function declaration.
+				funcs = funcs[:len(funcs)-1]
+			}
+		}
+		return nil
+	}
+
+	if err := astutil.WalkBeforeAfter(file, before, after); err != nil {
+		return errutil.Err(err)
+	}
+
+	return nil
+}
+
+func compatible(a, b types.Type) bool {
+	// TODO: Implement type compatibility checks.
+	return types.Equal(a, b)
 }

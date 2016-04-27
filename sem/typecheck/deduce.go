@@ -2,7 +2,6 @@ package typecheck
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
@@ -12,10 +11,9 @@ import (
 )
 
 // deduce performs type deduction of expressions to annotate the AST.
-func deduce(file *ast.File) error {
-
+func deduce(file *ast.File) (exprType map[ast.Expr]types.Type, err error) {
 	// Map expression nodes to types.
-	exprType := make(map[ast.Expr]types.Type)
+	exprType = make(map[ast.Expr]types.Type)
 	deduce := func(n ast.Node) error {
 		if expr, ok := n.(ast.Expr); ok {
 			typ, err := typeOf(expr)
@@ -27,63 +25,12 @@ func deduce(file *ast.File) error {
 		return nil
 	}
 	if err := astutil.Walk(file, deduce); err != nil {
-		return errutil.Err(err)
+		return nil, errutil.Err(err)
 	}
-
-	// funcs is a stack of function declarations, where the top-most entry
-	// represents the currently active function.
-	var funcs []*types.Func
-
-	before := func(n ast.Node) error {
-		switch n := n.(type) {
-		case *ast.FuncDecl:
-			if astutil.IsDef(n) {
-				// push function declaration.
-				funcs = append(funcs, n.Type().(*types.Func))
-			}
-		case *ast.ReturnStmt:
-			curFunc := funcs[len(funcs)-1]
-			var resType types.Type
-			resType = &types.Basic{Kind: types.Void}
-			if n.Result != nil {
-				resType = exprType[n.Result]
-			}
-			if !compatible(curFunc.Result, resType) {
-				resPos := n.Start()
-				if n.Result != nil {
-					resPos = n.Result.Start()
-				}
-				return errutil.Newf("%d: returning %q from a function with incompatible result type %q", resPos, resType, curFunc.Result)
-			}
-		default:
-			log.Printf("not type-checked: %T\n", n)
-		}
-		return nil
-	}
-
-	after := func(n ast.Node) error {
-		switch n := n.(type) {
-		case *ast.FuncDecl:
-			if astutil.IsDef(n) {
-				// pop function declaration.
-				funcs = funcs[:len(funcs)-1]
-			}
-		}
-		return nil
-	}
-
-	if err := astutil.WalkBeforeAfter(file, before, after); err != nil {
-		return errutil.Err(err)
-	}
-
-	return nil
+	return exprType, nil
 }
 
-func compatible(a, b types.Type) bool {
-	// TODO: Implement type compatibility checks.
-	return types.Equal(a, b)
-}
-
+// typeOf returns the type of the given expression.
 func typeOf(n ast.Expr) (types.Type, error) {
 	switch n := n.(type) {
 	case *ast.BasicLit:
