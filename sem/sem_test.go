@@ -101,55 +101,55 @@ func TestCheckError(t *testing.T) {
 		},
 		{
 			path: "../testdata/incorrect/semantic/se13.c",
-			want: `112: invalid operation: 1 + foo(0) (type mismatch between "int" and "void")`,
+			want: `112: invalid operands to binary expression: 1 + foo(0) ("int" and "void")`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se14.c",
-			want: "foo",
+			want: `143: cannot call non-function "f" of type "int"`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se15.c",
-			want: "foo",
+			want: `147: calling "q" with too few arguments; expected 3, got 2`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se16.c",
-			want: "foo",
+			want: `128: calling "d" with too many arguments; expected 2, got 3`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se17.c",
-			want: "foo",
+			want: `108: invalid operation: hello + 1 (type mismatch between "char[5]" and "int")`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se18.c",
-			want: "foo",
+			want: `101: cannot assign to "a" of type "char[10]"`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se19.c",
-			want: "foo",
+			want: `103: invalid operation: a == 42 (type mismatch between "char[10]" and "int")`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se20.c",
-			want: "foo",
+			want: `113: cannot assign to "a" of type "int[10]"`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se21.c",
-			want: "foo",
+			want: `107: returning "char[10]" from a function with incompatible result type "int"`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se22.c",
-			want: "foo",
+			want: `100: invalid operation: a + 1 (type mismatch between "char[10]" and "int")`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se23.c",
-			want: "foo",
+			want: `97: invalid operation: b[0] (type "int" does not support indexing)`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se24.c",
-			want: "foo",
+			want: `106: cannot assign to "b" of type "int[10]"`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se25.c",
-			want: "foo",
+			want: `94: cannot assign to "(1 + 2)" of type "int"`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se26.c",
@@ -157,35 +157,35 @@ func TestCheckError(t *testing.T) {
 		},
 		{
 			path: "../testdata/incorrect/semantic/se27.c",
-			want: "foo",
+			want: `101: returning "int" from a function with incompatible result type "void"`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se28.c",
-			want: "foo",
+			want: `113: returning "int" from a function with incompatible result type "void"`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se29.c",
-			want: "foo",
+			want: `90: redefinition of "n" with type "char" instead of "int"`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se30.c",
-			want: "foo",
+			want: `47: cannot assign to "a" (type mismatch between "int" and "int[10]")`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se31.c",
-			want: "foo",
+			want: `79: redefinition of "a" with type "void(void)" instead of "int"`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se32.c",
-			want: "foo",
+			want: `105: invalid operands to binary expression: 1 + foo(0) ("int" and "void")`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se33.c",
-			want: "foo",
+			want: `119: calling "q" with too few arguments; expected 3, got 2`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se34.c",
-			want: "foo",
+			want: `109: calling "d" with too many arguments; expected 2, got 3`,
 		},
 	}
 
