@@ -1,3 +1,4 @@
+// Package typecheck implements type-checking of parse trees.
 package typecheck
 
 import (

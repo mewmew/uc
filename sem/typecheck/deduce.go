@@ -42,7 +42,6 @@ func typeOf(n ast.Expr) (types.Type, error) {
 		default:
 			panic(fmt.Sprintf("support for basic type kind %v not yet implemented", n.Kind))
 		}
-		panic(fmt.Sprintf("support for type %T not yet implemented.", n))
 	case *ast.BinaryExpr:
 		x, err := typeOf(n.X)
 		if err != nil {
@@ -66,7 +65,6 @@ func typeOf(n ast.Expr) (types.Type, error) {
 		}
 		// TODO: Implement implicit conversion.
 		return x, nil
-		panic(fmt.Sprintf("support for type %T not yet implemented.", n))
 	case *ast.CallExpr:
 		typ := n.Name.Decl.Type()
 		if typ, ok := typ.(*types.Func); ok {
@@ -119,7 +117,6 @@ func isAssignable(x ast.Expr) bool {
 		default:
 			panic(fmt.Sprintf("support for declaration type %T not yet implemented", typ))
 		}
-		return true
 	case *ast.IndexExpr:
 		return true
 	case *ast.ParenExpr:
