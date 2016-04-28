@@ -2,6 +2,7 @@ package typecheck
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
@@ -52,7 +53,11 @@ func typeOf(n ast.Expr) (types.Type, error) {
 		if err != nil {
 			return nil, errutil.Err(err)
 		}
-		if !isCompatible(x, y) {
+		if n.Op == token.Assign {
+			if !isAssignable(n.X) || !isCompatible(x, y) {
+				return nil, errutil.Newf("%d: cannot assign to %q of type %q", n.OpPos, n.X, x)
+			}
+		} else if !isCompatible(x, y) {
 			return nil, errutil.Newf("invalid operation: %v (type mismatch between %q and %q)", n, x, y)
 		}
 		// TODO: Implement implicit conversion.
@@ -80,5 +85,36 @@ func typeOf(n ast.Expr) (types.Type, error) {
 		panic(fmt.Sprintf("support for type %T not yet implemented.", n))
 	default:
 		panic(fmt.Sprintf("support for type %T not yet implemented.", n))
+	}
+}
+
+// TODO: Verify isAssignable against the definition of lvale in the C spec (I
+// tried and failed).
+
+// isAssignable reports whether the given expression is assignable (i.e. a valid
+// lvalue).
+func isAssignable(x ast.Expr) bool {
+	switch x := x.(type) {
+	case *ast.BasicLit:
+		return false
+	case *ast.BinaryExpr:
+		log.Println("TODO: binary expression:", x)
+		// TODO: Figure out how to handle binary expressions; e.g.
+		//
+		//    a = b = c;
+		return false
+	case *ast.CallExpr:
+		return false
+	case *ast.Ident:
+		return true
+	case *ast.IndexExpr:
+		return true
+	case *ast.ParenExpr:
+		return isAssignable(x.X)
+	case *ast.UnaryExpr:
+		// TODO: Add support for pointer dereferences.
+		return false
+	default:
+		panic(fmt.Sprintf("support for expression type %T not yet implemented", x))
 	}
 }
