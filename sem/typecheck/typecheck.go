@@ -1,8 +1,6 @@
 package typecheck
 
 import (
-	"log"
-
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
 	"github.com/mewmew/uc/ast/astutil"
@@ -53,7 +51,8 @@ func check(file *ast.File, exprType map[ast.Expr]types.Type) error {
 				return errutil.Newf("%d: returning %q from a function with incompatible result type %q", resPos, resType, curFunc.Result)
 			}
 		default:
-			log.Printf("not type-checked: %T\n", n)
+			// TODO: Implement type-checking for remaining node types.
+			//log.Printf("not type-checked: %T\n", n)
 		}
 		return nil
 	}

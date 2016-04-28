@@ -59,15 +59,23 @@ func typeOf(n ast.Expr) (types.Type, error) {
 		return x, nil
 		panic(fmt.Sprintf("support for type %T not yet implemented.", n))
 	case *ast.CallExpr:
-		return n.Name.Decl.Type().(*types.Func).Result, nil
+		typ := n.Name.Decl.Type()
+		if typ, ok := typ.(*types.Func); ok {
+			return typ.Result, nil
+		}
+		return nil, errutil.Newf("%d: cannot call non-function %q of type %q", n.Start(), n.Name, typ)
 	case *ast.Ident:
 		// TODO: Make sure that type declarations are handled correctly for
 		// keyword types such as "int".
 		return n.Decl.Type(), nil
 	case *ast.IndexExpr:
-		panic(fmt.Sprintf("support for type %T not yet implemented.", n))
+		typ := n.Name.Decl.Type()
+		if typ, ok := typ.(*types.Array); ok {
+			return typ.Elem, nil
+		}
+		return nil, errutil.Newf("%d: invalid operation: %v (type %q does not support indexing)", n.Start(), n, typ)
 	case *ast.ParenExpr:
-		panic(fmt.Sprintf("support for type %T not yet implemented.", n))
+		return typeOf(n.X)
 	case *ast.UnaryExpr:
 		panic(fmt.Sprintf("support for type %T not yet implemented.", n))
 	default:
