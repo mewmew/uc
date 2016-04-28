@@ -2,7 +2,6 @@ package typecheck
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
@@ -54,9 +53,14 @@ func typeOf(n ast.Expr) (types.Type, error) {
 			return nil, errutil.Err(err)
 		}
 		if n.Op == token.Assign {
-			if !isAssignable(n.X) || !isCompatible(x, y) {
+			if !isAssignable(n.X) {
 				return nil, errutil.Newf("%d: cannot assign to %q of type %q", n.OpPos, n.X, x)
 			}
+			if !isCompatible(x, y) {
+				return nil, errutil.Newf("%d: cannot assign to %q (type mismatch between %q and %q)", n.OpPos, n.X, x, y)
+			}
+		} else if isVoid(x) || isVoid(y) {
+			return nil, errutil.Newf("%d: invalid operands to binary expression: %v (%q and %q)", n.OpPos, n, x, y)
 		} else if !isCompatible(x, y) {
 			return nil, errutil.Newf("%d: invalid operation: %v (type mismatch between %q and %q)", n.OpPos, n, x, y)
 		}
@@ -98,14 +102,23 @@ func isAssignable(x ast.Expr) bool {
 	case *ast.BasicLit:
 		return false
 	case *ast.BinaryExpr:
-		log.Println("TODO: binary expression:", x)
-		// TODO: Figure out how to handle binary expressions; e.g.
+		// TODO: Figure out how to handle binary assignment expressions; e.g.
 		//
 		//    a = b = c;
 		return false
 	case *ast.CallExpr:
 		return false
 	case *ast.Ident:
+		switch typ := x.Decl.Type().(type) {
+		case *types.Basic:
+			return true
+		case *types.Array:
+			return false
+		case *types.Func:
+			return false
+		default:
+			panic(fmt.Sprintf("support for declaration type %T not yet implemented", typ))
+		}
 		return true
 	case *ast.IndexExpr:
 		return true
@@ -117,4 +130,12 @@ func isAssignable(x ast.Expr) bool {
 	default:
 		panic(fmt.Sprintf("support for expression type %T not yet implemented", x))
 	}
+}
+
+// isVoid reports whether the given type is a void type.
+func isVoid(typ types.Type) bool {
+	if typ, ok := typ.(*types.Basic); ok {
+		return typ.Kind == types.Void
+	}
+	return false
 }
