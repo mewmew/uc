@@ -1,7 +1,6 @@
 package sem_test
 
 import (
-	"log"
 	"testing"
 
 	"github.com/mewkiz/pkg/errutil"
@@ -11,7 +10,7 @@ import (
 	"github.com/mewmew/uc/sem"
 )
 
-func TestCheck(t *testing.T) {
+func TestCheckValid(t *testing.T) {
 	var golden = []struct {
 		path string
 	}{
@@ -24,7 +23,6 @@ func TestCheck(t *testing.T) {
 	}
 
 	for _, g := range golden {
-		log.Println("path:", g.path)
 		s, err := scanner.Open(g.path)
 		if err != nil {
 			t.Error(err)
@@ -192,7 +190,6 @@ func TestCheckError(t *testing.T) {
 	}
 
 	for _, g := range golden {
-		log.Println("path:", g.path)
 		s, err := scanner.Open(g.path)
 		if err != nil {
 			t.Error(err)
@@ -217,8 +214,6 @@ func TestCheckError(t *testing.T) {
 		}
 		if got != g.want {
 			t.Errorf("%q: error mismatch; expected `%v`, got `%v`", g.path, g.want, got)
-		} else {
-			log.Println(" ======== PASS ======== ")
 		}
 	}
 }
