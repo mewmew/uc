@@ -481,22 +481,22 @@ func (n *File) String() string {
 
 func (n *FuncDecl) String() string {
 	buf := new(bytes.Buffer)
-	buf.WriteString(n.FuncType.Result.String())
-	buf.WriteString(" ")
-	buf.WriteString(n.FuncName.String())
-	buf.WriteString("(")
+	fmt.Fprintf(buf, "%v %v(", n.FuncType.Result, n.FuncName)
 	for i, param := range n.FuncType.Params {
 		if i != 0 {
 			buf.WriteString(", ")
 		}
 		buf.WriteString(param.VarType.String())
-		buf.WriteString(" ")
-		buf.WriteString(param.VarName.String())
+		if param.VarName != nil {
+			buf.WriteString(" ")
+			buf.WriteString(param.VarName.String())
+		}
 	}
 	buf.WriteString(")")
-	// TODO: Decide if we want to print definition body. We do not want to do
-	// it for most error messages. Use Print("%q %q", n, n.Body)? Same for
-	// others?
+	if n.Body != nil {
+		buf.WriteString(" ")
+		buf.WriteString(n.Body.String())
+	}
 	return buf.String()
 }
 
