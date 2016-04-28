@@ -14,9 +14,9 @@ func resolve(file *ast.File) error {
 	// Pre-pass, add keyword types and universe declarations.
 	universe := NewScope(nil)
 	universeDecls := []*ast.TypeDef{
-		&ast.TypeDef{DeclType: &ast.Ident{Name: "char"}, TypeName: &ast.Ident{Name: "char"}},
-		&ast.TypeDef{DeclType: &ast.Ident{Name: "int"}, TypeName: &ast.Ident{Name: "int"}},
-		&ast.TypeDef{DeclType: &ast.Ident{Name: "void"}, TypeName: &ast.Ident{Name: "void"}},
+		{DeclType: &ast.Ident{Name: "char"}, TypeName: &ast.Ident{Name: "char"}},
+		{DeclType: &ast.Ident{Name: "int"}, TypeName: &ast.Ident{Name: "int"}},
+		{DeclType: &ast.Ident{Name: "void"}, TypeName: &ast.Ident{Name: "void"}},
 	}
 	for _, decl := range universeDecls {
 		if err := universe.Insert(decl); err != nil {
