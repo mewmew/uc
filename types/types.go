@@ -47,7 +47,9 @@ type Type interface {
 	fmt.Stringer
 }
 
+// A Numerical type is numerical if so specified by IsNumerical.
 type Numerical interface {
+	// IsNumerical reports whether the given type is numerical.
 	IsNumerical() bool
 }
 
@@ -167,6 +169,7 @@ func Equal(t, u Type) bool {
 	return t.Equal(u)
 }
 
+// IsNumerical reports whether the given type is numerical.
 func (t *Basic) IsNumerical() bool {
 	switch t.Kind {
 	case Int, Char:
@@ -174,7 +177,7 @@ func (t *Basic) IsNumerical() bool {
 	case Void:
 		return false
 	default:
-		panic(fmt.Sprintf("Numerical interface for basic type (%d) not implemented", int(t.Kind)))
+		panic(fmt.Sprintf("types.Basic.IsNumerical: unknown basic type (%d)", int(t.Kind)))
 	}
 }
 

@@ -51,12 +51,27 @@ func check(file *ast.File, exprType map[ast.Expr]types.Type) error {
 				return errutil.Newf("%d: returning %q from a function with incompatible result type %q", resPos, resType, curFunc.Result)
 			}
 		case *ast.CallExpr:
-			if decl, ok := n.Name.Decl.Type().(*types.Func); ok {
-				// Check number of args
-				if len(decl.Params) != len(n.Args) {
-					return errutil.Newf("%d: calling %q with wrong number of arguments %q", n.Start(), n, decl..String())
+			fn, ok := n.Name.Decl.Type().(*types.Func)
+			if !ok {
+				return errutil.Newf("%d: cannot call non-function %q of type %q", n.Start(), n.Name, fn)
+			}
+
+			// Check number of arguments.
+			if len(n.Args) < len(fn.Params) {
+				return errutil.Newf("%d: calling %q with too few arguments; expected %d, got %d", n.Start(), n.Name, len(fn.Params), len(n.Args))
+			} else if len(n.Args) > len(fn.Params) {
+				return errutil.Newf("%d: calling %q with too many arguments; expected %d, got %d", n.Start(), n.Name, len(fn.Params), len(n.Args))
+			}
+			// Check that callee argument types match the function parameter types.
+			for i, param := range fn.Params {
+				arg := n.Args[i]
+				paramType := param.Type
+				argType := exprType[arg]
+				if !isCompatibleArg(paramType, argType) {
+					return errutil.Newf("%d: calling %q with incompatible argument type %q to parameter of type %q", arg.Start(), n.Name, argType, paramType)
 				}
 			}
+			return nil
 		default:
 			// TODO: Implement type-checking for remaining node types.
 			//log.Printf("not type-checked: %T\n", n)
@@ -71,21 +86,6 @@ func check(file *ast.File, exprType map[ast.Expr]types.Type) error {
 				// pop function declaration.
 				funcs = funcs[:len(funcs)-1]
 			}
-		case *ast.CallExpr:
-			decl, ok := n.Name.Decl.Type().(*types.Func)
-			if !ok {
-				return errutil.Newf("%d: calling %q from a function with incompatible type %q", n.Start(), n, n.Name.Decl)
-			}
-			declParams := decl.Params
-			callArgs := n.Args
-			// Check that callee args types match the declared param types
-			for i, declParam := range declParams {
-				callArg := callArgs[i]
-				if isCallCompatible(declParam.Type, exprType[callArg]) {
-					return nil
-				}
-				return errutil.Newf("%d: calling %q with incompatible type %q instead of %q", callArgs[i].Start(), n, callArgs[i], declParam)
-			}
 		}
 		return nil
 	}
@@ -97,18 +97,20 @@ func check(file *ast.File, exprType map[ast.Expr]types.Type) error {
 	return nil
 }
 
-func isCallCompatible(decl, call types.Type) bool {
-	if isCompatible(decl, call) {
+// isCompatibleArg reports whether the given argument and function parameter
+// types are compatible.
+func isCompatibleArg(param, arg types.Type) bool {
+	if isCompatible(param, arg) {
 		return true
 	}
-	if decl, ok := decl.(*types.Array); ok {
-		if call, ok := call.(*types.Array); ok {
+	if param, ok := param.(*types.Array); ok {
+		if arg, ok := arg.(*types.Array); ok {
 			// TODO: future. Check for other compatibles; pointers,
 			// arraynames, strings(gcc)?
-			if decl.Len == 0 {
-				if declArrayType, ok := decl.Elem.(*types.Basic); ok {
-					if callArrayType, ok := call.Elem.(*types.Basic); ok {
-						return declArrayType.Kind == callArrayType.Kind
+			if param.Len == 0 {
+				if paramElem, ok := param.Elem.(*types.Basic); ok {
+					if argElem, ok := arg.Elem.(*types.Basic); ok {
+						return paramElem.Kind == argElem.Kind
 					}
 				}
 			}
@@ -116,6 +118,8 @@ func isCallCompatible(decl, call types.Type) bool {
 	}
 	return false
 }
+
+// isCompatible reports whether a and b are of compatible types.
 func isCompatible(a, b types.Type) bool {
 	if types.Equal(a, b) {
 		return true

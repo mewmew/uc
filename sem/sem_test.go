@@ -153,7 +153,7 @@ func TestCheckError(t *testing.T) {
 		},
 		{
 			path: "../testdata/incorrect/semantic/se26.c",
-			want: "foo",
+			want: `132: calling "f" with incompatible argument type "char[10]" to parameter of type "int[]"`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se27.c",
