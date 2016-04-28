@@ -3,6 +3,9 @@
 package ast
 
 import (
+	"bytes"
+	"fmt"
+
 	"github.com/mewmew/uc/token"
 	"github.com/mewmew/uc/types"
 )
@@ -26,6 +29,7 @@ type File struct {
 //    Expr
 //    Type
 type Node interface {
+	fmt.Stringer
 	// Start returns the start position of the node within the input stream.
 	Start() int
 }
@@ -419,10 +423,131 @@ type (
 	}
 )
 
-// TODO: Implement String method for each node type.
+func (n *ArrayType) String() string {
+	if n.Len > 0 {
+		return fmt.Sprintf("%v[%d]", n.Elem, n.Len)
+	}
+	return fmt.Sprintf("%v[]", n.Elem)
+}
+
+func (n *BasicLit) String() string {
+	return n.Val
+}
+
+func (n *BinaryExpr) String() string {
+	// TODO: Verify that n.Op prints as "+" rather than "Add"
+	return fmt.Sprintf("%v %v %v", n.X, n.Op, n.Y)
+}
+
+func (n *BlockStmt) String() string {
+	buf := new(bytes.Buffer)
+	buf.WriteString("{\n")
+	for _, item := range n.Items {
+		buf.WriteString(item.String() + "\n")
+	}
+	buf.WriteString("}\n")
+	return buf.String()
+}
+
+func (n *CallExpr) String() string {
+	buf := new(bytes.Buffer)
+	buf.WriteString(n.Name.String())
+	buf.WriteString("(")
+	for i, arg := range n.Args {
+		if i != 0 {
+			buf.WriteString(", ")
+		}
+		buf.WriteString(arg.String())
+	}
+	buf.WriteString(")")
+	return buf.String()
+}
+
+func (n *EmptyStmt) String() string {
+	return ";"
+}
+
+func (n *ExprStmt) String() string {
+	return fmt.Sprintf("%v;", n.X)
+}
+
+func (n *File) String() string {
+	buf := new(bytes.Buffer)
+	for _, decl := range n.Decls {
+		buf.WriteString(decl.String())
+	}
+	return buf.String()
+}
+
+func (n *FuncDecl) String() string {
+	if n.Body != nil {
+		fmt.Sprintf("%v %v", n.FuncType, n.Body)
+	}
+	return fmt.Sprintf("%v;", n.FuncType)
+}
+
+func (n *FuncType) String() string {
+	buf := new(bytes.Buffer)
+	buf.WriteString(n.Result.String())
+	buf.WriteString("(")
+	for i, param := range n.Params {
+		if i != 0 {
+			buf.WriteString(", ")
+		}
+		buf.WriteString(param.VarType.String())
+	}
+	buf.WriteString(")")
+	return buf.String()
+}
 
 func (n *Ident) String() string {
 	return n.Name
+}
+
+func (n *IfStmt) String() string {
+	if n.Else != nil {
+		return fmt.Sprintf("if (%v) %v else %v", n.Cond, n.Body, n.Else)
+	}
+	return fmt.Sprintf("if (%v) %v", n.Cond, n.Body)
+}
+
+func (n *IndexExpr) String() string {
+	return fmt.Sprintf("%v[%v]", n.Name, n.Index)
+}
+
+func (n *ParenExpr) String() string {
+	return fmt.Sprintf("(%v)", n.X)
+}
+
+func (n *ReturnStmt) String() string {
+	if n.Result != nil {
+		return fmt.Sprintf("return %v;", n.Result)
+	}
+	return "return;"
+}
+
+func (n *TypeDef) String() string {
+	return fmt.Sprintf("typedef %v %v;", n.DeclType, n.TypeName)
+}
+
+func (n *UnaryExpr) String() string {
+	return fmt.Sprintf("%v%v", n.Op, n.X)
+}
+
+func (n *VarDecl) String() string {
+	switch typ := n.VarType.(type) {
+	case *ArrayType:
+		if typ.Len > 0 {
+			return fmt.Sprintf("%v %v[%d];", typ.Elem, n.VarName, typ.Len)
+		}
+		return fmt.Sprintf("%v %v[];", typ.Elem, n.VarName)
+	default:
+		return fmt.Sprintf("%v %v;", typ, n.VarName)
+	}
+}
+
+func (n *WhileStmt) String() string {
+	return fmt.Sprintf("while (%v) %v", n.Cond, n.Body)
 }
 
 // Start returns the start position of the node within the input stream.

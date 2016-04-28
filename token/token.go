@@ -15,11 +15,12 @@ type Token struct {
 }
 
 func (tok Token) String() string {
-	return fmt.Sprintf(`token.Token{Kind: token.%v, Val: %q, Pos: %v}`, tok.Kind, tok.Val, tok.Pos)
+	return fmt.Sprintf(`token.Token{Kind: token.%v, Val: %q, Pos: %v}`, tok.Kind.GoString(), tok.Val, tok.Pos)
 }
 
 //go:generate stringer -type Kind
 //go:generate gorename -from kind_string.go::i -to kind
+//go:generate gorename -from kind_string.go::String -to GoString
 
 // Kind is the set of lexical token types of the µC programming language.
 type Kind uint16
@@ -78,6 +79,44 @@ const (
 
 	keywordEnd
 )
+
+func (kind Kind) String() string {
+	names := map[Kind]string{
+		EOF:       "EOF",
+		Error:     "error",
+		Comment:   "comment",
+		Ident:     "identifier",
+		IntLit:    "integer literal",
+		CharLit:   "character literal",
+		Add:       "+",
+		Sub:       "-",
+		Mul:       "*",
+		Div:       "/",
+		Assign:    "=",
+		Eq:        "==",
+		Ne:        "!=",
+		Lt:        "<",
+		Le:        "<=",
+		Gt:        ">",
+		Ge:        ">=",
+		Land:      "&&",
+		Not:       "!",
+		Lparen:    "(",
+		Rparen:    ")",
+		Lbracket:  "[",
+		Rbracket:  "]",
+		Lbrace:    "{",
+		Rbrace:    "}",
+		Comma:     ",",
+		Semicolon: ";",
+		KwElse:    "else",
+		KwIf:      "if",
+		KwReturn:  "return",
+		KwTypedef: "typedef",
+		KwWhile:   "while",
+	}
+	return names[kind]
+}
 
 // IsKeyword reports whether kind is a keyword.
 func (kind Kind) IsKeyword() bool {
