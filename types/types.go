@@ -47,6 +47,10 @@ type Type interface {
 	fmt.Stringer
 }
 
+type Numerical interface {
+	IsNumerical() bool
+}
+
 // Types.
 type (
 	// A Basic represents a basic type.
@@ -161,6 +165,17 @@ func (t *Func) Equal(u Type) bool {
 // Equal reports whether t and u are of equal type.
 func Equal(t, u Type) bool {
 	return t.Equal(u)
+}
+
+func (t *Basic) IsNumerical() bool {
+	switch t.Kind {
+	case Int, Char:
+		return true
+	case Void:
+		return false
+	default:
+		panic(fmt.Sprintf("Numerical interface for basic type (%d) not implemented", int(t.Kind)))
+	}
 }
 
 func (t *Basic) String() string {

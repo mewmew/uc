@@ -43,7 +43,7 @@ func check(file *ast.File, exprType map[ast.Expr]types.Type) error {
 			if n.Result != nil {
 				resType = exprType[n.Result]
 			}
-			if !compatible(curFunc.Result, resType) {
+			if !compatible(resType, curFunc.Result) {
 				resPos := n.Start()
 				if n.Result != nil {
 					resPos = n.Result.Start()
@@ -77,5 +77,14 @@ func check(file *ast.File, exprType map[ast.Expr]types.Type) error {
 
 func compatible(a, b types.Type) bool {
 	// TODO: Implement type compatibility checks.
-	return types.Equal(a, b)
+	if types.Equal(a, b) {
+		return true
+	}
+	if a, ok := a.(types.Numerical); ok {
+		if b, ok := b.(types.Numerical); ok {
+			// TODO: Check for other compatibles; pointers, arraynames, strings(gcc)?
+			return a.IsNumerical() && b.IsNumerical()
+		}
+	}
+	return false
 }
