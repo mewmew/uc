@@ -13,7 +13,7 @@ func ExampleParseFile() {
 		log.Fatal(err)
 	}
 	for _, tok := range tokens {
-		fmt.Printf("%-9v   %q\n", tok.Kind, tok.Val)
+		fmt.Printf("%-9v   %q\n", tok.Kind.GoString(), tok.Val)
 	}
 	// Output:
 	// Ident       "int"

@@ -73,7 +73,7 @@ func typeOf(n ast.Expr) (types.Type, error) {
 		if typ, ok := typ.(*types.Array); ok {
 			return typ.Elem, nil
 		}
-		return nil, errutil.Newf("%d: invalid operation: %v (type %q does not support indexing)", n.Start(), n, typ)
+		return nil, errutil.Newf("%d: invalid operation: %v (type %q does not support indexing)", n.Lbracket, n, typ)
 	case *ast.ParenExpr:
 		return typeOf(n.X)
 	case *ast.UnaryExpr:
