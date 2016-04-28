@@ -68,7 +68,7 @@ func typeOf(n ast.Expr) (types.Type, error) {
 		if typ, ok := typ.(*types.Func); ok {
 			return typ.Result, nil
 		}
-		return nil, errutil.Newf("%d: cannot call non-function %q of type %q", n.Start(), n.Name, typ)
+		return nil, errutil.Newf("%d: cannot call non-function %q of type %q", n.Lparen, n.Name, typ)
 	case *ast.Ident:
 		// TODO: Make sure that type declarations are handled correctly for
 		// keyword types such as "int".
