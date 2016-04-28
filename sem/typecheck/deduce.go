@@ -58,7 +58,7 @@ func typeOf(n ast.Expr) (types.Type, error) {
 				return nil, errutil.Newf("%d: cannot assign to %q of type %q", n.OpPos, n.X, x)
 			}
 		} else if !isCompatible(x, y) {
-			return nil, errutil.Newf("invalid operation: %v (type mismatch between %q and %q)", n, x, y)
+			return nil, errutil.Newf("%d: invalid operation: %v (type mismatch between %q and %q)", n.OpPos, n, x, y)
 		}
 		// TODO: Implement implicit conversion.
 		return x, nil

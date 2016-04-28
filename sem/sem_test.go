@@ -101,7 +101,7 @@ func TestCheckError(t *testing.T) {
 		},
 		{
 			path: "../testdata/incorrect/semantic/se13.c",
-			want: "foo",
+			want: `112: invalid operation: 1 + foo(0) (type mismatch between "int" and "void")`,
 		},
 		{
 			path: "../testdata/incorrect/semantic/se14.c",
