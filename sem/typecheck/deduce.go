@@ -52,7 +52,7 @@ func typeOf(n ast.Expr) (types.Type, error) {
 		if err != nil {
 			return nil, errutil.Err(err)
 		}
-		if !compatible(x, y) {
+		if !isCompatible(x, y) {
 			return nil, errutil.Newf("invalid operation: %v (type mismatch between %q and %q)", n, x, y)
 		}
 		// TODO: Implement implicit conversion.

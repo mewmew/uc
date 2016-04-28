@@ -43,12 +43,19 @@ func check(file *ast.File, exprType map[ast.Expr]types.Type) error {
 			if n.Result != nil {
 				resType = exprType[n.Result]
 			}
-			if !compatible(resType, curFunc.Result) {
+			if !isCompatible(resType, curFunc.Result) {
 				resPos := n.Start()
 				if n.Result != nil {
 					resPos = n.Result.Start()
 				}
 				return errutil.Newf("%d: returning %q from a function with incompatible result type %q", resPos, resType, curFunc.Result)
+			}
+		case *ast.CallExpr:
+			if decl, ok := n.Name.Decl.Type().(*types.Func); ok {
+				// Check number of args
+				if len(decl.Params) != len(n.Args) {
+					return errutil.Newf("%d: calling %q with wrong number of arguments %q", n.Start(), n, decl..String())
+				}
 			}
 		default:
 			// TODO: Implement type-checking for remaining node types.
@@ -64,6 +71,21 @@ func check(file *ast.File, exprType map[ast.Expr]types.Type) error {
 				// pop function declaration.
 				funcs = funcs[:len(funcs)-1]
 			}
+		case *ast.CallExpr:
+			decl, ok := n.Name.Decl.Type().(*types.Func)
+			if !ok {
+				return errutil.Newf("%d: calling %q from a function with incompatible type %q", n.Start(), n, n.Name.Decl)
+			}
+			declParams := decl.Params
+			callArgs := n.Args
+			// Check that callee args types match the declared param types
+			for i, declParam := range declParams {
+				callArg := callArgs[i]
+				if isCallCompatible(declParam.Type, exprType[callArg]) {
+					return nil
+				}
+				return errutil.Newf("%d: calling %q with incompatible type %q instead of %q", callArgs[i].Start(), n, callArgs[i], declParam)
+			}
 		}
 		return nil
 	}
@@ -75,14 +97,33 @@ func check(file *ast.File, exprType map[ast.Expr]types.Type) error {
 	return nil
 }
 
-func compatible(a, b types.Type) bool {
-	// TODO: Implement type compatibility checks.
+func isCallCompatible(decl, call types.Type) bool {
+	if isCompatible(decl, call) {
+		return true
+	}
+	if decl, ok := decl.(*types.Array); ok {
+		if call, ok := call.(*types.Array); ok {
+			// TODO: future. Check for other compatibles; pointers,
+			// arraynames, strings(gcc)?
+			if decl.Len == 0 {
+				if declArrayType, ok := decl.Elem.(*types.Basic); ok {
+					if callArrayType, ok := call.Elem.(*types.Basic); ok {
+						return declArrayType.Kind == callArrayType.Kind
+					}
+				}
+			}
+		}
+	}
+	return false
+}
+func isCompatible(a, b types.Type) bool {
 	if types.Equal(a, b) {
 		return true
 	}
 	if a, ok := a.(types.Numerical); ok {
 		if b, ok := b.(types.Numerical); ok {
-			// TODO: Check for other compatibles; pointers, arraynames, strings(gcc)?
+			// TODO: future. Check for other compatibles; pointers,
+			// arraynames, strings(gcc)?
 			return a.IsNumerical() && b.IsNumerical()
 		}
 	}
