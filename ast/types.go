@@ -18,7 +18,6 @@ func newType(n Node) types.Type {
 		}
 		return &types.Func{Result: newType(n.Result), Params: params}
 	case *Ident:
-		fmt.Printf("n: %#v\n", n)
 		return n.Decl.Type()
 	default:
 		panic(fmt.Sprintf("support for type %T not yet implemented", n))
