@@ -14,28 +14,30 @@ var UseColor = true
 
 // An Error represents a semantic analysis error.
 type Error struct {
-	// Input source position.
-	Position int
+	// Input source position (in bytes).
+	Pos int
 	// Error message.
 	Text string
 	// Input source.
 	Src *Source
 }
 
-// New returns a new error with the given positional information.
+// New returns a new error based on the given positional information (offset in
+// bytes).
 func New(pos int, text string) *Error {
 	err := &Error{
-		Position: pos,
-		Text:     text,
+		Pos:  pos,
+		Text: text,
 	}
 	return err
 }
 
-// Newf returns a new formatted error with the given positional information.
+// New returns a new formatted error based on the given positional information
+// (offset in bytes).
 func Newf(pos int, format string, a ...interface{}) *Error {
 	err := &Error{
-		Position: pos,
-		Text:     fmt.Sprintf(format, a...),
+		Pos:  pos,
+		Text: fmt.Sprintf(format, a...),
 	}
 	return err
 }
@@ -47,33 +49,37 @@ func Newf(pos int, format string, a ...interface{}) *Error {
 //    (file:line:column): error: text
 func (e *Error) Error() string {
 	// Use colors.
-	pos := e.Position
-	sPos := string(pos)
+	pos := fmt.Sprintf("(byte offset %d)", e.Pos)
 	prefix := "error:"
 	text := e.Text
-	src := e.Src
 	if UseColor {
-		sPos = term.Color(sPos, term.Bold)
+		pos = term.Color(pos, term.Bold)
 		prefix = term.RedBold(prefix)
 		text = term.Color(text, term.Bold)
 	}
+	src := e.Src
 	if src == nil {
-		// If Src is nil, the format is as follows.
+		// If Src is nil, the error format is as follows.
 		//
-		//    (byte offset %d)
-		return fmt.Sprintf("(byte offset %d) %s %s", sPos, prefix, text)
+		//    (byte offset %d) error: text
+		return fmt.Sprintf("%s %s %s", pos, prefix, text)
 	}
-	// The position format is as follows.
+	// The error format is as follows.
 	//
-	//    (file:line) message type:
-	line, col := src.Position(pos)
-	srcLine := strings.Replace(src.Input[src.Lines[line-1]:src.Lines[line]], "\t", " ", -1)
-	srcLine = strings.Trim(srcLine, "\n\r")
-	point := fmt.Sprintf("%*s", col, "^")
+	//    (file:line) error: text
+	//       1 = y
+	//         ^
+	line, col := src.Position(e.Pos)
+	srcLine := src.Input[src.Lines[line-1]:src.Lines[line]]
+	srcLine = strings.Replace(srcLine, "\t", " ", -1)
+	srcLine = strings.TrimRight(srcLine, "\n\r")
+	arrow := fmt.Sprintf("%*s", col, "^")
+	pos = fmt.Sprintf("(%s:%d)", src.Path, line)
 	if UseColor {
-		point = term.Color(point, term.Bold)
+		pos = term.Color(pos, term.Bold)
+		arrow = term.Color(arrow, term.Bold)
 	}
-	return fmt.Sprintf("(%s:%d) %s %s\n%s\n%s", src.Path, line, prefix, text, srcLine, point)
+	return fmt.Sprintf("%s %s %s\n%s\n%s", pos, prefix, text, srcLine, arrow)
 }
 
 // A Source represents an input source.
