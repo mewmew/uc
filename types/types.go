@@ -5,36 +5,6 @@ import (
 	"fmt"
 )
 
-// TODO: Implement type checking which ensures correct uses of "void".
-// Relevant sections of the uC BNF grammar have been included below.
-//
-//    TopLevelDecl
-//       : VarDecl ";"
-//       | TypeName ident "(" Params ")" FuncBody // TypeName : "char" | "int" | "void" ;
-//    ;
-//
-//    ScalarDecl
-//       : TypeName ident // TypeName : "char" | "int" ;
-//    ;
-//
-//    ArrayDecl
-//       : TypeName ident "[" int_lit "]" // TypeName : "char" | "int" ;
-//    ;
-//
-//    Params
-//       : TypeName   // TypeName : "void" ;
-//       | ParamList
-//    ;
-//
-//    ParamDecl
-//       : ScalarDecl
-//       | TypeName ident "[" "]" // TypeName : "char" | "int" ;
-//    ;
-
-// TODO: Make sure that array declarations (e.g. `int x[5]`) may only be used
-// within declaration statements, and array parameter declarations (e.g. `int
-// x[]`) may only be used within function signatures.
-
 // A Type represents a type of µC, and has one of the following underlying
 // types.
 //

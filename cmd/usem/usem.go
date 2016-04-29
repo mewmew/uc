@@ -114,7 +114,5 @@ func checkFile(path string, hand bool) error {
 		return errutil.Err(err)
 	}
 
-	//pretty.Print(file)
-
 	return nil
 }
