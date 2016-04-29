@@ -54,7 +54,11 @@ func main() {
 	for _, path := range flag.Args() {
 		err := checkFile(path, hand)
 		if err != nil {
-			log.Print(err)
+			if _, ok := err.(*semerrors.Error); ok {
+				elog.Print(err)
+			} else {
+				log.Print(err)
+			}
 		}
 	}
 }
@@ -116,3 +120,7 @@ func checkFile(path string, hand bool) error {
 
 	return nil
 }
+
+// elog represents a logger with no prefix or flags, which logs errors to
+// standard error.
+var elog = log.New(os.Stderr, "", 0)

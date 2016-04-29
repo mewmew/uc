@@ -435,17 +435,16 @@ func (n *BasicLit) String() string {
 }
 
 func (n *BinaryExpr) String() string {
-	// TODO: Verify that n.Op prints as "+" rather than "Add"
 	return fmt.Sprintf("%v %v %v", n.X, n.Op, n.Y)
 }
 
 func (n *BlockStmt) String() string {
 	buf := new(bytes.Buffer)
-	buf.WriteString("{\n")
+	buf.WriteString("{")
 	for _, item := range n.Items {
-		buf.WriteString(item.String() + "\n")
+		buf.WriteString(item.String())
 	}
-	buf.WriteString("}\n")
+	buf.WriteString("}")
 	return buf.String()
 }
 
