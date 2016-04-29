@@ -1,0 +1,22 @@
+\subsection{Design Decisions}
+
+\subsubsection{Typing Rules}
+
+%============ from assignment 2 ==============
+\begin{lstlisting}[language=C,style=c,caption={\label{fig:nested_func_decl}Nested function declarations.}]
+int add(int a, int b) {
+	// Nested function declarations are syntactically valid.
+	int nested(void) {
+		return a + b;
+	}
+	return nested();
+}
+\end{lstlisting}
+
+The static checker of the semantic analysis phase will ensure that functions contain no nested function declarations, unless the relevant GNU extension has been enabled\footnote{Add support for nested functions (GNU extension): \url{https://github.com/mewmew/uc/issues/43}}.
+%============ from assignment 2 end ==============
+
+\subsubsection{Scope}
+
+
+\subsubsection{Environment}
