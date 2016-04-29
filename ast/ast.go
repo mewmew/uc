@@ -116,6 +116,8 @@ type (
 		DeclType Type
 		// Type name.
 		TypeName *Ident
+		// Underlying type of type definition.
+		Val types.Type
 	}
 )
 
@@ -698,11 +700,13 @@ func (n *VarDecl) Type() types.Type {
 
 // Type returns the type of the declared identifier.
 func (n *TypeDef) Type() types.Type {
-	// TODO: Consider caching the types.Type.
-
 	// NOTE: "A typedef declaration does not introduce a new type, only a synonym
 	// for the type so specified." (see §6.7.7.3)
-	return newType(n.DeclType)
+	if n.Val != nil {
+		return n.Val
+	}
+	n.Val = newType(n.DeclType)
+	return n.Val
 }
 
 // Name returns the name of the declared identifier.
