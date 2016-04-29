@@ -3473,6 +3473,7 @@ func BenchmarkLexer(b *testing.B) {
 		b.Fatal(err)
 	}
 	src := string(buf)
+	b.SetBytes(int64(len(src)))
 	for i := 0; i < b.N; i++ {
 		tokens := lexer.ParseString(src)
 		for _, tok := range tokens {
