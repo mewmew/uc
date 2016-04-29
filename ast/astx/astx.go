@@ -3,11 +3,8 @@
 package astx
 
 import (
-	"fmt"
-
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
-	"github.com/mewmew/uc/gocc/errors"
 	gocctoken "github.com/mewmew/uc/gocc/token"
 	"github.com/mewmew/uc/token"
 )
@@ -616,22 +613,4 @@ func AppendExpr(list, x interface{}) ([]ast.Expr, error) {
 		return append(lst, x), nil
 	}
 	return nil, errutil.Newf("invalid expression list expression type; expected ast.Expr, got %T", x)
-}
-
-// TODO: Remove NewExpectedError if it is not in use after the parser error
-// handling has matured.
-
-// NewExpectedError returns a user-friendly parse error of the following form.
-//
-//    pos: unexpected "foo", expected bar
-//
-// where pos is the position (in bytes) within the input stream, foo the next
-// token in the input stream and bar a description of the expected token or
-// production.
-func NewExpectedError(err interface{}, expected string) (ast.Node, error) {
-	if err, ok := err.(*errors.Error); ok {
-		pos := err.ErrorToken.Offset
-		return nil, fmt.Errorf("%d: unexpected %q, expected %v", pos, string(err.ErrorToken.Lit), expected)
-	}
-	return nil, errutil.Newf("invalid error type; expected *errors.Error, got %T", err)
 }
