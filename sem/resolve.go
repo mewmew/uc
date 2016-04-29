@@ -5,6 +5,7 @@ import (
 	"github.com/mewmew/uc/ast"
 	"github.com/mewmew/uc/ast/astutil"
 	"github.com/mewmew/uc/sem/errors"
+	"github.com/mewmew/uc/types"
 )
 
 // resolve performs identifier resolution, mapping identifiers to corresponding
@@ -15,9 +16,9 @@ func resolve(file *ast.File) error {
 	// Pre-pass, add keyword types and universe declarations.
 	universe := NewScope(nil)
 	universeDecls := []*ast.TypeDef{
-		{DeclType: &ast.Ident{Name: "char"}, TypeName: &ast.Ident{Name: "char"}},
-		{DeclType: &ast.Ident{Name: "int"}, TypeName: &ast.Ident{Name: "int"}},
-		{DeclType: &ast.Ident{Name: "void"}, TypeName: &ast.Ident{Name: "void"}},
+		{DeclType: &ast.Ident{Name: "char"}, TypeName: &ast.Ident{Name: "char"}, Val: &types.Basic{Kind: types.Char}},
+		{DeclType: &ast.Ident{Name: "int"}, TypeName: &ast.Ident{Name: "int"}, Val: &types.Basic{Kind: types.Int}},
+		{DeclType: &ast.Ident{Name: "void"}, TypeName: &ast.Ident{Name: "void"}, Val: &types.Basic{Kind: types.Void}},
 	}
 	for _, decl := range universeDecls {
 		if err := universe.Insert(decl); err != nil {

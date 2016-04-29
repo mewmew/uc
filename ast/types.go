@@ -18,7 +18,7 @@ func newType(n Node) types.Type {
 		}
 		return &types.Func{Result: newType(n.Result), Params: params}
 	case *Ident:
-		return newBasicType(n.Name)
+		return n.Decl.Type()
 	default:
 		panic(fmt.Sprintf("support for type %T not yet implemented", n))
 	}
@@ -31,21 +31,4 @@ func newField(decl *VarDecl) *types.Field {
 		typ.Name = decl.VarName.Name
 	}
 	return typ
-}
-
-// newBasicType returns a new basic type equivalent to the given identifier.
-func newBasicType(name string) *types.Basic {
-	var kind types.BasicKind
-	switch name {
-	case "char":
-		kind = types.Char
-	case "int":
-		kind = types.Int
-	case "void":
-		kind = types.Void
-	default:
-		// TODO: Implement support for user-defined types.
-		panic(fmt.Sprintf("support for basic type %q not yet implemented", name))
-	}
-	return &types.Basic{Kind: kind}
 }
