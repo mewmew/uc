@@ -100,9 +100,6 @@ func isAssignable(x ast.Expr) bool {
 	case *ast.BasicLit:
 		return false
 	case *ast.BinaryExpr:
-		// TODO: Figure out how to handle binary assignment expressions; e.g.
-		//
-		//    a = b = c;
 		return false
 	case *ast.CallExpr:
 		return false

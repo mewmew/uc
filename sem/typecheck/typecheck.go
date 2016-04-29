@@ -57,12 +57,13 @@ func check(file *ast.File, exprType map[ast.Expr]types.Type) error {
 				return errutil.Newf("%d: cannot call non-function %q of type %q", n.Lparen, n.Name, fn)
 			}
 			// Check number of arguments.
+			// TODO: Future. handle call to function with ellipsis.
 			if len(n.Args) < len(fn.Params) {
 				return errutil.Newf("%d: calling %q with too few arguments; expected %d, got %d", n.Lparen, n.Name, len(fn.Params), len(n.Args))
 			} else if len(n.Args) > len(fn.Params) {
 				return errutil.Newf("%d: calling %q with too many arguments; expected %d, got %d", n.Lparen, n.Name, len(fn.Params), len(n.Args))
 			}
-			// Check that callee argument types match the function parameter types.
+			// Check that call argument types match the function parameter types.
 			for i, param := range fn.Params {
 				arg := n.Args[i]
 				paramType := param.Type
