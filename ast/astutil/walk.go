@@ -35,6 +35,10 @@ func WalkBeforeAfter(node ast.Node, before, after func(ast.Node) error) error {
 		if n != nil {
 			return walkVarDecl(n, before, after)
 		}
+	case *ast.TypeDef:
+		if n != nil {
+			return walkTypeDef(n, before, after)
+		}
 
 	// Statements.
 	case *ast.BlockStmt:
@@ -169,6 +173,24 @@ func walkVarDecl(decl *ast.VarDecl, before, after func(ast.Node) error) error {
 		return errutil.Err(err)
 	}
 	if err := after(decl); err != nil {
+		return errutil.Err(err)
+	}
+	return nil
+}
+
+// walkTypeDef walks the parse tree of the given type declaration in depth first
+// order.
+func walkTypeDef(def *ast.TypeDef, before, after func(ast.Node) error) error {
+	if err := before(def); err != nil {
+		return errutil.Err(err)
+	}
+	if err := WalkBeforeAfter(def.DeclType, before, after); err != nil {
+		return errutil.Err(err)
+	}
+	if err := WalkBeforeAfter(def.TypeName, before, after); err != nil {
+		return errutil.Err(err)
+	}
+	if err := after(def); err != nil {
 		return errutil.Err(err)
 	}
 	return nil
