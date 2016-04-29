@@ -15,18 +15,18 @@ var UseColor = true
 // An Error represents a semantic analysis error.
 type Error struct {
 	// Input source position.
-	Position
+	Position int
 	// Error message.
 	Text string
+	// Input source.
+	Src *Source
 }
 
 // New returns a new error with the given positional information.
 func New(pos int, text string) *Error {
 	err := &Error{
-		Position: Position{
-			Pos: pos,
-		},
-		Text: text,
+		Position: pos,
+		Text:     text,
 	}
 	return err
 }
@@ -34,10 +34,8 @@ func New(pos int, text string) *Error {
 // Newf returns a new formatted error with the given positional information.
 func Newf(pos int, format string, a ...interface{}) *Error {
 	err := &Error{
-		Position: Position{
-			Pos: pos,
-		},
-		Text: fmt.Sprintf(format, a...),
+		Position: pos,
+		Text:     fmt.Sprintf(format, a...),
 	}
 	return err
 }
@@ -49,40 +47,33 @@ func Newf(pos int, format string, a ...interface{}) *Error {
 //    (file:line:column): error: text
 func (e *Error) Error() string {
 	// Use colors.
-	pos := e.Position.String()
+	pos := e.Position
+	sPos := string(pos)
 	prefix := "error:"
 	text := e.Text
+	src := e.Src
 	if UseColor {
-		pos = term.WhiteBold(pos)
+		sPos = term.WhiteBold(sPos) // TODO: Replace with Bold when avaliable
 		prefix = term.RedBold(prefix)
-		text = term.WhiteBold(text)
+		text = term.WhiteBold(text) // TODO: Replace with Bold when avaliable
 	}
-	return fmt.Sprintf("%s %s %s", pos, prefix, text)
-}
-
-// A Position represents an input source position.
-type Position struct {
-	// Input source position (in bytes).
-	Pos int
-	// Input source.
-	Src *Source
-}
-
-// String returns a string representation of the position.
-//
-// The position format is as follows.
-//
-//    (file:line:column)
-//
-// If Src is nil, the position format is as follows.
-//
-//    (byte offset %d)
-func (pos Position) String() string {
-	if pos.Src == nil {
-		return fmt.Sprintf("(byte offset %d)", pos.Pos)
+	if src == nil {
+		// If Src is nil, the format is as follows.
+		//
+		//    (byte offset %d)
+		return fmt.Sprintf("(byte offset %d) %s %s", sPos, prefix, text)
 	}
-	line, col := pos.Src.Position(pos.Pos)
-	return fmt.Sprintf("(%s:%d:%d)", pos.Src.Path, line, col)
+	// The position format is as follows.
+	//
+	//    (file:line) message type:
+	line, col := src.Position(pos)
+	srcLine := strings.Replace(src.Input[src.Lines[line-1]:src.Lines[line]], "\t", " ", -1)
+	srcLine = strings.Trim(srcLine, "\n\r")
+	point := fmt.Sprintf("%*s", col, "^")
+	if UseColor {
+		point = term.WhiteBold(point) // TODO: Replace with Bold when avaliable
+	}
+	return fmt.Sprintf("(%s:%d) %s %s\n%s\n%s", src.Path, line, prefix, text, srcLine, point)
 }
 
 // A Source represents an input source.
