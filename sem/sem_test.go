@@ -189,6 +189,8 @@ func TestCheckError(t *testing.T) {
 		},
 	}
 
+	// TODO: Add test cases from testdata/extra/semantics/*.c
+
 	for _, g := range golden {
 		s, err := scanner.Open(g.path)
 		if err != nil {

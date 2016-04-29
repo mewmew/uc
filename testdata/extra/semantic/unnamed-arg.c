@@ -1,4 +1,6 @@
-// Invalid function definition; parameter name obmitted.
+// Invalid function definition
+//
+//    parameter name obmitted.
 void f(int) {
 	;
 }
