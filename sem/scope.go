@@ -1,9 +1,9 @@
 package sem
 
 import (
-	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
 	"github.com/mewmew/uc/ast/astutil"
+	"github.com/mewmew/uc/sem/errors"
 	"github.com/mewmew/uc/types"
 )
 
@@ -45,7 +45,7 @@ func (s *Scope) Insert(decl ast.Decl) error {
 
 	// Previously declared.
 	if !types.Equal(prev.Type(), decl.Type()) {
-		return errutil.Newf("%d: redefinition of %q with type %q instead of %q", ident.Start(), name, decl.Type(), prev.Type())
+		return errors.Newf(ident.Start(), "redefinition of %q with type %q instead of %q", name, decl.Type(), prev.Type())
 	}
 
 	// The last tentative definition becomes the definition, unless defined
@@ -57,7 +57,7 @@ func (s *Scope) Insert(decl ast.Decl) error {
 
 	// Definition already present in scope.
 	if astutil.IsDef(decl) {
-		return errutil.Newf("%d: redefinition of %q; previously defined at %d", ident.Start(), name, prevIdent.Start())
+		return errors.Newf(ident.Start(), "redefinition of %q; previously defined at %d", name, prevIdent.Start())
 	}
 
 	// Declaration of previously declared identifier.

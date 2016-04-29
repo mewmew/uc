@@ -5,6 +5,7 @@ import (
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
 	"github.com/mewmew/uc/ast/astutil"
+	"github.com/mewmew/uc/sem/errors"
 	"github.com/mewmew/uc/types"
 )
 
@@ -49,19 +50,19 @@ func check(file *ast.File, exprType map[ast.Expr]types.Type) error {
 				if n.Result != nil {
 					resPos = n.Result.Start()
 				}
-				return errutil.Newf("%d: returning %q from a function with incompatible result type %q", resPos, resType, curFunc.Result)
+				return errors.Newf(resPos, "returning %q from a function with incompatible result type %q", resType, curFunc.Result)
 			}
 		case *ast.CallExpr:
 			fn, ok := n.Name.Decl.Type().(*types.Func)
 			if !ok {
-				return errutil.Newf("%d: cannot call non-function %q of type %q", n.Lparen, n.Name, fn)
+				return errors.Newf(n.Lparen, "cannot call non-function %q of type %q", n.Name, fn)
 			}
 			// Check number of arguments.
 			// TODO: Future. handle call to function with ellipsis.
 			if len(n.Args) < len(fn.Params) {
-				return errutil.Newf("%d: calling %q with too few arguments; expected %d, got %d", n.Lparen, n.Name, len(fn.Params), len(n.Args))
+				return errors.Newf(n.Lparen, "calling %q with too few arguments; expected %d, got %d", n.Name, len(fn.Params), len(n.Args))
 			} else if len(n.Args) > len(fn.Params) {
-				return errutil.Newf("%d: calling %q with too many arguments; expected %d, got %d", n.Lparen, n.Name, len(fn.Params), len(n.Args))
+				return errors.Newf(n.Lparen, "calling %q with too many arguments; expected %d, got %d", n.Name, len(fn.Params), len(n.Args))
 			}
 			// Check that call argument types match the function parameter types.
 			for i, param := range fn.Params {
@@ -69,7 +70,7 @@ func check(file *ast.File, exprType map[ast.Expr]types.Type) error {
 				paramType := param.Type
 				argType := exprType[arg]
 				if !isCompatibleArg(paramType, argType) {
-					return errutil.Newf("%d: calling %q with incompatible argument type %q to parameter of type %q", arg.Start(), n.Name, argType, paramType)
+					return errors.Newf(arg.Start(), "calling %q with incompatible argument type %q to parameter of type %q", n.Name, argType, paramType)
 				}
 			}
 			return nil

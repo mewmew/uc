@@ -18,11 +18,12 @@ import (
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewkiz/pkg/ioutilx"
 	"github.com/mewmew/uc/ast"
-	"github.com/mewmew/uc/gocc/errors"
+	goccerrors "github.com/mewmew/uc/gocc/errors"
 	"github.com/mewmew/uc/gocc/parser"
 	goccscanner "github.com/mewmew/uc/gocc/scanner"
 	handscanner "github.com/mewmew/uc/hand/scanner"
 	"github.com/mewmew/uc/sem"
+	semerrors "github.com/mewmew/uc/sem/errors"
 )
 
 func usage() {
@@ -78,10 +79,9 @@ func checkFile(path string, hand bool) error {
 		return errutil.Err(err)
 	}
 	if path == "-" {
-		fmt.Fprintln(os.Stderr, "Checking from standard input")
-	} else {
-		fmt.Fprintf(os.Stderr, "Checking %q\n", path)
+		path = "<stdin>"
 	}
+	fmt.Fprintf(os.Stderr, "Checking %q\n", path)
 	var s parser.Scanner
 	if hand {
 		s = handscanner.NewFromBytes(buf)
@@ -93,14 +93,24 @@ func checkFile(path string, hand bool) error {
 	p := parser.NewParser()
 	f, err := p.Parse(s)
 	if err != nil {
-		if err, ok := err.(*errors.Error); ok {
+		if err, ok := err.(*goccerrors.Error); ok {
 			// Unwrap Gocc error.
 			return parser.NewError(err)
 		}
 		return errutil.Err(err)
 	}
 	file := f.(*ast.File)
+	input := string(buf)
+	src := semerrors.NewSource(path, input)
 	if err := sem.Check(file); err != nil {
+		if err, ok := err.(*errutil.ErrInfo); ok {
+			// Unwrap errutil error.
+			if err, ok := err.Err.(*semerrors.Error); ok {
+				// Unwrap semantic analysis error, and add input source information.
+				err.Src = src
+				return err
+			}
+		}
 		return errutil.Err(err)
 	}
 

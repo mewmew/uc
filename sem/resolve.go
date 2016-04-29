@@ -4,6 +4,7 @@ import (
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
 	"github.com/mewmew/uc/ast/astutil"
+	"github.com/mewmew/uc/sem/errors"
 )
 
 // resolve performs identifier resolution, mapping identifiers to corresponding
@@ -62,7 +63,7 @@ func resolve(file *ast.File) error {
 		case *ast.Ident:
 			decl, ok := scope.Lookup(n.Name)
 			if !ok {
-				return errutil.Newf("%d: undeclared identifier %q", n.Start(), n)
+				return errors.Newf(n.Start(), "undeclared identifier %q", n)
 			}
 			n.Decl = decl
 		}

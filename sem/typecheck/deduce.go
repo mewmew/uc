@@ -6,6 +6,7 @@ import (
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
 	"github.com/mewmew/uc/ast/astutil"
+	"github.com/mewmew/uc/sem/errors"
 	"github.com/mewmew/uc/token"
 	"github.com/mewmew/uc/types"
 )
@@ -53,15 +54,15 @@ func typeOf(n ast.Expr) (types.Type, error) {
 		}
 		if n.Op == token.Assign {
 			if !isAssignable(n.X) {
-				return nil, errutil.Newf("%d: cannot assign to %q of type %q", n.OpPos, n.X, x)
+				return nil, errors.Newf(n.OpPos, "cannot assign to %q of type %q", n.X, x)
 			}
 			if !isCompatible(x, y) {
-				return nil, errutil.Newf("%d: cannot assign to %q (type mismatch between %q and %q)", n.OpPos, n.X, x, y)
+				return nil, errors.Newf(n.OpPos, "cannot assign to %q (type mismatch between %q and %q)", n.X, x, y)
 			}
 		} else if isVoid(x) || isVoid(y) {
-			return nil, errutil.Newf("%d: invalid operands to binary expression: %v (%q and %q)", n.OpPos, n, x, y)
+			return nil, errors.Newf(n.OpPos, "invalid operands to binary expression: %v (%q and %q)", n, x, y)
 		} else if !isCompatible(x, y) {
-			return nil, errutil.Newf("%d: invalid operation: %v (type mismatch between %q and %q)", n.OpPos, n, x, y)
+			return nil, errors.Newf(n.OpPos, "invalid operation: %v (type mismatch between %q and %q)", n, x, y)
 		}
 		// TODO: Implement implicit conversion.
 		return x, nil
@@ -70,7 +71,7 @@ func typeOf(n ast.Expr) (types.Type, error) {
 		if typ, ok := typ.(*types.Func); ok {
 			return typ.Result, nil
 		}
-		return nil, errutil.Newf("%d: cannot call non-function %q of type %q", n.Lparen, n.Name, typ)
+		return nil, errors.Newf(n.Lparen, "cannot call non-function %q of type %q", n.Name, typ)
 	case *ast.Ident:
 		// TODO: Make sure that type declarations are handled correctly for
 		// keyword types such as "int".
@@ -80,7 +81,7 @@ func typeOf(n ast.Expr) (types.Type, error) {
 		if typ, ok := typ.(*types.Array); ok {
 			return typ.Elem, nil
 		}
-		return nil, errutil.Newf("%d: invalid operation: %v (type %q does not support indexing)", n.Lbracket, n, typ)
+		return nil, errors.Newf(n.Lbracket, "invalid operation: %v (type %q does not support indexing)", n, typ)
 	case *ast.ParenExpr:
 		return typeOf(n.X)
 	case *ast.UnaryExpr:
