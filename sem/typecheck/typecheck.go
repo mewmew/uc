@@ -59,7 +59,9 @@ func check(file *ast.File, exprType map[ast.Expr]types.Type) error {
 			}
 			// Check number of arguments.
 			// TODO: Future. handle call to function with ellipsis.
-			if len(n.Args) < len(fn.Params) {
+			if len(fn.Params) == 1 && len(n.Args) == 0 && isVoid(fn.Params[0].Type) {
+				return nil
+			} else if len(n.Args) < len(fn.Params) {
 				return errors.Newf(n.Lparen, "calling %q with too few arguments; expected %d, got %d", n.Name, len(fn.Params), len(n.Args))
 			} else if len(n.Args) > len(fn.Params) {
 				return errors.Newf(n.Lparen, "calling %q with too many arguments; expected %d, got %d", n.Name, len(fn.Params), len(n.Args))
