@@ -85,7 +85,8 @@ func typeOf(n ast.Expr) (types.Type, error) {
 	case *ast.ParenExpr:
 		return typeOf(n.X)
 	case *ast.UnaryExpr:
-		panic(fmt.Sprintf("support for type %T not yet implemented.", n))
+		// TODO: Future. Add support for pointer
+		return typeOf(n.X)
 	default:
 		panic(fmt.Sprintf("support for type %T not yet implemented.", n))
 	}
