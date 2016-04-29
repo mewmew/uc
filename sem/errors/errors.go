@@ -53,9 +53,9 @@ func (e *Error) Error() string {
 	text := e.Text
 	src := e.Src
 	if UseColor {
-		sPos = term.WhiteBold(sPos) // TODO: Replace with Bold when avaliable
+		sPos = term.Color(sPos, term.Bold)
 		prefix = term.RedBold(prefix)
-		text = term.WhiteBold(text) // TODO: Replace with Bold when avaliable
+		text = term.Color(text, term.Bold)
 	}
 	if src == nil {
 		// If Src is nil, the format is as follows.
@@ -71,7 +71,7 @@ func (e *Error) Error() string {
 	srcLine = strings.Trim(srcLine, "\n\r")
 	point := fmt.Sprintf("%*s", col, "^")
 	if UseColor {
-		point = term.WhiteBold(point) // TODO: Replace with Bold when avaliable
+		point = term.Color(point, term.Bold)
 	}
 	return fmt.Sprintf("(%s:%d) %s %s\n%s\n%s", src.Path, line, prefix, text, srcLine, point)
 }
