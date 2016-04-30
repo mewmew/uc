@@ -8,6 +8,10 @@ import (
 	"github.com/mewmew/uc/types"
 )
 
+// universePos specifies a pseudo-position used for identifiers declared in the
+// universe scope.
+const universePos = -1
+
 // resolve performs identifier resolution, mapping identifiers to corresponding
 // declarations.
 func resolve(file *ast.File) error {
@@ -15,10 +19,19 @@ func resolve(file *ast.File) error {
 
 	// Pre-pass, add keyword types and universe declarations.
 	universe := NewScope(nil)
+	charIdent := &ast.Ident{NamePos: universePos, Name: "char"}
+	charDecl := &ast.TypeDef{DeclType: charIdent, TypeName: charIdent, Val: &types.Basic{Kind: types.Char}}
+	charIdent.Decl = charDecl
+	intIdent := &ast.Ident{NamePos: universePos, Name: "int"}
+	intDecl := &ast.TypeDef{DeclType: intIdent, TypeName: intIdent, Val: &types.Basic{Kind: types.Int}}
+	intIdent.Decl = intDecl
+	voidIdent := &ast.Ident{NamePos: universePos, Name: "void"}
+	voidDecl := &ast.TypeDef{DeclType: voidIdent, TypeName: voidIdent, Val: &types.Basic{Kind: types.Void}}
+	voidIdent.Decl = voidDecl
 	universeDecls := []*ast.TypeDef{
-		{DeclType: &ast.Ident{Name: "char"}, TypeName: &ast.Ident{Name: "char"}, Val: &types.Basic{Kind: types.Char}},
-		{DeclType: &ast.Ident{Name: "int"}, TypeName: &ast.Ident{Name: "int"}, Val: &types.Basic{Kind: types.Int}},
-		{DeclType: &ast.Ident{Name: "void"}, TypeName: &ast.Ident{Name: "void"}, Val: &types.Basic{Kind: types.Void}},
+		charDecl,
+		intDecl,
+		voidDecl,
 	}
 	for _, decl := range universeDecls {
 		if err := universe.Insert(decl); err != nil {
