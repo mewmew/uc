@@ -59,13 +59,15 @@ func typeOf(n ast.Expr) (types.Type, error) {
 			if !isCompatible(x, y) {
 				return nil, errors.Newf(n.OpPos, "cannot assign to %q (type mismatch between %q and %q)", n.X, x, y)
 			}
+			// TODO: higherPercision could be used for loss of percision warning.
+			return x, nil
 		} else if isVoid(x) || isVoid(y) {
 			return nil, errors.Newf(n.OpPos, "invalid operands to binary expression: %v (%q and %q)", n, x, y)
 		} else if !isCompatible(x, y) {
 			return nil, errors.Newf(n.OpPos, "invalid operation: %v (type mismatch between %q and %q)", n, x, y)
 		}
-		// TODO: Implement implicit conversion.
-		return x, nil
+		// TODO: Implement better implicit conversion.
+		return higherPrecision(x, y), nil
 	case *ast.CallExpr:
 		typ := n.Name.Decl.Type()
 		if typ, ok := typ.(*types.Func); ok {
@@ -134,4 +136,24 @@ func isVoid(typ types.Type) bool {
 		return typ.Kind == types.Void
 	}
 	return false
+}
+
+// higherPrecision returns the type of higher precision.
+func higherPrecision(x, y types.Type) types.Type {
+	// TODO: Implement with a list of types sorted by precision.
+	if isVoid(x) || isVoid(y) {
+		panic(fmt.Sprintf("%T does not have precision.", types.Void))
+	}
+	if x, ok := x.(*types.Basic); ok {
+		if y, ok := y.(*types.Basic); ok {
+			// Check for types in order of highest precision
+			if x.Kind == types.Int || y.Kind == types.Int {
+				return &types.Basic{Kind: types.Int}
+			}
+			if x.Kind == types.Char || y.Kind == types.Char {
+				return &types.Basic{Kind: types.Char}
+			}
+		}
+	}
+	panic(fmt.Sprintf("support for type %T or %T not yet implemented.", x, y))
 }
