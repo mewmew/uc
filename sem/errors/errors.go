@@ -32,7 +32,7 @@ func New(pos int, text string) *Error {
 	return err
 }
 
-// New returns a new formatted error based on the given positional information
+// Newf returns a new formatted error based on the given positional information
 // (offset in bytes).
 func Newf(pos int, format string, a ...interface{}) *Error {
 	err := &Error{
