@@ -59,7 +59,8 @@ func typeOf(n ast.Expr) (types.Type, error) {
 			if !isCompatible(x, y) {
 				return nil, errors.Newf(n.OpPos, "cannot assign to %q (type mismatch between %q and %q)", n.X, x, y)
 			}
-			// TODO: higherPercision could be used for loss of percision warning.
+			// TODO: higherPrecision(x,y) != x could be used for loss of
+			// percision warning.
 			return x, nil
 		} else if isVoid(x) || isVoid(y) {
 			return nil, errors.Newf(n.OpPos, "invalid operands to binary expression: %v (%q and %q)", n, x, y)
@@ -140,12 +141,13 @@ func isVoid(typ types.Type) bool {
 
 // higherPrecision returns the type of higher precision.
 func higherPrecision(x, y types.Type) types.Type {
-	// TODO: Implement with a list of types sorted by precision.
-	if isVoid(x) || isVoid(y) {
-		panic(fmt.Sprintf("%T does not have precision.", types.Void))
-	}
+	// TODO: Implement with a list of types sorted by precision when more
+	// types are added.
 	if x, ok := x.(*types.Basic); ok {
 		if y, ok := y.(*types.Basic); ok {
+			if x.Kind == types.Void || y.Kind == types.Void {
+				panic(fmt.Sprint(`incorrect use of higherPrecision; "void" does not have precision.`))
+			}
 			// Check for types in order of highest precision
 			if x.Kind == types.Int || y.Kind == types.Int {
 				return &types.Basic{Kind: types.Int}
@@ -155,5 +157,5 @@ func higherPrecision(x, y types.Type) types.Type {
 			}
 		}
 	}
-	panic(fmt.Sprintf("support for type %T or %T not yet implemented.", x, y))
+	panic(fmt.Sprintf(`support for type "%v" or "%v" not yet implemented.`, x, y))
 }
