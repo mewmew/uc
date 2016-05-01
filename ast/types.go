@@ -54,14 +54,14 @@ func newBasic(ident *Ident) types.Type {
 		return charType
 	case "int":
 		intIdent := &Ident{NamePos: universePos, Name: "int"}
-		intType := &types.Basic{Kind: types.Char}
+		intType := &types.Basic{Kind: types.Int}
 		intDecl := &TypeDef{DeclType: intIdent, TypeName: intIdent, Val: intType}
 		intIdent.Decl = intDecl
 		ident.Decl = intDecl
 		return intType
 	case "void":
 		voidIdent := &Ident{NamePos: universePos, Name: "void"}
-		voidType := &types.Basic{Kind: types.Char}
+		voidType := &types.Basic{Kind: types.Void}
 		voidDecl := &TypeDef{DeclType: voidIdent, TypeName: voidIdent, Val: voidType}
 		voidIdent.Decl = voidDecl
 		ident.Decl = voidDecl
