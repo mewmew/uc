@@ -57,7 +57,12 @@ func (s *Scope) Insert(decl ast.Decl) error {
 
 	// Definition already present in scope.
 	if astutil.IsDef(decl) {
-		return errors.Newf(ident.Start(), "redefinition of %q; previously defined at %d", name, prevIdent.Start())
+		// TODO: Consider adding support for multiple errors (and potentially
+		// warnings and notifications).
+		//
+		// If support for notifications are added, add a note of the previous declaration.
+		//    errors.Notef(prevIdent.Start(), "previous definition of %q", name)
+		return errors.Newf(ident.Start(), "redefinition of %q", name)
 	}
 
 	// Declaration of previously declared identifier.
