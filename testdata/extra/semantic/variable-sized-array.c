@@ -1,6 +1,6 @@
 // Invalid variable declaration
 //
-//    definition of array needs an explicit size or an initializer.
+//    array size or initializer missing for "y"
 int main() {
 	char y[];
 }

@@ -1,6 +1,6 @@
 // Invalid variable declaration
 //
-//    variable has incomplete type "void".
+//    "x" has invalid type "void"
 int main(void) {
 	void x;
 }

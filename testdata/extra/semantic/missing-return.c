@@ -1,6 +1,6 @@
-// Missing return; valid for main.
+// Missing function return.
 //
-//    warning: control reaches end of non-void function
+//    missing return at end of non-void function "f"
 //
 // Undefined behaviour
 //    clang returns 13
@@ -13,10 +13,10 @@ int g(int a) {
 	return a;
 }
 
-int main(void){
+int main(void) {
 	int a;
-	a=13;
+	a = 13;
 	g(a);
-	a=17;
+	a = 17;
 	return f(a);
 }
