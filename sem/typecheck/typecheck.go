@@ -12,13 +12,13 @@ import (
 // Check type-checks the given file.
 func Check(file *ast.File) error {
 	// Deduce the types of expressions.
-	exprType, err := deduce(file)
+	exprTypes, err := deduce(file)
 	if err != nil {
 		return errutil.Err(err)
 	}
 
 	// Type-check file.
-	if err := check(file, exprType); err != nil {
+	if err := check(file, exprTypes); err != nil {
 		return errutil.Err(err)
 	}
 
@@ -26,12 +26,13 @@ func Check(file *ast.File) error {
 }
 
 // check type-checks the given file.
-func check(file *ast.File, exprType map[ast.Expr]types.Type) error {
+func check(file *ast.File, exprTypes map[ast.Expr]types.Type) error {
 	// funcs is a stack of function declarations, where the top-most entry
 	// represents the currently active function.
 	var funcs []*types.Func
 
-	before := func(n ast.Node) error {
+	// check type-checks the given node.
+	check := func(n ast.Node) error {
 		switch n := n.(type) {
 		case *ast.FuncDecl:
 			if astutil.IsDef(n) {
@@ -39,43 +40,50 @@ func check(file *ast.File, exprType map[ast.Expr]types.Type) error {
 				funcs = append(funcs, n.Type().(*types.Func))
 			}
 		case *ast.ReturnStmt:
+			// Verify result type.
 			curFunc := funcs[len(funcs)-1]
-			var resType types.Type
-			resType = &types.Basic{Kind: types.Void}
+			var resultType types.Type
+			resultType = &types.Basic{Kind: types.Void}
 			if n.Result != nil {
-				resType = exprType[n.Result]
+				resultType = exprTypes[n.Result]
 			}
-			if !isCompatible(resType, curFunc.Result) {
-				resPos := n.Start()
+			if !isCompatible(resultType, curFunc.Result) {
+				resultPos := n.Start()
 				if n.Result != nil {
-					resPos = n.Result.Start()
+					resultPos = n.Result.Start()
 				}
-				return errors.Newf(resPos, "returning %q from a function with incompatible result type %q", resType, curFunc.Result)
+				return errors.Newf(resultPos, "returning %q from a function with incompatible result type %q", resultType, curFunc.Result)
 			}
 		case *ast.CallExpr:
-			fn, ok := n.Name.Decl.Type().(*types.Func)
+			funcType, ok := n.Name.Decl.Type().(*types.Func)
 			if !ok {
-				return errors.Newf(n.Lparen, "cannot call non-function %q of type %q", n.Name, fn)
+				return errors.Newf(n.Lparen, "cannot call non-function %q of type %q", n.Name, funcType)
 			}
-			// Check number of arguments.
-			// TODO: Future. handle call to function with ellipsis.
-			if len(fn.Params) == 1 && len(n.Args) == 0 && isVoid(fn.Params[0].Type) {
+			// TODO: Implement support for functions with variable arguments (i.e.
+			// ellipsis).
+
+			// Verify call without arguments.
+			if len(n.Args) == 0 && len(funcType.Params) == 1 && types.IsVoid(funcType.Params[0].Type) {
 				return nil
-			} else if len(n.Args) < len(fn.Params) {
-				return errors.Newf(n.Lparen, "calling %q with too few arguments; expected %d, got %d", n.Name, len(fn.Params), len(n.Args))
-			} else if len(n.Args) > len(fn.Params) {
-				return errors.Newf(n.Lparen, "calling %q with too many arguments; expected %d, got %d", n.Name, len(fn.Params), len(n.Args))
 			}
+
+			// Check number of arguments.
+			if len(n.Args) < len(funcType.Params) {
+				return errors.Newf(n.Lparen, "calling %q with too few arguments; expected %d, got %d", n.Name, len(funcType.Params), len(n.Args))
+			}
+			if len(n.Args) > len(funcType.Params) {
+				return errors.Newf(n.Lparen, "calling %q with too many arguments; expected %d, got %d", n.Name, len(funcType.Params), len(n.Args))
+			}
+
 			// Check that call argument types match the function parameter types.
-			for i, param := range fn.Params {
+			for i, param := range funcType.Params {
 				arg := n.Args[i]
+				argType := exprTypes[arg]
 				paramType := param.Type
-				argType := exprType[arg]
-				if !isCompatibleArg(paramType, argType) {
+				if !isCompatibleArg(argType, paramType) {
 					return errors.Newf(arg.Start(), "calling %q with incompatible argument type %q to parameter of type %q", n.Name, argType, paramType)
 				}
 			}
-			return nil
 		default:
 			// TODO: Implement type-checking for remaining node types.
 			//log.Printf("not type-checked: %T\n", n)
@@ -83,6 +91,7 @@ func check(file *ast.File, exprType map[ast.Expr]types.Type) error {
 		return nil
 	}
 
+	// after reverts to the outer function after traversing function definitions.
 	after := func(n ast.Node) error {
 		switch n := n.(type) {
 		case *ast.FuncDecl:
@@ -94,45 +103,43 @@ func check(file *ast.File, exprType map[ast.Expr]types.Type) error {
 		return nil
 	}
 
-	if err := astutil.WalkBeforeAfter(file, before, after); err != nil {
+	// Walk the AST of the given file to perform type-checking.
+	if err := astutil.WalkBeforeAfter(file, check, after); err != nil {
 		return errutil.Err(err)
 	}
 
 	return nil
 }
 
-// isCompatibleArg reports whether the given argument and function parameter
-// types are compatible.
-func isCompatibleArg(param, arg types.Type) bool {
-	if isCompatible(param, arg) {
+// isCompatibleArg reports whether the given call argument and function
+// parameter types are compatible.
+func isCompatibleArg(arg, param types.Type) bool {
+	if isCompatible(arg, param) {
 		return true
 	}
-	if param, ok := param.(*types.Array); ok {
-		if arg, ok := arg.(*types.Array); ok {
-			// TODO: future. Check for other compatibles; pointers,
-			// arraynames, strings(gcc)?
-			if param.Len == 0 {
-				if paramElem, ok := param.Elem.(*types.Basic); ok {
-					if argElem, ok := arg.Elem.(*types.Basic); ok {
-						return paramElem.Kind == argElem.Kind
-					}
-				}
+	if arg, ok := arg.(*types.Array); ok {
+		if param, ok := param.(*types.Array); ok {
+			// TODO: Check for other compatible types (e.g. pointers, array names,
+			// strings).
+			if param.Len != 0 {
+				return false
 			}
+			return types.Equal(arg.Elem, param.Elem)
 		}
 	}
 	return false
 }
 
-// isCompatible reports whether a and b are of compatible types.
-func isCompatible(a, b types.Type) bool {
-	if types.Equal(a, b) {
+// isCompatible reports whether t and u are of compatible types.
+func isCompatible(t, u types.Type) bool {
+	if types.Equal(t, u) {
 		return true
 	}
-	if a, ok := a.(types.Numerical); ok {
-		if b, ok := b.(types.Numerical); ok {
-			// TODO: future. Check for other compatibles; pointers,
-			// arraynames, strings(gcc)?
-			return a.IsNumerical() && b.IsNumerical()
+	if t, ok := t.(types.Numerical); ok {
+		if u, ok := u.(types.Numerical); ok {
+			// TODO: Check for other compatible types (e.g. pointers, array names,
+			// strings).
+			return t.IsNumerical() && u.IsNumerical()
 		}
 	}
 	return false

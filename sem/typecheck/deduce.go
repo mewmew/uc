@@ -11,24 +11,29 @@ import (
 	"github.com/mewmew/uc/types"
 )
 
-// deduce performs type deduction of expressions to annotate the AST.
-func deduce(file *ast.File) (exprType map[ast.Expr]types.Type, err error) {
-	// Map expression nodes to types.
-	exprType = make(map[ast.Expr]types.Type)
+// deduce performs type deduction of expressions.
+func deduce(file *ast.File) (exprTypes map[ast.Expr]types.Type, err error) {
+	// exprTypes maps expression nodes to types.
+	exprTypes = make(map[ast.Expr]types.Type)
+
+	// deduce performs type deduction of the given expression.
 	deduce := func(n ast.Node) error {
 		if expr, ok := n.(ast.Expr); ok {
 			typ, err := typeOf(expr)
 			if err != nil {
 				return errutil.Err(err)
 			}
-			exprType[expr] = typ
+			exprTypes[expr] = typ
 		}
 		return nil
 	}
+
+	// Walk the AST of the given file to deduce the types of expression nodes.
 	if err := astutil.Walk(file, deduce); err != nil {
 		return nil, errutil.Err(err)
 	}
-	return exprType, nil
+
+	return exprTypes, nil
 }
 
 // typeOf returns the type of the given expression.
@@ -41,34 +46,36 @@ func typeOf(n ast.Expr) (types.Type, error) {
 		case token.IntLit:
 			return &types.Basic{Kind: types.Int}, nil
 		default:
-			panic(fmt.Sprintf("support for basic type kind %v not yet implemented", n.Kind))
+			panic(fmt.Sprintf("support for basic literal type %v not yet implemented", n.Kind))
 		}
 	case *ast.BinaryExpr:
-		x, err := typeOf(n.X)
+		xType, err := typeOf(n.X)
 		if err != nil {
 			return nil, errutil.Err(err)
 		}
-		y, err := typeOf(n.Y)
+		yType, err := typeOf(n.Y)
 		if err != nil {
 			return nil, errutil.Err(err)
 		}
 		if n.Op == token.Assign {
 			if !isAssignable(n.X) {
-				return nil, errors.Newf(n.OpPos, "cannot assign to %q of type %q", n.X, x)
+				return nil, errors.Newf(n.OpPos, "cannot assign to %q of type %q", n.X, xType)
 			}
-			if !isCompatible(x, y) {
-				return nil, errors.Newf(n.OpPos, "cannot assign to %q (type mismatch between %q and %q)", n.X, x, y)
+			if !isCompatible(xType, yType) {
+				return nil, errors.Newf(n.OpPos, "cannot assign to %q (type mismatch between %q and %q)", n.X, xType, yType)
 			}
-			// TODO: higherPrecision(x,y) != x could be used for loss of
-			// percision warning.
-			return x, nil
-		} else if isVoid(x) || isVoid(y) {
-			return nil, errors.Newf(n.OpPos, "invalid operands to binary expression: %v (%q and %q)", n, x, y)
-		} else if !isCompatible(x, y) {
-			return nil, errors.Newf(n.OpPos, "invalid operation: %v (type mismatch between %q and %q)", n, x, y)
+			// TODO: !types.Equal(higherPrecision(xType, yType), xType) could be
+			// used for loss of percision warning.
+			return xType, nil
+		}
+		if types.IsVoid(xType) || types.IsVoid(yType) {
+			return nil, errors.Newf(n.OpPos, "invalid operands to binary expression: %v (%q and %q)", n, xType, yType)
+		}
+		if !isCompatible(xType, yType) {
+			return nil, errors.Newf(n.OpPos, "invalid operation: %v (type mismatch between %q and %q)", n, xType, yType)
 		}
 		// TODO: Implement better implicit conversion.
-		return higherPrecision(x, y), nil
+		return higherPrecision(xType, yType), nil
 	case *ast.CallExpr:
 		typ := n.Name.Decl.Type()
 		if typ, ok := typ.(*types.Func); ok {
@@ -76,8 +83,6 @@ func typeOf(n ast.Expr) (types.Type, error) {
 		}
 		return nil, errors.Newf(n.Lparen, "cannot call non-function %q of type %q", n.Name, typ)
 	case *ast.Ident:
-		// TODO: Make sure that type declarations are handled correctly for
-		// keyword types such as "int".
 		return n.Decl.Type(), nil
 	case *ast.IndexExpr:
 		typ := n.Name.Decl.Type()
@@ -88,14 +93,14 @@ func typeOf(n ast.Expr) (types.Type, error) {
 	case *ast.ParenExpr:
 		return typeOf(n.X)
 	case *ast.UnaryExpr:
-		// TODO: Future. Add support for pointer
+		// TODO: Add support for pointers.
 		return typeOf(n.X)
 	default:
 		panic(fmt.Sprintf("support for type %T not yet implemented.", n))
 	}
 }
 
-// TODO: Verify isAssignable against the definition of lvale in the C spec (I
+// TODO: Verify isAssignable against the definition of lvalue in the C spec (I
 // tried and failed).
 
 // isAssignable reports whether the given expression is assignable (i.e. a valid
@@ -131,31 +136,23 @@ func isAssignable(x ast.Expr) bool {
 	}
 }
 
-// isVoid reports whether the given type is a void type.
-func isVoid(typ types.Type) bool {
-	if typ, ok := typ.(*types.Basic); ok {
-		return typ.Kind == types.Void
-	}
-	return false
-}
-
 // higherPrecision returns the type of higher precision.
-func higherPrecision(x, y types.Type) types.Type {
-	// TODO: Implement with a list of types sorted by precision when more
-	// types are added.
-	if x, ok := x.(*types.Basic); ok {
-		if y, ok := y.(*types.Basic); ok {
-			if x.Kind == types.Void || y.Kind == types.Void {
+func higherPrecision(t, u types.Type) types.Type {
+	// TODO: Implement with a list of types sorted by precision when support for
+	// more types are added.
+	if t, ok := t.(*types.Basic); ok {
+		if u, ok := u.(*types.Basic); ok {
+			if t.Kind == types.Void || u.Kind == types.Void {
 				panic(fmt.Sprint(`incorrect use of higherPrecision; "void" does not have precision.`))
 			}
-			// Check for types in order of highest precision
-			if x.Kind == types.Int || y.Kind == types.Int {
+			// Check for types in order of highest precision.
+			if t.Kind == types.Int || u.Kind == types.Int {
 				return &types.Basic{Kind: types.Int}
 			}
-			if x.Kind == types.Char || y.Kind == types.Char {
+			if t.Kind == types.Char || u.Kind == types.Char {
 				return &types.Basic{Kind: types.Char}
 			}
 		}
 	}
-	panic(fmt.Sprintf(`support for type "%v" or "%v" not yet implemented.`, x, y))
+	panic(fmt.Sprintf(`support for type "%v" or "%v" not yet implemented.`, t, u))
 }

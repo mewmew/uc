@@ -139,6 +139,14 @@ func Equal(t, u Type) bool {
 	return t.Equal(u)
 }
 
+// IsVoid reports whether the given type is a void type.
+func IsVoid(t Type) bool {
+	if t, ok := t.(*Basic); ok {
+		return t.Kind == Void
+	}
+	return false
+}
+
 // IsNumerical reports whether the given type is numerical.
 func (t *Basic) IsNumerical() bool {
 	switch t.Kind {

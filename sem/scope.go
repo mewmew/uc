@@ -10,7 +10,7 @@ import (
 // A Scope maintains the set of named language entities declared in the lexical
 // scope and a link to the immediately surrounding outer scope.
 type Scope struct {
-	// Immediately surrounding outer scope; or nil if file-scope.
+	// Immediately surrounding outer scope; or nil if universe scope.
 	Outer *Scope
 	// Identifiers declared within the current scope.
 	Decls map[string]ast.Decl
@@ -27,7 +27,7 @@ func (s *Scope) Insert(decl ast.Decl) error {
 	// Early return for first-time declarations.
 	ident := decl.Name()
 	if ident == nil {
-		// Anonymous function parameter declaration declaration.
+		// Anonymous function parameter declaration.
 		return nil
 	}
 	name := ident.String()

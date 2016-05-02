@@ -17,7 +17,7 @@ const universePos = -1
 func resolve(file *ast.File) error {
 	// TODO: Verify that type keywords cannot be redeclared.
 
-	// Pre-pass, add keyword types and universe declarations.
+	// Pre-pass, add keyword types and universe scope.
 	universe := NewScope(nil)
 	charIdent := &ast.Ident{NamePos: universePos, Name: "char"}
 	charDecl := &ast.TypeDef{DeclType: charIdent, TypeName: charIdent, Val: &types.Basic{Kind: types.Char}}
@@ -39,7 +39,7 @@ func resolve(file *ast.File) error {
 		}
 	}
 
-	// First pass, add global declarations to file-scope.
+	// First pass, add global declarations to file scope.
 	fileScope := NewScope(universe)
 	for _, decl := range file.Decls {
 		if err := fileScope.Insert(decl); err != nil {
@@ -47,17 +47,16 @@ func resolve(file *ast.File) error {
 		}
 	}
 
-	// TODO: Add local declarations of functions.
-
-	scope := fileScope
-
 	// skip specifies that the block statement body of a function declaration
 	// should skip creating a nested scope, as it has already been created by its
 	// function declaration, so that function parameters are placed within the
 	// correct scope.
 	skip := false
 
-	// resolve performs identifier resolution, mapping identifiers to
+	// scope specifies the current lexical scope.
+	scope := fileScope
+
+	// resolve performs identifier resolution, mapping identifiers to the
 	// corresponding declarations of the closest lexical scope.
 	resolve := func(n ast.Node) error {
 		switch n := n.(type) {
@@ -92,6 +91,7 @@ func resolve(file *ast.File) error {
 		return nil
 	}
 
+	// Walk the AST of the given file to resolve identifiers.
 	if err := astutil.WalkBeforeAfter(file, resolve, after); err != nil {
 		return errutil.Err(err)
 	}
