@@ -1,7 +1,7 @@
 // Invalid function call
 //
-//    calling "a" with incompatible argument type "int" to parameter of type "int[]".
-int a(int b[]){
+//    calling "a" with incompatible argument type "int" to parameter of type "int[]"
+int a(int b[]) {
 	return b[0];
 }
 

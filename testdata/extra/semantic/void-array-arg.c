@@ -1,5 +1,5 @@
 // Invalid function signature
 //
-//    array has incomplete element type "void".
+//    invalid element type "void" of array "x"
 void f(void x[]) {
 }

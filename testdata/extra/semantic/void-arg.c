@@ -1,6 +1,6 @@
 // Invalid function signature
 //
-//    argument may not have "void" type.
+//    "x" has invalid type "void"
 void f(void x) {
 	;
 }

@@ -1,6 +1,6 @@
 // Invalid array declaration
 //
-//    array has incomplete element type "void".
+//    invalid element type "void" of array "x"
 int main(void) {
 	void x[10];
 }

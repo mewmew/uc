@@ -22,6 +22,8 @@ func TestCheckValid(t *testing.T) {
 		{path: "../testdata/quiet/semantic/s04.c"},
 		{path: "../testdata/quiet/semantic/s05.c"},
 		{path: "../testdata/quiet/semantic/s06.c"},
+		{path: "../testdata/extra/semantic/missing-return-main.c"},
+		{path: "../testdata/extra/semantic/variable-sized-array-arg.c"},
 	}
 
 	for _, g := range golden {
@@ -257,9 +259,75 @@ void a(void);   // Attempt to redefine  'a' as extern
   d(1, 2, 3); // Too many arguments to function 'd'
    ^`,
 		},
-	}
 
-	// TODO: Add test cases from testdata/extra/semantics/*.c
+		// Extra test cases.
+		{
+			path: "../testdata/extra/semantic/extra-void-arg.c",
+			want: `(../testdata/extra/semantic/extra-void-arg.c:4) error: "void" must be the only parameter
+void f(int a, void) {
+      ^`,
+		},
+		{
+			path: "../testdata/extra/semantic/incompatible-arg-type.c",
+			want: `(../testdata/extra/semantic/incompatible-arg-type.c:10) error: calling "a" with incompatible argument type "int" to parameter of type "int[]"
+ return a(b);
+          ^`,
+		},
+		{
+			path: "../testdata/extra/semantic/index-array.c",
+			want: `(../testdata/extra/semantic/index-array.c:7) error: invalid array index; expected integer, got "int[20]"
+ x[y];
+   ^`,
+		},
+		{
+			path: "../testdata/extra/semantic/missing-return.c",
+			want: `(../testdata/extra/semantic/missing-return.c:10) error: missing return at end of non-void function "f"
+}
+^`,
+		},
+		{
+			path: "../testdata/extra/semantic/unnamed-arg.c",
+			want: `(../testdata/extra/semantic/unnamed-arg.c:4) error: parameter name obmitted
+void f(int) {
+       ^`,
+		},
+		{
+			path: "../testdata/extra/semantic/variable-sized-array.c",
+			want: `(../testdata/extra/semantic/variable-sized-array.c:5) error: array size or initializer missing for "y"
+ char y[];
+      ^`,
+		},
+		{
+			path: "../testdata/extra/semantic/void-arg.c",
+			want: `(../testdata/extra/semantic/void-arg.c:4) error: "x" has invalid type "void"
+void f(void x) {
+            ^`,
+		},
+		{
+			path: "../testdata/extra/semantic/void-array.c",
+			want: `(../testdata/extra/semantic/void-array.c:5) error: invalid element type "void" of array "x"
+ void x[10];
+      ^`,
+		},
+		{
+			path: "../testdata/extra/semantic/void-array-arg.c",
+			want: `(../testdata/extra/semantic/void-array-arg.c:4) error: invalid element type "void" of array "x"
+void f(void x[]) {
+            ^`,
+		},
+		{
+			path: "../testdata/extra/semantic/void-params.c",
+			want: `(../testdata/extra/semantic/void-params.c:4) error: "void" must be the only parameter
+void f(void, void) {
+      ^`,
+		},
+		{
+			path: "../testdata/extra/semantic/void-var.c",
+			want: `(../testdata/extra/semantic/void-var.c:5) error: "x" has invalid type "void"
+ void x;
+      ^`,
+		},
+	}
 
 	errors.UseColor = false
 
