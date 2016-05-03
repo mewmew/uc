@@ -51,25 +51,30 @@ noisy/advanced/bubble.c \
 noisy/advanced/eval.c \
 noisy/advanced/primes.c \
 noisy/advanced/quick.c \
-extra/semantic/extra-void-arg.c \
-extra/semantic/incompatible-arg-type.c \
-extra/semantic/index-array.c \
-extra/semantic/missing-return.c \
-extra/semantic/unnamed-arg.c \
 extra/semantic/variable-sized-array.c \
-extra/semantic/void-arg.c \
+extra/semantic/missing-return.c \
+extra/semantic/param-redef.c \
 extra/semantic/void-array.c \
+extra/semantic/tentative-var-def.c \
+extra/semantic/variable-sized-array-arg.c \
 extra/semantic/void-array-arg.c \
+extra/semantic/void-var.c \
 extra/semantic/void-params.c \
-extra/semantic/void-var.c
+extra/semantic/unnamed-arg.c \
+extra/semantic/index-array.c \
+extra/semantic/missing-return-main.c \
+extra/semantic/local-var-redef.c \
+extra/semantic/incompatible-arg-type.c \
+extra/semantic/extra-void-arg.c \
+extra/semantic/void-param.c
 #$(patsubst $(TESTDATA)/%,%,$(wildcard $(TESTDATA)/noisy/advanced/*.c))
 
 OBJECTS=$(SOURCES:%.c=%.txt)
 OBJECTDIRS=$(sort $(dir $(OBJECTS)))
 
-UPROGPATH=$(shell which $UPROG)
+UPROGPATH=$(shell which $(UPROG))
 
-semantic_analysis: $(OBJECTDIRS:=listref.tex)
+semantic_analysis: $(OBJECTDIRS:=listing.tex) $(OBJECTDIRS:=listref.tex)
 
 $(OBJECTDIRS):
 	mkdir -p "$@"
