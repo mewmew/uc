@@ -324,12 +324,6 @@ void f(int) {
       ^`,
 		},
 		{
-			path: "../testdata/extra/semantic/void-arg.c",
-			want: `(../testdata/extra/semantic/void-arg.c:4) error: "x" has invalid type "void"
-void f(void x) {
-            ^`,
-		},
-		{
 			path: "../testdata/extra/semantic/void-array.c",
 			want: `(../testdata/extra/semantic/void-array.c:5) error: invalid element type "void" of array "x"
  void x[10];
@@ -339,6 +333,12 @@ void f(void x) {
 			path: "../testdata/extra/semantic/void-array-arg.c",
 			want: `(../testdata/extra/semantic/void-array-arg.c:4) error: invalid element type "void" of array "x"
 void f(void x[]) {
+            ^`,
+		},
+		{
+			path: "../testdata/extra/semantic/void-param.c",
+			want: `(../testdata/extra/semantic/void-param.c:4) error: "x" has invalid type "void"
+void f(void x) {
             ^`,
 		},
 		{

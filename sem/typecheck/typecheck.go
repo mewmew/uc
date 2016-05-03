@@ -36,6 +36,10 @@ func check(file *ast.File, exprTypes map[ast.Expr]types.Type) error {
 	// check type-checks the given node.
 	check := func(n ast.Node) error {
 		switch n := n.(type) {
+		case *ast.VarDecl:
+			if n.VarName != nil && types.IsVoid(n.Type()) {
+				return errors.Newf(n.VarName.NamePos, "%q has invalid type %q", n.VarName, n.Type())
+			}
 		case *ast.FuncDecl:
 			if astutil.IsDef(n) {
 				// push function declaration.
