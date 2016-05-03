@@ -1,12 +1,10 @@
 \subsection{Implementation}
-% TODO
-... have been cross-referenced against §... of the C11 specification \cite{c11_spec}.
 
 \subsubsection{Type Representations}
 
 See Appendix~\ref{app:semantic/types_doc}.
 
-\subsubsection{Typing Rules}
+%\subsubsection{Typing Rules}
 
 \subsubsection{Symbol Table, Scope, Declarations and Identifiers}
 
@@ -14,40 +12,28 @@ While walking and annotating the Abstract Syntax Tree, each node encountered is 
 
 Declaration:
 \begin{enumerate}
-\item An previous declaration is searched for in the symbol table of the current scope.
-
-\item If none is found, the declaration is inserted in the symbol table of the current scope.
-
-\item The types of the current and previous declarations are checked and if not matching an error is reported.
-
-\item If the previous declaration is not a definition, the current declaration is inserted in the symbol table, replacing the previous declaration in the current scope. This enables tentative declarations in the file scope
-
-\item If the previous declaration is not a definition, and current declaration is also a definition, an error is reported. A variable declaration in a local scope is always a definition, which prevents tentative declarations in local scope.
-
-\item If the declaration is a Function declaration with definition:
-
-\begin{enumerate}[1.]
- \item The current scope is set to a newly created scope with its Outer variable set to point to the previous scope.
-
- \item The parameters of the function are declared in the new scope.
-
- \item After all nodes in the function definition have been walked, the current scope is set to the scope in the current scopes Outer variable.
-\end{enumerate}
+	\item A previous declaration is searched for in the symbol table of the current scope.
+	\item If none is found, the declaration is inserted into the symbol table of the current scope.
+	\item The types of the current and previous declarations are checked and if not matching an error is reported.
+	\item If the previous declaration is not a definition, the current declaration is inserted in the symbol table, replacing the previous declaration in the current scope. This enables tentative declarations in the file scope.
+	\item If the previous declaration is not a definition, and current declaration is also a definition, an error is reported. A variable declaration in a local scope is always a definition, which prevents tentative declarations in local scope.
+	\item If the declaration is a function declaration with definition:
+	\begin{enumerate}[1.]
+		\item The current scope is set to a newly created scope with its outer scope set to point to the previous scope.
+		\item The parameters of the function are declared in the new scope.
+		\item After all nodes in the function definition have been walked, the current scope is reverted back to the outer scope.
+	\end{enumerate}
 \end{enumerate}
 
 Block statement:
 \begin{enumerate}
-\item The current scope is set to a newly created scope with its Outer variable set to point to the previous scope.
-
-\item After all nodes in the function definition have been walked, the current scope is set to the scope in the current scopes Outer variable.
+	\item The current scope is set to a newly created scope with its outer scope set to point to the previous scope.
+	\item After all nodes in the function definition have been walked, the current scope reverted back to the outer scope.
 \end{enumerate}
 
 Identifier:
 \begin{enumerate}
-\item A lookup in the scopes symbol tables is made, recursively outwards from the nearest scope.
-
-\item If found, the identifier gets an pointer to the declaration in its Decl variable.
-
-\item Otherwise an error is reported saying that the identifier is undeclared.
+	\item A lookup in the scopes symbol tables is made, recursively outwards from the nearest scope.
+	\item If found, the identifier gets an pointer to the declaration in its \texttt{Decl} field.
+	\item Otherwise an error is reported saying that the identifier is undeclared.
 \end{enumerate}
-
