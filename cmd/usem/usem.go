@@ -43,6 +43,7 @@ func main() {
 		hand bool
 	)
 	flag.BoolVar(&hand, "hand", true, "use hand-written lexer")
+	flag.BoolVar(&semerrors.UseColor, "colors", true, "use colors in output")
 	flag.Usage = usage
 	flag.Parse()
 	if flag.NArg() == 0 {
