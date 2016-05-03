@@ -67,6 +67,56 @@ func check(file *ast.File, exprTypes map[ast.Expr]types.Type) error {
 					}
 				}
 
+				// Verify that non-void functions end with return statement.
+				if !types.IsVoid(n.Type().(*types.Func).Result) {
+					// endsWithReturn reports whether the given block item ends with
+					// a return statement. The following two terminating statements
+					// are supported, recursively.
+					//
+					//    return;
+					//
+					//    if (cond) {
+					//       return;
+					//    } else {
+					//       return;
+					//    }
+					var endsWithReturn func(ast.Node) bool
+					endsWithReturn = func(node ast.Node) bool {
+						last := node
+						if block, ok := node.(*ast.BlockStmt); ok {
+							items := block.Items
+							if len(items) == 0 {
+								// node ends without a return statement.
+								return false
+							}
+							last = items[len(items)-1]
+						}
+						switch last := last.(type) {
+						case *ast.ReturnStmt:
+							// node ends with a return statement.
+							return true
+						case *ast.IfStmt:
+							if last.Else == nil {
+								// node may ends without a return statement if the else-
+								// branch is invoked.
+								return false
+							}
+							return endsWithReturn(last.Body) && endsWithReturn(last.Else)
+						default:
+							// node may end without return statement.
+							return false
+						}
+					}
+
+					missing := !endsWithReturn(n.Body)
+					// Missing return statements are valid from the main function.
+					//
+					// NOTE: "reaching the } that terminates the main function
+					// returns a value of 0." (see §5.1.2.2.3 in the C11 spec)
+					if missing && n.FuncName.String() != "main" {
+						return errors.Newf(n.Body.Rbrace, "missing return at end of non-void function %q", n.FuncName)
+					}
+				}
 			}
 		case *ast.ReturnStmt:
 			// Verify result type.
