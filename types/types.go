@@ -147,6 +147,18 @@ func IsVoid(t Type) bool {
 	return false
 }
 
+// IsInteger reports whether the given type is an integer (i.e. "int" or
+// "char").
+func IsInteger(t Type) bool {
+	if t, ok := t.(*Basic); ok {
+		switch t.Kind {
+		case Int, Char:
+			return true
+		}
+	}
+	return false
+}
+
 // IsNumerical reports whether the given type is numerical.
 func (t *Basic) IsNumerical() bool {
 	switch t.Kind {

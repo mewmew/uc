@@ -189,8 +189,7 @@ func check(file *ast.File, exprTypes map[ast.Expr]types.Type) error {
 			if !ok {
 				panic(fmt.Sprintf("unable to locate type of expression %v", n.Index))
 			}
-			num, ok := indexType.(types.Numerical)
-			if !ok || !num.IsNumerical() {
+			if !types.IsInteger(indexType) {
 				return errors.Newf(n.Index.Start(), "invalid array index; expected integer, got %q", indexType)
 			}
 		default:
