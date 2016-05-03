@@ -84,6 +84,13 @@ func check(file *ast.File, exprTypes map[ast.Expr]types.Type) error {
 					return errors.Newf(arg.Start(), "calling %q with incompatible argument type %q to parameter of type %q", n.Name, argType, paramType)
 				}
 			}
+		case *ast.FuncType:
+			for _, param := range n.Params {
+				paramType := param.Type()
+				if len(n.Params) > 1 && types.IsVoid(paramType) {
+					return errors.Newf(n.Lparen, `"void" must be the only parameter`)
+				}
+			}
 		default:
 			// TODO: Implement type-checking for remaining node types.
 			//log.Printf("not type-checked: %T\n", n)
