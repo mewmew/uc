@@ -17,21 +17,27 @@ func TestCheckValid(t *testing.T) {
 		path string
 	}{
 		{path: "../testdata/quiet/semantic/s01.c"},
-		{path: "../testdata/quiet/semantic/s02.c"},
 		{path: "../testdata/quiet/semantic/s03.c"},
 		{path: "../testdata/quiet/semantic/s04.c"},
 		{path: "../testdata/quiet/semantic/s05.c"},
 		{path: "../testdata/quiet/semantic/s06.c"},
 		{path: "../testdata/extra/semantic/missing-return-main.c"},
+		{path: "../testdata/extra/semantic/tentative-var-def.c"},
 		{path: "../testdata/extra/semantic/variable-sized-array-arg.c"},
 	}
 
+	errors.UseColor = false
+
 	for _, g := range golden {
-		s, err := scanner.Open(g.path)
+		buf, err := ioutil.ReadFile(g.path)
 		if err != nil {
-			t.Error(err)
+			t.Errorf("%q: %v", g.path, err)
 			continue
 		}
+		input := string(buf)
+		s := scanner.NewFromString(input)
+		src := errors.NewSource(g.path, input)
+
 		p := parser.NewParser()
 		file, err := p.Parse(s)
 		if err != nil {
@@ -39,11 +45,16 @@ func TestCheckValid(t *testing.T) {
 			continue
 		}
 		f := file.(*ast.File)
+
 		err = sem.Check(f)
 		if err != nil {
 			if e, ok := err.(*errutil.ErrInfo); ok {
 				// Unwrap errutil error.
 				err = e.Err
+				if e, ok := err.(*errors.Error); ok {
+					// Unwrap semantic error.
+					e.Src = src
+				}
 			}
 			t.Errorf("%q: unexpected error: `%v`", g.path, err.Error())
 		}
@@ -55,6 +66,12 @@ func TestCheckError(t *testing.T) {
 		path string
 		want string
 	}{
+		{
+			path: "../testdata/quiet/semantic/s02.c",
+			want: `(../testdata/quiet/semantic/s02.c:3) error: missing return at end of non-void function "foo"
+  ; }
+    ^`,
+		},
 		{
 			path: "../testdata/incorrect/semantic/se01.c",
 			want: `(../testdata/incorrect/semantic/se01.c:5) error: undeclared identifier "b"
@@ -280,10 +297,22 @@ void f(int a, void) {
    ^`,
 		},
 		{
+			path: "../testdata/extra/semantic/local-var-redef.c",
+			want: `(../testdata/extra/semantic/local-var-redef.c:6) error: redefinition of "x"
+ int x;
+     ^`,
+		},
+		{
 			path: "../testdata/extra/semantic/missing-return.c",
 			want: `(../testdata/extra/semantic/missing-return.c:10) error: missing return at end of non-void function "f"
 }
 ^`,
+		},
+		{
+			path: "../testdata/extra/semantic/param-redef.c",
+			want: `(../testdata/extra/semantic/param-redef.c:5) error: redefinition of "x"
+ int x;
+     ^`,
 		},
 		{
 			path: "../testdata/extra/semantic/unnamed-arg.c",
@@ -298,12 +327,6 @@ void f(int) {
       ^`,
 		},
 		{
-			path: "../testdata/extra/semantic/void-arg.c",
-			want: `(../testdata/extra/semantic/void-arg.c:4) error: "x" has invalid type "void"
-void f(void x) {
-            ^`,
-		},
-		{
 			path: "../testdata/extra/semantic/void-array.c",
 			want: `(../testdata/extra/semantic/void-array.c:5) error: invalid element type "void" of array "x"
  void x[10];
@@ -313,6 +336,12 @@ void f(void x) {
 			path: "../testdata/extra/semantic/void-array-arg.c",
 			want: `(../testdata/extra/semantic/void-array-arg.c:4) error: invalid element type "void" of array "x"
 void f(void x[]) {
+            ^`,
+		},
+		{
+			path: "../testdata/extra/semantic/void-param.c",
+			want: `(../testdata/extra/semantic/void-param.c:4) error: "x" has invalid type "void"
+void f(void x) {
             ^`,
 		},
 		{
@@ -356,6 +385,7 @@ void f(void, void) {
 				// Unwrap errutil error.
 				err = e.Err
 				if e, ok := err.(*errors.Error); ok {
+					// Unwrap semantic error.
 					e.Src = src
 				}
 			}

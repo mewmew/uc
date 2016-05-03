@@ -14,12 +14,18 @@ type Scope struct {
 	Outer *Scope
 	// Identifiers declared within the current scope.
 	Decls map[string]ast.Decl
+	// IsDef reports whether the given declaration is a definition.
+	IsDef func(ast.Decl) bool
 }
 
 // NewScope returns a new lexical scope immediately surrouded by the given outer
 // scope.
 func NewScope(outer *Scope) *Scope {
-	return &Scope{Outer: outer, Decls: make(map[string]ast.Decl)}
+	return &Scope{
+		Outer: outer,
+		Decls: make(map[string]ast.Decl),
+		IsDef: astutil.IsDef,
+	}
 }
 
 // Insert inserts the given declaration into the current scope.
@@ -50,13 +56,13 @@ func (s *Scope) Insert(decl ast.Decl) error {
 
 	// The last tentative definition becomes the definition, unless defined
 	// explicitly (e.g. having an initializer or function body).
-	if !astutil.IsDef(prev) {
+	if !s.IsDef(prev) {
 		s.Decls[name] = decl
 		return nil
 	}
 
 	// Definition already present in scope.
-	if astutil.IsDef(decl) {
+	if s.IsDef(decl) {
 		// TODO: Consider adding support for multiple errors (and potentially
 		// warnings and notifications).
 		//
