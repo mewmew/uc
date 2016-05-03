@@ -1,5 +1,7 @@
 TESTDATA=../../../testdata
-UPROG=$(shell which usem)
+UPROG=usem
+UCFLAGS=-colors=false
+REDIRECTS=2>&1
 
 all: semantic_analysis
 
@@ -65,15 +67,14 @@ extra/semantic/void-var.c
 OBJECTS=$(SOURCES:%.c=%.txt)
 OBJECTDIRS=$(sort $(dir $(OBJECTS)))
 
-UCFLAGS=
-REDIRECTS=2>&1
+UPROGPATH=$(shell which $UPROG)
 
 semantic_analysis: $(OBJECTDIRS:=listref.tex)
 
 $(OBJECTDIRS):
 	mkdir -p "$@"
 
-$(OBJECTS): %.txt: %.c $(UPROG) | $(OBJECTDIRS)
+$(OBJECTS): %.txt: %.c $(UPROGPATH) | $(OBJECTDIRS)
 	@echo making $@
 	cd $(CURDIR)/$(TESTDATA); $(UPROG) $(UCFLAGS) $(<:$(TESTDATA)/%=%) > $(CURDIR:$(TESTDATA)/%=%)/$@ $(REDIRECTS)
 
