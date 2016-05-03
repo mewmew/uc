@@ -731,7 +731,11 @@ func (n *TypeDef) Name() *Ident {
 //
 //    *BlockStmt
 func (n *FuncDecl) Value() Node {
-	return n.Body
+	// ref: https://golang.org/doc/faq#nil_error
+	if n.Body != nil {
+		return n.Body
+	}
+	return nil
 }
 
 // Value returns the initializing value of the defined identifier; or nil if
@@ -741,7 +745,11 @@ func (n *FuncDecl) Value() Node {
 //
 //    Expr
 func (n *VarDecl) Value() Node {
-	return n.Val
+	// ref: https://golang.org/doc/faq#nil_error
+	if n.Val != nil {
+		return n.Val
+	}
+	return nil
 }
 
 // Value returns the initializing value of the defined identifier; or nil if
@@ -751,7 +759,11 @@ func (n *VarDecl) Value() Node {
 //
 //    Type
 func (n *TypeDef) Value() Node {
-	return n.DeclType
+	// ref: https://golang.org/doc/faq#nil_error
+	if n.DeclType != nil {
+		return n.DeclType
+	}
+	return nil
 }
 
 // isDecl ensures that only declaration nodes can be assigned to the Decl

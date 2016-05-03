@@ -41,6 +41,11 @@ func resolve(file *ast.File) error {
 
 	// First pass, add global declarations to file scope.
 	fileScope := NewScope(universe)
+	fileScope.IsDef = func(decl ast.Decl) bool {
+		// Consider variable declarations as tentative definitions; i.e. return
+		// false, unless variable definition.
+		return decl.Value() != nil
+	}
 	for _, decl := range file.Decls {
 		if err := fileScope.Insert(decl); err != nil {
 			return errutil.Err(err)

@@ -1,7 +1,9 @@
 package sem_test
 
 import (
+	"fmt"
 	"io/ioutil"
+	"strings"
 	"testing"
 
 	"github.com/mewkiz/pkg/errutil"
@@ -23,8 +25,11 @@ func TestCheckValid(t *testing.T) {
 		{path: "../testdata/quiet/semantic/s05.c"},
 		{path: "../testdata/quiet/semantic/s06.c"},
 		{path: "../testdata/extra/semantic/missing-return-main.c"},
+		{path: "../testdata/extra/semantic/tentative-var-def.c"},
 		{path: "../testdata/extra/semantic/variable-sized-array-arg.c"},
 	}
+
+	errors.UseColor = false
 
 	for _, g := range golden {
 		s, err := scanner.Open(g.path)
@@ -280,10 +285,22 @@ void f(int a, void) {
    ^`,
 		},
 		{
+			path: "../testdata/extra/semantic/local-var-redef.c",
+			want: `(../testdata/extra/semantic/local-var-redef.c:6) error: redefinition of "x"
+ int x;
+     ^`,
+		},
+		{
 			path: "../testdata/extra/semantic/missing-return.c",
 			want: `(../testdata/extra/semantic/missing-return.c:10) error: missing return at end of non-void function "f"
 }
 ^`,
+		},
+		{
+			path: "../testdata/extra/semantic/param-redef.c",
+			want: `(../testdata/extra/semantic/param-redef.c:5) error: redefinition of "x"
+ int x;
+     ^`,
 		},
 		{
 			path: "../testdata/extra/semantic/unnamed-arg.c",
@@ -363,6 +380,9 @@ void f(void, void) {
 		}
 		if got != g.want {
 			t.Errorf("%q: error mismatch; expected `%v`, got `%v`", g.path, g.want, got)
+		} else if strings.Contains(g.path, "extra") {
+			// TODO: Remove once sem passes the extra tests.
+			fmt.Println("PASS:", g.path)
 		}
 	}
 }
