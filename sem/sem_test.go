@@ -1,9 +1,7 @@
 package sem_test
 
 import (
-	"fmt"
 	"io/ioutil"
-	"strings"
 	"testing"
 
 	"github.com/mewkiz/pkg/errutil"
@@ -31,7 +29,6 @@ func TestCheckValid(t *testing.T) {
 	errors.UseColor = false
 
 	for _, g := range golden {
-		fmt.Println("path:", g.path) // TODO: Remove once the test cases mature.
 		buf, err := ioutil.ReadFile(g.path)
 		if err != nil {
 			t.Errorf("%q: %v", g.path, err)
@@ -364,7 +361,6 @@ void f(void, void) {
 	errors.UseColor = false
 
 	for _, g := range golden {
-		fmt.Println("path:", g.path) // TODO: Remove once the test cases mature.
 		buf, err := ioutil.ReadFile(g.path)
 		if err != nil {
 			t.Errorf("%q: %v", g.path, err)
@@ -397,9 +393,6 @@ void f(void, void) {
 		}
 		if got != g.want {
 			t.Errorf("%q: error mismatch; expected `%v`, got `%v`", g.path, g.want, got)
-		} else if strings.Contains(g.path, "extra") {
-			// TODO: Remove once sem passes the extra tests.
-			fmt.Println("PASS:", g.path)
 		}
 	}
 }

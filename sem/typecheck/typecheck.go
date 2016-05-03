@@ -36,6 +36,20 @@ func check(file *ast.File, exprTypes map[ast.Expr]types.Type) error {
 	// check type-checks the given node.
 	check := func(n ast.Node) error {
 		switch n := n.(type) {
+		case *ast.BlockStmt:
+			// Verify that array declarations have an explicit size or an
+			// initializer.
+			for _, item := range n.Items {
+				switch item := item.(type) {
+				case *ast.VarDecl:
+					typ := item.Type()
+					if typ, ok := typ.(*types.Array); ok {
+						if typ.Len == 0 && item.Val == nil {
+							return errors.Newf(item.VarName.NamePos, "array size or initializer missing for %q", item.VarName)
+						}
+					}
+				}
+			}
 		case *ast.VarDecl:
 			typ := n.Type()
 			// TODO: Evaluate if the type-checking of identifiers could be made
