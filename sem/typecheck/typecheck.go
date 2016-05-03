@@ -37,8 +37,22 @@ func check(file *ast.File, exprTypes map[ast.Expr]types.Type) error {
 	check := func(n ast.Node) error {
 		switch n := n.(type) {
 		case *ast.VarDecl:
-			if n.VarName != nil && types.IsVoid(n.Type()) {
-				return errors.Newf(n.VarName.NamePos, "%q has invalid type %q", n.VarName, n.Type())
+			typ := n.Type()
+			// TODO: Evaluate if the type-checking of identifiers could be made
+			// more generic. Consider if a new variable declaration type was added
+			// alongside of ast.VarDecl, e.g. ast.Field. Then the type-checking
+			// code would have to be duplicated to ast.Field. A more generic
+			// approach that may be worth exploring is to do the type-checking
+			// directly on *ast.Ident. A naive implementation has been attempted
+			// using *ast.Ident, which failed since "void" refers to itself as a
+			// VarDecl, whos types is "void".
+			if n.VarName != nil && types.IsVoid(typ) {
+				return errors.Newf(n.VarName.NamePos, `%q has invalid type "void"`, n.VarName)
+			}
+			if typ, ok := typ.(*types.Array); ok {
+				if types.IsVoid(typ.Elem) {
+					return errors.Newf(n.VarName.NamePos, `invalid element type "void" of array %q`, n.VarName)
+				}
 			}
 		case *ast.FuncDecl:
 			if astutil.IsDef(n) {
