@@ -30,6 +30,7 @@ $ go install github.com/mewmew/uc/cmd/uparse
 
 * [ulex](https://godoc.org/github.com/mewmew/uc/cmd/ulex): a lexer for the µC language which pretty-prints tokens to standard output.
 * [uparse](https://godoc.org/github.com/mewmew/uc/cmd/uparse): a parser for the µC language which pretty-prints abstract syntax trees to standard output.
+* [usem](https://godoc.org/github.com/mewmew/uc/cmd/usem): a static semantic checker for the µC language which validates the input and reports errors to standard error.
 
 ## Public domain
 
