@@ -35,9 +35,12 @@ The static checker of the semantic analysis phase will ensure that functions con
 \subsubsection{Scope}
 \label{sec:scope}
 
-The type-checker has a notion of two distinct scopes, the file scope and the block scope.
+The type-checker has a notion of two distinct scopes, the file scope and the block scope. Within the file scope, variable declarations are considered tentative definitions, unless defined with an initializer. The file scope may contain multiple tentative definitions of the same identifier as long as they are of equivalent types.
 
-%	// The last tentative definition becomes the definition, unless defined
-%	// explicitly (e.g. having an initializer or function body).
+Compound statements form lexically nested block scopes, in which variable declarations represent definitions. The bodies (i.e. compound statements) of function definitions are treated as regular block scopes with one exception, any parameters declared by the function signature are added to the environment of the block scope. The block scopes of global function definition bodies, have the file scope as their immediately surrounding outer scope.
 
-\subsubsection{Environment}
+Identifiers are resolved by searching for their corresponding declarations starting from the current (read innermost) scope, and successivly searching outer scopes, until either the closest declaration is located or the outermost scope has been reached.
+
+To handle user-defined type definitions, a \textit{universe} pseudo-scope has been added, in which keyword types (e.g. \texttt{int}) are pre-declared. The \textit{universe} scope is the immediately surrounding outer scope of the file scope, and the \textit{universe} scope has no outer scope.
+
+%\subsubsection{Environment}
