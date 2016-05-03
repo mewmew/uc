@@ -16,7 +16,7 @@ inc inc/uparse inc/ulex inc/usem:
 	make -C $@/
 
 clean_aux:
-	rm -f *.aux *.log *.out *.toc *.bbl *.blg *.dvi *.rtf *.bcf *-blx.bib *.run.xml sections/*.aux
+	rm -f *.aux *.log *.out *.toc *.bbl *.blg *.dvi *.rtf *.bcf *-blx.bib *.run.xml sections/*.aux sections/appendices/*.aux
 
 clean: clean_aux
 	rm -f uc.pdf 1_intro.pdf 2_lex.pdf 3_parse.pdf 4_sem.pdf 5_ir.pdf 6_ir_gen.pdf 7_con.pdf app.pdf
