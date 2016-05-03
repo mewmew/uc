@@ -1,5 +1,25 @@
 \subsection{Design Decisions}
 
+% TODO:
+% * your representation of types
+%    - Add GoDoc PDF of the uc/types package to appendix.
+% * what information you associate with identifiers in the environment
+% * how you chose to implement the environment (symbol table)
+% * how you handle delimited scopes (restoring the environment when leaving the scope)
+% * the typing rules you have implemented for expression operators
+%
+% Also give some test runs with incorrect programs. If there is one semantic error you had trouble detecting, include the corresponding test program.
+
+\subsubsection{Multi-pass Identifier Resolution}
+
+To facilitate the development of C code, an early design decision was taken to support forward references of identifiers declared at the file scope of source files\footnote{Forward references: \url{https://github.com/mewmew/uc/issues/50}}. For this to work, the semantic analysis is conducted in two passes. Firstly, global declarations are added to the file scope environment, taking special consideration to tentative definitions\footnote{Tentative declaration: \url{https://github.com/mewmew/uc/issues/51}}. Secondly, the bodies of global definitions are traversed top-down and left-to-right to resolve identifiers and deduce the types of expressions.
+
+\subsubsection{User-defined Type Definitions}
+
+Since day one, each stage of the compiler has been designed to support user-defined type definitions. Firstly, the lexer mimicked the implementation of Clang to address \textit{the lexer hack}\footnote{The lexer hack: \url{https://en.wikipedia.org/wiki/The_lexer_hack}} by tokenizing type keywords (e.g. \texttt{int}) as identifiers. Secondly, the grammar used to generate the parser was refined to define basic types in terms of identifiers and later extended to add support for the \texttt{typedef} construct. Lastly, the semantic analysis leveraged identifier resolution to provide a uniform representation of types by adding pre-declared type definitions of keyword types (e.g. \texttt{int}) to the \textit{universe} scope environment (as further described in section \ref{sec:scope}). As user-defined types (e.g. \texttt{typedef int foo;}) are synonyms for their underlying type (i.e. \texttt{foo} is an alias for \texttt{int}, see §6.7.7.3 \cite{c11_spec}), type definitions map identifiers to their underlying types within the type system.
+
+\footnote{Type declarations: \url{https://github.com/mewmew/uc/issues/54}}
+
 \subsubsection{Typing Rules}
 
 %============ from assignment 2 ==============
@@ -17,14 +37,9 @@ The static checker of the semantic analysis phase will ensure that functions con
 %============ from assignment 2 end ==============
 
 \subsubsection{Scope}
+\label{sec:scope}
 
 %	// The last tentative definition becomes the definition, unless defined
 %	// explicitly (e.g. having an initializer or function body).
 
 \subsubsection{Environment}
-
-
-%	// Semantic analysis is done in two passes to allow for forward references.
-%	// Firstly, the global declarations are added to the file-scope. Secondly,
-%	// the global function declaration bodies are traversed to resolve
-%	// identifiers and deduce the types of expressions.
