@@ -2,6 +2,8 @@
 package typecheck
 
 import (
+	"fmt"
+
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
 	"github.com/mewmew/uc/ast/astutil"
@@ -99,6 +101,15 @@ func check(file *ast.File, exprTypes map[ast.Expr]types.Type) error {
 				if len(n.Params) > 1 && types.IsVoid(paramType) {
 					return errors.Newf(n.Lparen, `"void" must be the only parameter`)
 				}
+			}
+		case *ast.IndexExpr:
+			indexType, ok := exprTypes[n.Index]
+			if !ok {
+				panic(fmt.Sprintf("unable to locate type of expression %v", n.Index))
+			}
+			num, ok := indexType.(types.Numerical)
+			if !ok || !num.IsNumerical() {
+				return errors.Newf(n.Index.Start(), "invalid array index; expected integer, got %q", indexType)
 			}
 		default:
 			// TODO: Implement type-checking for remaining node types.

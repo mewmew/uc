@@ -358,6 +358,7 @@ void f(void, void) {
 	errors.UseColor = false
 
 	for _, g := range golden {
+		fmt.Println("path:", g.path) // TODO: Remove once the test cases mature.
 		buf, err := ioutil.ReadFile(g.path)
 		if err != nil {
 			t.Errorf("%q: %v", g.path, err)
