@@ -70,7 +70,11 @@ func (e *Error) Error() string {
 	//       1 = y
 	//         ^
 	line, col := src.Position(e.Pos)
-	srcLine := src.Input[src.Lines[line-1]:src.Lines[line]]
+	end := len(src.Input)
+	if len(src.Lines) > line {
+		end = src.Lines[line]
+	}
+	srcLine := src.Input[src.Lines[line-1]:end]
 	srcLine = strings.Replace(srcLine, "\t", " ", -1)
 	srcLine = strings.TrimRight(srcLine, "\n\r")
 	arrow := fmt.Sprintf("%*s", col, "^")
