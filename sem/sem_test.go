@@ -19,7 +19,6 @@ func TestCheckValid(t *testing.T) {
 		path string
 	}{
 		{path: "../testdata/quiet/semantic/s01.c"},
-		{path: "../testdata/quiet/semantic/s02.c"},
 		{path: "../testdata/quiet/semantic/s03.c"},
 		{path: "../testdata/quiet/semantic/s04.c"},
 		{path: "../testdata/quiet/semantic/s05.c"},
@@ -70,6 +69,12 @@ func TestCheckError(t *testing.T) {
 		path string
 		want string
 	}{
+		{
+			path: "../testdata/quiet/semantic/s02.c",
+			want: `(../testdata/quiet/semantic/s02.c:3) error: missing return at end of non-void function "foo"
+  ; }
+    ^`,
+		},
 		{
 			path: "../testdata/incorrect/semantic/se01.c",
 			want: `(../testdata/incorrect/semantic/se01.c:5) error: undeclared identifier "b"
