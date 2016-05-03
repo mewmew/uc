@@ -1,11 +1,37 @@
 // Package semcheck implements a static semantic analysis checker for µC.
 package semcheck
 
-import "github.com/mewmew/uc/ast"
+import (
+	"github.com/mewkiz/pkg/errutil"
+	"github.com/mewmew/uc/ast"
+	"github.com/mewmew/uc/ast/astutil"
+)
 
 // Check performs static semantic analysis on the given file.
 func Check(file *ast.File) error {
+	for _, decl := range file.Decls {
+		switch decl := decl.(type) {
+		case *ast.FuncDecl:
+			// Check for nested functions.
+			if err := checkNestedFunctions(decl); err != nil {
+				return errutil.Err(err)
+			}
+		}
+	}
 	return nil
+}
+
+// checkNestedFunctions reports an error if the given function contains any
+// nested function definitions.
+func checkNestedFunctions(fn *ast.FuncDecl) error {
+	if !astutil.IsDef(fn) {
+		return nil
+	}
+	check := func(n ast.Node) error {
+		if n, ok := n.(*ast.FuncDecl); ok {
+		}
+		return nil
+	}
 }
 
 // TODO: Verify that all declarations occur at the beginning of the function
