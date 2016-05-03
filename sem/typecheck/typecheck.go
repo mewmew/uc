@@ -38,6 +38,15 @@ func check(file *ast.File, exprTypes map[ast.Expr]types.Type) error {
 			if astutil.IsDef(n) {
 				// push function declaration.
 				funcs = append(funcs, n.Type().(*types.Func))
+
+				// Verify that parameter names are not obmitted in function
+				// definitions.
+				for _, param := range n.FuncType.Params {
+					if !types.IsVoid(param.Type()) && param.VarName == nil {
+						return errors.Newf(param.VarType.Start(), "parameter name obmitted")
+					}
+				}
+
 			}
 		case *ast.ReturnStmt:
 			// Verify result type.

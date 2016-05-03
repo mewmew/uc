@@ -32,11 +32,15 @@ func TestCheckValid(t *testing.T) {
 	errors.UseColor = false
 
 	for _, g := range golden {
-		s, err := scanner.Open(g.path)
+		buf, err := ioutil.ReadFile(g.path)
 		if err != nil {
-			t.Error(err)
+			t.Errorf("%q: %v", g.path, err)
 			continue
 		}
+		input := string(buf)
+		s := scanner.NewFromString(input)
+		src := errors.NewSource(g.path, input)
+
 		p := parser.NewParser()
 		file, err := p.Parse(s)
 		if err != nil {
@@ -44,11 +48,16 @@ func TestCheckValid(t *testing.T) {
 			continue
 		}
 		f := file.(*ast.File)
+
 		err = sem.Check(f)
 		if err != nil {
 			if e, ok := err.(*errutil.ErrInfo); ok {
 				// Unwrap errutil error.
 				err = e.Err
+				if e, ok := err.(*errors.Error); ok {
+					// Unwrap semantic error.
+					e.Src = src
+				}
 			}
 			t.Errorf("%q: unexpected error: `%v`", g.path, err.Error())
 		}
@@ -373,6 +382,7 @@ void f(void, void) {
 				// Unwrap errutil error.
 				err = e.Err
 				if e, ok := err.(*errors.Error); ok {
+					// Unwrap semantic error.
 					e.Src = src
 				}
 			}
