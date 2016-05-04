@@ -1,12 +1,8 @@
 \subsection{Design Decisions}
 
 % TODO:
-% * what information you associate with identifiers in the environment
 % * how you chose to implement the environment (symbol table)
-% * how you handle delimited scopes (restoring the environment when leaving the scope)
 % * the typing rules you have implemented for expression operators
-%
-% Also give some test runs with incorrect programs. If there is one semantic error you had trouble detecting, include the corresponding test program.
 
 \subsubsection{Multi-pass Identifier Resolution}
 
@@ -18,7 +14,8 @@ Since day one, each stage of the compiler has been designed to support user-defi
 
 \subsubsection{Typing Rules}
 
-%============ from assignment 2 ==============
+\subsection{Nested Functions}
+
 \begin{lstlisting}[language=C,style=c,caption={\label{fig:nested_func_decl}Nested function declarations.}]
 int add(int a, int b) {
 	// Nested function declarations are syntactically valid.
@@ -29,8 +26,7 @@ int add(int a, int b) {
 }
 \end{lstlisting}
 
-The static checker of the semantic analysis phase will ensure that functions contain no nested function declarations, unless the relevant GNU extension has been enabled\footnote{Add support for nested functions (GNU extension): \url{https://github.com/mewmew/uc/issues/43}}.
-%============ from assignment 2 end ==============
+The static checker of the semantic analysis phase ensures that functions contain no nested function declarations, unless the relevant GNU extension has been enabled\footnote{Add support for nested functions (GNU extension): \url{https://github.com/mewmew/uc/issues/43}}. The nested functions GNU extension is enabled by default, and may be disabled through the \texttt{-no-nested-functions} flag.
 
 \subsubsection{Scope}
 \label{sec:scope}
@@ -42,5 +38,3 @@ Compound statements form lexically nested block scopes, in which variable declar
 Identifiers are resolved by searching for their corresponding declarations starting from the current (read innermost) scope, and successivly searching outer scopes, until either the closest declaration is located or the outermost scope has been reached.
 
 To handle user-defined type definitions, a \textit{universe} pseudo-scope has been added, in which keyword types (e.g. \texttt{int}) are pre-declared. The \textit{universe} scope is the immediately surrounding outer scope of the file scope, and the \textit{universe} scope has no outer scope.
-
-%\subsubsection{Environment}
