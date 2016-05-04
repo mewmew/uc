@@ -8,7 +8,7 @@ import (
 	"github.com/mewmew/uc/sem/errors"
 )
 
-// NoNestedFunctions dissables the checking for nested functions
+// NoNestedFunctions disables the checking for nested functions
 var NoNestedFunctions = false
 
 // Check performs static semantic analysis on the given file.
