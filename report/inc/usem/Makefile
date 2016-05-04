@@ -51,22 +51,23 @@ noisy/advanced/bubble.c \
 noisy/advanced/eval.c \
 noisy/advanced/primes.c \
 noisy/advanced/quick.c \
-extra/semantic/variable-sized-array.c \
-extra/semantic/missing-return.c \
-extra/semantic/param-redef.c \
-extra/semantic/void-array.c \
-extra/semantic/tentative-var-def.c \
-extra/semantic/variable-sized-array-arg.c \
-extra/semantic/void-array-arg.c \
-extra/semantic/void-var.c \
-extra/semantic/void-params.c \
-extra/semantic/unnamed-arg.c \
-extra/semantic/index-array.c \
-extra/semantic/missing-return-main.c \
-extra/semantic/local-var-redef.c \
-extra/semantic/incompatible-arg-type.c \
 extra/semantic/extra-void-arg.c \
-extra/semantic/void-param.c
+extra/semantic/incompatible-arg-type.c \
+extra/semantic/index-array.c \
+extra/semantic/local-var-redef.c \
+extra/semantic/missing-return.c \
+extra/semantic/missing-return-main.c \
+extra/semantic/nested-function-def.c \
+extra/semantic/param-redef.c \
+extra/semantic/tentative-var-def.c \
+extra/semantic/unnamed-arg.c \
+extra/semantic/variable-sized-array.c \
+extra/semantic/variable-sized-array-arg.c \
+extra/semantic/void-array.c \
+extra/semantic/void-array-arg.c \
+extra/semantic/void-param.c \
+extra/semantic/void-params.c \
+extra/semantic/void-var.c \
 #$(patsubst $(TESTDATA)/%,%,$(wildcard $(TESTDATA)/noisy/advanced/*.c))
 
 OBJECTS=$(SOURCES:%.c=%.txt)
