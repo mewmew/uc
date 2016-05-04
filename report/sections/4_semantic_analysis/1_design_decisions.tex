@@ -33,14 +33,20 @@ The type-checker has a notion of two distinct scopes, the file scope and the blo
 
 Compound statements form lexically nested block scopes, in which variable declarations represent definitions. The bodies (i.e. compound statements) of function definitions are treated as regular block scopes with one exception, any parameters declared by the function signature are added to the environment of the block scope. The block scopes of global function definition bodies, have the file scope as their immediately surrounding outer scope.
 
-Identifiers are resolved by searching for their corresponding declarations starting from the current (i.e. nearest) scope, and successivly searching outer scopes, until either the closest declaration is located or the outermost scope has been reached.
+Identifiers are resolved by searching for their corresponding declarations starting from the current (i.e. nearest) scope, and successively searching outer scopes, until either the closest declaration is located or the outermost scope has been reached.
 
 To handle user-defined type definitions, a \textit{universe} pseudo-scope has been added, in which keyword types (e.g. \texttt{int}) are pre-declared. The \textit{universe} scope is the immediately surrounding outer scope of the file scope, and the \textit{universe} scope has no outer scope.
 
 \subsubsection{Type Deduction of Expressions}
 
-Type deduction of expressions are carried out The types of expressions are deduced through a
+Type deduction of expressions are carried out through a bottom-up and left-to-right traversal of the parse tree. For each expression node of the parse tree, a recursive function is invoked which returns the type of a given expression; as specified below.
 
-Secondly, the bodies of global definitions are traversed top-down and left-to-right to resolve identifiers and deduce the types of expressions.
-
-Walk the AST of the given file to deduce the types of expression nodes.
+\begin{itemize}
+	\item \textit{Basic literals}: the corresponding type, i.e. \texttt{int} and \texttt{char} for integer and character literals, respectively.
+	\item \textit{Identifiers}: the type of their corresponding declaration.
+	\item \textit{Parenthesized expressions}: the type of their encapsulated expression.
+	\item \textit{Array index expressions}: the type of their corresponding array element, or an error if the corresponding identifier does not declare an array.
+	\item \textit{Call expressions}: the result type of their invoked function signature, or an error if the corresponding identifier does not declare a function.
+	\item \textit{Unary expressions}: the type of their argument.
+	\item \textit{Binary expressions}: the type of the argument with highest precious, or an error elsewise if of incompatible types.
+\end{itemize}
