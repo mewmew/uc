@@ -48,5 +48,5 @@ Type deduction of expressions are carried out through a bottom-up and left-to-ri
 	\item \textit{Array index expressions}: the type of their corresponding array element, or an error if the corresponding identifier does not declare an array.
 	\item \textit{Call expressions}: the result type of their invoked function signature, or an error if the corresponding identifier does not declare a function.
 	\item \textit{Unary expressions}: the type of their argument.
-	\item \textit{Binary expressions}: the type of the argument with highest precious, or an error elsewise if of incompatible types.
+	\item \textit{Binary expressions}: the type of the argument with highest precious, or an error elsewise if of incompatible or \texttt{void} types. The type of assignment expressions is the assignee argument.
 \end{itemize}
