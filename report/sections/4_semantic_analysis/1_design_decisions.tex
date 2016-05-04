@@ -4,17 +4,17 @@ The design of the static semantic analysis checker strives to strike balance bet
 
 \subsubsection{Multi-pass Identifier Resolution}
 
-To facilitate the development of C code, an early design decision was taken to support forward references of identifiers declared at the file scope of source files\footnote{Forward references: \url{https://github.com/mewmew/uc/issues/50}}. For this to work, the semantic analysis is conducted in two passes. Firstly, global declarations are added to the file scope environment, taking special consideration to tentative definitions\footnote{Tentative declaration: \url{https://github.com/mewmew/uc/issues/51}}. Secondly, the bodies of global definitions are traversed top-down and left-to-right to resolve identifiers.
+To facilitate the development of C code, an early design decision was taken to support forward references of identifiers declared at the file scope of source files\footnote{Forward references: \url{https://github.com/mewmew/uc/issues/50}}. For this to work, the semantic analysis is conducted in two passes. Firstly, global declarations are added to the file scope environment, while taking special consideration to tentative definitions\footnote{Tentative declaration: \url{https://github.com/mewmew/uc/issues/51}}. Secondly, the bodies of global definitions are traversed top-down and left-to-right to resolve identifiers.
 
 \subsubsection{User-defined Type Definitions}
 
 Since day one, each stage of the compiler has been designed to support user-defined type definitions. Firstly, the lexer mimicked the implementation of Clang to address \textit{the lexer hack}\footnote{The lexer hack: \url{https://en.wikipedia.org/wiki/The_lexer_hack}} by tokenizing type keywords (e.g. \texttt{int}) as identifiers. Secondly, the grammar used to generate the parser was refined to define basic types in terms of identifiers and later extended to add support for the \texttt{typedef} construct. Lastly, the semantic analysis leveraged identifier resolution to provide a uniform representation of types by adding pre-declared type definitions of keyword types (e.g. \texttt{int}) to the \textit{universe} scope environment (as further described in section \ref{sec:scope}). As user-defined types (e.g. \texttt{typedef int foo;}) are synonyms for their underlying type (i.e. \texttt{foo} is an alias for \texttt{int}, see §6.7.7.3 \cite{c11_spec}), type definitions map identifiers to their underlying types within the type system\footnote{Type declarations: \url{https://github.com/mewmew/uc/issues/54}}.
 
-\subsection{Nested Functions}
+\subsubsection{Nested Functions}
 
 \begin{lstlisting}[language=C,style=c,caption={\label{fig:nested_func_decl}Nested function declarations.}]
 int add(int a, int b) {
-	// Nested function declarations are syntactically valid.
+	// Nested function declarations are semantically valid, unless explicitly disabled.
 	int nested(void) {
 		return a + b;
 	}
@@ -22,14 +22,14 @@ int add(int a, int b) {
 }
 \end{lstlisting}
 
-The static checker of the semantic analysis phase ensures that functions contain no nested function declarations, unless the relevant GNU extension has been enabled\footnote{Add support for nested functions (GNU extension): \url{https://github.com/mewmew/uc/issues/43}}. The nested functions GNU extension is enabled by default, and may be disabled through the \texttt{-no-nested-functions} flag.
+The static checker of the semantic analysis phase ensures that functions contain no nested function declarations, unless the relevant GNU extension has been enabled\footnote{Add support for nested functions (GNU extension): \url{https://github.com/mewmew/uc/issues/43}}. The nested functions GNU extension is enabled by default, and may be disabled through the \texttt{-no-nested-functions} command line flag.
 
 \subsubsection{Scope}
 \label{sec:scope}
 
 The type-checker has a notion of two distinct scopes, the file scope and the block scope. Within the file scope, variable declarations are considered tentative definitions, unless defined with an initializer. The file scope may contain multiple tentative definitions of the same identifier as long as they are of equivalent types.
 
-Compound statements form lexically nested block scopes, in which variable declarations represent definitions. The bodies (i.e. compound statements) of function definitions are treated as regular block scopes with one exception, any parameters declared by the function signature are added to the environment of the block scope. The block scopes of global function definition bodies, have the file scope as their immediately surrounding outer scope.
+Compound statements form lexically nested block scopes, in which variable declarations represent definitions. The bodies (i.e. compound statements) of function definitions are treated as regular block scopes with one exception, any parameters declared by the function signature are added to the environment of the block scope of the function body. The block scopes of global function definition bodies, have the file scope as their immediately surrounding outer scope.
 
 Identifiers are resolved by searching for their corresponding declarations starting from the current (i.e. nearest) scope, and successively searching outer scopes, until either the closest declaration is located or the outermost scope has been reached.
 
@@ -46,5 +46,5 @@ Type deduction of expressions are carried out through a bottom-up and left-to-ri
 	\item \textit{Array index expressions}: the type of their corresponding array element, or an error if the corresponding identifier does not declare an array.
 	\item \textit{Call expressions}: the result type of their invoked function signature, or an error if the corresponding identifier does not declare a function.
 	\item \textit{Unary expressions}: the type of their argument.
-	\item \textit{Binary expressions}: the type of the argument with highest precious, or an error elsewise if of incompatible or \texttt{void} types. The type of assignment expressions is the assignee argument.
+	\item \textit{Binary expressions}: the type of the argument with highest precious, or an error if the arguments are of incompatible or \texttt{void} types. The type of assignment expressions is the assignee argument.
 \end{itemize}
