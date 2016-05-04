@@ -6,13 +6,11 @@
 
 \subsubsection{Multi-pass Identifier Resolution}
 
-To facilitate the development of C code, an early design decision was taken to support forward references of identifiers declared at the file scope of source files\footnote{Forward references: \url{https://github.com/mewmew/uc/issues/50}}. For this to work, the semantic analysis is conducted in two passes. Firstly, global declarations are added to the file scope environment, taking special consideration to tentative definitions\footnote{Tentative declaration: \url{https://github.com/mewmew/uc/issues/51}}. Secondly, the bodies of global definitions are traversed top-down and left-to-right to resolve identifiers and deduce the types of expressions.
+To facilitate the development of C code, an early design decision was taken to support forward references of identifiers declared at the file scope of source files\footnote{Forward references: \url{https://github.com/mewmew/uc/issues/50}}. For this to work, the semantic analysis is conducted in two passes. Firstly, global declarations are added to the file scope environment, taking special consideration to tentative definitions\footnote{Tentative declaration: \url{https://github.com/mewmew/uc/issues/51}}. Secondly, the bodies of global definitions are traversed top-down and left-to-right to resolve identifiers.
 
 \subsubsection{User-defined Type Definitions}
 
 Since day one, each stage of the compiler has been designed to support user-defined type definitions. Firstly, the lexer mimicked the implementation of Clang to address \textit{the lexer hack}\footnote{The lexer hack: \url{https://en.wikipedia.org/wiki/The_lexer_hack}} by tokenizing type keywords (e.g. \texttt{int}) as identifiers. Secondly, the grammar used to generate the parser was refined to define basic types in terms of identifiers and later extended to add support for the \texttt{typedef} construct. Lastly, the semantic analysis leveraged identifier resolution to provide a uniform representation of types by adding pre-declared type definitions of keyword types (e.g. \texttt{int}) to the \textit{universe} scope environment (as further described in section \ref{sec:scope}). As user-defined types (e.g. \texttt{typedef int foo;}) are synonyms for their underlying type (i.e. \texttt{foo} is an alias for \texttt{int}, see §6.7.7.3 \cite{c11_spec}), type definitions map identifiers to their underlying types within the type system\footnote{Type declarations: \url{https://github.com/mewmew/uc/issues/54}}.
-
-\subsubsection{Typing Rules}
 
 \subsection{Nested Functions}
 
@@ -35,6 +33,20 @@ The type-checker has a notion of two distinct scopes, the file scope and the blo
 
 Compound statements form lexically nested block scopes, in which variable declarations represent definitions. The bodies (i.e. compound statements) of function definitions are treated as regular block scopes with one exception, any parameters declared by the function signature are added to the environment of the block scope. The block scopes of global function definition bodies, have the file scope as their immediately surrounding outer scope.
 
-Identifiers are resolved by searching for their corresponding declarations starting from the current (read innermost) scope, and successivly searching outer scopes, until either the closest declaration is located or the outermost scope has been reached.
+Identifiers are resolved by searching for their corresponding declarations starting from the current (i.e. nearest) scope, and successively searching outer scopes, until either the closest declaration is located or the outermost scope has been reached.
 
 To handle user-defined type definitions, a \textit{universe} pseudo-scope has been added, in which keyword types (e.g. \texttt{int}) are pre-declared. The \textit{universe} scope is the immediately surrounding outer scope of the file scope, and the \textit{universe} scope has no outer scope.
+
+\subsubsection{Type Deduction of Expressions}
+
+Type deduction of expressions are carried out through a bottom-up and left-to-right traversal of the parse tree. For each expression node of the parse tree, a recursive function is invoked which returns the type of a given expression; as specified below.
+
+\begin{itemize}
+	\item \textit{Basic literals}: the corresponding type, i.e. \texttt{int} and \texttt{char} for integer and character literals, respectively.
+	\item \textit{Identifiers}: the type of their corresponding declaration.
+	\item \textit{Parenthesized expressions}: the type of their encapsulated expression.
+	\item \textit{Array index expressions}: the type of their corresponding array element, or an error if the corresponding identifier does not declare an array.
+	\item \textit{Call expressions}: the result type of their invoked function signature, or an error if the corresponding identifier does not declare a function.
+	\item \textit{Unary expressions}: the type of their argument.
+	\item \textit{Binary expressions}: the type of the argument with highest precious, or an error elsewise if of incompatible or \texttt{void} types. The type of assignment expressions is the assignee argument.
+\end{itemize}
