@@ -1,8 +1,6 @@
 \subsection{Design Decisions}
 
-% TODO:
-% * how you chose to implement the environment (symbol table)
-% * the typing rules you have implemented for expression operators
+The design of the static semantic analysis checker strives to strike balance between adhesion to the C specification and incorporation of modern compiler design principles. By careful consideration of language features, a sweet spot may be identified which removes cruft and legacy features (e.g. implicit function declarations), defaults to rigorous analysis, and extends the subset of valid C programs to include support for forward references and nested functions.
 
 \subsubsection{Multi-pass Identifier Resolution}
 
