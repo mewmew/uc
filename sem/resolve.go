@@ -69,8 +69,10 @@ func resolve(file *ast.File) error {
 			if err := scope.Insert(n); err != nil {
 				return errutil.Err(err)
 			}
-			if fn, ok := n.(*ast.FuncDecl); ok && astutil.IsDef(fn) {
-				skip = true
+			if fn, ok := n.(*ast.FuncDecl); ok {
+				if astutil.IsDef(fn) {
+					skip = true
+				}
 				scope = NewScope(scope)
 			}
 		case *ast.BlockStmt:
@@ -91,6 +93,8 @@ func resolve(file *ast.File) error {
 	// after reverts to the outer scope after traversing block statements.
 	after := func(n ast.Node) error {
 		if _, ok := n.(*ast.BlockStmt); ok {
+			scope = scope.Outer
+		} else if fn, ok := n.(*ast.FuncDecl); ok && !astutil.IsDef(fn) {
 			scope = scope.Outer
 		}
 		return nil
