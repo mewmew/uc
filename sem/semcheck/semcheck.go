@@ -5,7 +5,11 @@ import (
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
 	"github.com/mewmew/uc/ast/astutil"
+	"github.com/mewmew/uc/sem/errors"
 )
+
+// NoNestedFunctions dissables the checking for nested functions
+var NoNestedFunctions = false
 
 // Check performs static semantic analysis on the given file.
 func Check(file *ast.File) error {
@@ -13,8 +17,10 @@ func Check(file *ast.File) error {
 		switch decl := decl.(type) {
 		case *ast.FuncDecl:
 			// Check for nested functions.
-			if err := checkNestedFunctions(decl); err != nil {
-				return errutil.Err(err)
+			if NoNestedFunctions {
+				if err := checkNestedFunctions(decl); err != nil {
+					return errutil.Err(err)
+				}
 			}
 		}
 	}
@@ -29,9 +35,15 @@ func checkNestedFunctions(fn *ast.FuncDecl) error {
 	}
 	check := func(n ast.Node) error {
 		if n, ok := n.(*ast.FuncDecl); ok {
+			return errors.Newf(n.FuncName.Start(), "nested functions not allowed")
 		}
 		return nil
 	}
+	nop := func(ast.Node) error { return nil }
+	if err := astutil.WalkBeforeAfter(fn.Body, check, nop); err != nil {
+		return errutil.Err(err)
+	}
+	return nil
 }
 
 // TODO: Verify that all declarations occur at the beginning of the function

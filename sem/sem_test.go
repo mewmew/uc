@@ -24,6 +24,7 @@ func TestCheckValid(t *testing.T) {
 		{path: "../testdata/extra/semantic/missing-return-main.c"},
 		{path: "../testdata/extra/semantic/tentative-var-def.c"},
 		{path: "../testdata/extra/semantic/variable-sized-array-arg.c"},
+		{path: "../testdata/extra/semantic/nested-function-def.c"},
 	}
 
 	errors.UseColor = false
