@@ -1,3 +1,4 @@
+// Package types declares the data types of the µC programming language.
 package types
 
 import (
