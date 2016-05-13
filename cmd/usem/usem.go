@@ -24,6 +24,7 @@ import (
 	handscanner "github.com/mewmew/uc/hand/scanner"
 	"github.com/mewmew/uc/sem"
 	semerrors "github.com/mewmew/uc/sem/errors"
+	"github.com/mewmew/uc/sem/semcheck"
 )
 
 func usage() {
@@ -44,6 +45,7 @@ func main() {
 	)
 	flag.BoolVar(&hand, "hand", true, "use hand-written lexer")
 	flag.BoolVar(&semerrors.UseColor, "colors", true, "use colors in output")
+	flag.BoolVar(&semcheck.NoNestedFunctions, "no-nested-functions", false, "use colors in output")
 	flag.Usage = usage
 	flag.Parse()
 	if flag.NArg() == 0 {
