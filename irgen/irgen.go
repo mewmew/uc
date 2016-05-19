@@ -6,6 +6,7 @@ import (
 
 	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/instruction"
+	irtypes "github.com/llir/llvm/ir/types"
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewkiz/pkg/term"
 	"github.com/mewmew/uc/ast"
@@ -62,6 +63,7 @@ func Gen(file *ast.File) error {
 			log.Printf("All basic block instrucitons: %v\n", allInsts)
 			branch := createWhile(n)
 			basicBlocks = append(basicBlocks, ir.NewBasicBlock(toLocalVarString(SsaCounter), instructionBuffer, branch))
+			SsaCounter += 1
 			instructionBuffer = instructionBuffer[0:0]
 		}
 		// TODO: Implement the rest of the needed node types
@@ -75,8 +77,12 @@ func Gen(file *ast.File) error {
 			endWhile(n)
 		case *ast.FuncDecl:
 			if astutil.IsDef(n) {
-				insts := endFunction(n)
-				instructionBuffer = append(instructionBuffer, insts...)
+				terminal := endFunction(n)
+				allInsts := make([]instruction.Instruction, len(instructionBuffer))
+				copy(allInsts, instructionBuffer)
+				basicBlocks = append(basicBlocks, ir.NewBasicBlock(toLocalVarString(SsaCounter), instructionBuffer, terminal))
+				log.Print(basicBlocks)
+				SsaCounter += 1
 				l := len(functions)
 				functions = functions[:l-1]
 				l = len(functions)
@@ -106,10 +112,14 @@ func createFunction(fn *ast.FuncDecl) *ir.Function {
 	return nil
 }
 
-func endFunction(fn *ast.FuncDecl) []instruction.Instruction {
+func endFunction(fn *ast.FuncDecl) instruction.Terminator {
 	// TODO: Implement
 	log.Println("end function decl", fn)
-	return nil
+	ret, err := instruction.NewRet(irtypes.NewVoid(), nil)
+	if err != nil {
+		log.Panic(errutil.New(err.Error()))
+	}
+	return ret
 }
 
 func createCall(call *ast.CallExpr) []instruction.Instruction {
@@ -134,6 +144,7 @@ func createGlobal(gv *ast.VarDecl) *ir.GlobalDecl {
 
 func createWhile(gv *ast.WhileStmt) instruction.Terminator {
 	// TODO: Implement
+
 	log.Println("start while loop", gv)
 	return nil
 }
