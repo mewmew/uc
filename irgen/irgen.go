@@ -1,6 +1,7 @@
 package irgen
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/llir/llvm/ir"
@@ -12,6 +13,8 @@ import (
 	"github.com/mewmew/uc/types"
 )
 
+var SsaCounter int
+
 func Gen(file *ast.File) error {
 	// TODO: REMOVE
 	log.SetPrefix(term.BlueBold("Log:"))
@@ -19,14 +22,15 @@ func Gen(file *ast.File) error {
 
 	var module ir.Module
 
-	ssaCounter := 0
 	var functions []*ir.Function
 	var currentFunction *ir.Function
 	var basicBlocks []*ir.BasicBlock
 	var instructionBuffer []instruction.Instruction
 
-	genBefore := func(n ast.Node) error {
+	instructionBuffer = make([]instruction.Instruction, 10)
+	SsaCounter := 0
 
+	genBefore := func(n ast.Node) error {
 		switch n := n.(type) {
 		case *ast.FuncDecl:
 			fn := createFunction(n)
@@ -49,15 +53,16 @@ func Gen(file *ast.File) error {
 				gv := createGlobal(n)
 				module.Globals = append(module.Globals, gv)
 			}
-			ssaCounter += 1
+			SsaCounter += 1
 		case *ast.WhileStmt:
 			_ = basicBlocks
 			// TODO: Create branch and 2 new basic blocks
-			// insts := createWhile(n)
-			// instructionBuffer = append(instructionBuffer, insts...)
-			// basicBlocks = append(basicBlocks, ir.NewBasicBlock(ssaCounter, instructionBuffer, ir.CondBranchInst{}))
-			// ssaCounter += 1
-			// instructionBuffer = make([]instruction.Instruction, 10)
+			allInsts := make([]instruction.Instruction, len(instructionBuffer))
+			copy(allInsts, instructionBuffer)
+			log.Printf("All basic block instrucitons: %v\n", allInsts)
+			branch := createWhile(n)
+			basicBlocks = append(basicBlocks, ir.NewBasicBlock(toLocalVarString(SsaCounter), instructionBuffer, branch))
+			instructionBuffer = instructionBuffer[0:0]
 		}
 		// TODO: Implement the rest of the needed node types
 		return nil
@@ -116,16 +121,18 @@ func createCall(call *ast.CallExpr) []instruction.Instruction {
 func createLocal(lv *ast.VarDecl) []instruction.Instruction {
 	// TODO: Implement
 	log.Println("create local variable", lv)
+	SsaCounter += 1
 	return nil
 }
 
 func createGlobal(gv *ast.VarDecl) *ir.GlobalDecl {
 	// TODO: Implement
 	log.Println("create global variable", gv)
+	SsaCounter += 1
 	return nil
 }
 
-func createWhile(gv *ast.WhileStmt) []instruction.Instruction {
+func createWhile(gv *ast.WhileStmt) instruction.Terminator {
 	// TODO: Implement
 	log.Println("start while loop", gv)
 	return nil
@@ -135,4 +142,8 @@ func endWhile(gv *ast.WhileStmt) []instruction.Instruction {
 	// TODO: Implement
 	log.Println("end while loop", gv)
 	return nil
+}
+
+func toLocalVarString(ssa int) string {
+	return fmt.Sprintf("%%%v", ssa)
 }
