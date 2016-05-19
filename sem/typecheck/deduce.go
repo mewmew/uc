@@ -74,7 +74,10 @@ func typeOf(n ast.Expr) (types.Type, error) {
 		if !isCompatible(xType, yType) {
 			return nil, errors.Newf(n.OpPos, "invalid operation: %v (type mismatch between %q and %q)", n, xType, yType)
 		}
-		// TODO: Implement better implicit conversion.
+		// TODO: Implement better implicit conversion. Future: Make sure to
+		// promote types early when implementing signed/unsigned types and
+		// types need to be promoted anyway later. Be careful of bug:
+		// https://youtu.be/Ux0YnVEaI6A?t=279
 		return higherPrecision(xType, yType), nil
 	case *ast.CallExpr:
 		typ := n.Name.Decl.Type()
