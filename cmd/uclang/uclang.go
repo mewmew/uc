@@ -88,7 +88,9 @@ func compileFile(path string, useGoccLexer bool) error {
 	if path == "-" {
 		path = "<stdin>"
 	}
-	fmt.Fprintf(os.Stderr, "Checking %q\n", path)
+
+	fmt.Fprintf(os.Stderr, "Compiling %q\n", path)
+
 	var s parser.Scanner
 	if useGoccLexer {
 		s = goccscanner.NewFromBytes(buf)
