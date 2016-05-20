@@ -14,8 +14,6 @@ import (
 	"github.com/mewmew/uc/types"
 )
 
-var SsaCounter int
-
 func Gen(file *ast.File) error {
 	// TODO: REMOVE
 	log.SetPrefix(term.BlueBold("Log:"))
@@ -27,44 +25,48 @@ func Gen(file *ast.File) error {
 	var currentFunction *ir.Function
 	var basicBlocks []*ir.BasicBlock
 	var instructionBuffer []instruction.Instruction
+	var insts []instruction.Instruction
 
 	instructionBuffer = make([]instruction.Instruction, 10)
-	SsaCounter := 0
+
+	// ssaCounter is counted up for anonymous assignments and basic blocks to
+	// give them an unique id
+	ssaCounter := 0
 
 	genBefore := func(n ast.Node) error {
 		switch n := n.(type) {
 		case *ast.FuncDecl:
-			fn := createFunction(n)
+			var fn *ir.Function
+			fn, ssaCounter = createFunction(n, ssaCounter)
 			module.Funcs = append(module.Funcs, fn)
 			if astutil.IsDef(n) {
 				functions = append(functions, fn)
 				currentFunction = fn
 			}
 		case *ast.CallExpr:
-			insts := createCall(n)
+			insts, ssaCounter = createCall(n, ssaCounter)
 			instructionBuffer = append(instructionBuffer, insts...)
 		case *ast.VarDecl:
 			if types.IsVoid(n.Type()) {
 				return nil
 			}
 			if len(functions) > 0 {
-				insts := createLocal(n)
+				insts, ssaCounter = createLocal(n, ssaCounter)
 				instructionBuffer = append(instructionBuffer, insts...)
 			} else {
+				// Global values are compile time constant, no need for ssa
 				gv := createGlobal(n)
 				module.Globals = append(module.Globals, gv)
 			}
-			SsaCounter += 1
 		case *ast.WhileStmt:
-			_ = basicBlocks
 			// TODO: Create branch and 2 new basic blocks
 			allInsts := make([]instruction.Instruction, len(instructionBuffer))
 			copy(allInsts, instructionBuffer)
 			log.Printf("All basic block instrucitons: %v\n", allInsts)
-			branch := createWhile(n)
-			basicBlocks = append(basicBlocks, ir.NewBasicBlock(toLocalVarString(SsaCounter), instructionBuffer, branch))
-			SsaCounter += 1
-			instructionBuffer = instructionBuffer[0:0]
+			branch, ssaCounter := createWhile(n, ssaCounter)
+			basicBlocks = append(basicBlocks, ir.NewBasicBlock(toLocalVarString(ssaCounter), instructionBuffer, branch))
+			ssaCounter++
+			instructionBuffer = instructionBuffer[:0]
 		}
 		// TODO: Implement the rest of the needed node types
 		return nil
@@ -74,20 +76,18 @@ func Gen(file *ast.File) error {
 
 		switch n := n.(type) {
 		case *ast.WhileStmt:
-			endWhile(n)
+			_, ssaCounter = endWhile(n, ssaCounter)
 		case *ast.FuncDecl:
 			if astutil.IsDef(n) {
-				terminal := endFunction(n)
+				terminal, ssaCounter := endFunction(n, ssaCounter)
 				allInsts := make([]instruction.Instruction, len(instructionBuffer))
 				copy(allInsts, instructionBuffer)
-				basicBlocks = append(basicBlocks, ir.NewBasicBlock(toLocalVarString(SsaCounter), instructionBuffer, terminal))
+				basicBlocks = append(basicBlocks, ir.NewBasicBlock(toLocalVarString(ssaCounter), instructionBuffer, terminal))
 				log.Print(basicBlocks)
-				SsaCounter += 1
-				l := len(functions)
-				functions = functions[:l-1]
-				l = len(functions)
-				if l-1 > 0 {
-					currentFunction = functions[l-1]
+				ssaCounter++
+				functions = functions[:len(functions)-1]
+				if len(functions)-1 > 0 {
+					currentFunction = functions[len(functions)-1]
 				} else {
 					currentFunction = nil
 				}
@@ -102,57 +102,57 @@ func Gen(file *ast.File) error {
 		return errutil.Err(err)
 	}
 
-	_ = ir.BasicBlock{}
 	return nil
 }
 
-func createFunction(fn *ast.FuncDecl) *ir.Function {
+func createFunction(fn *ast.FuncDecl, ssa int) (*ir.Function, int) {
 	// TODO: Implement
-	log.Println("create function decl", fn)
-	return nil
+	log.Printf("create function decl %v\n", fn)
+	return nil, ssa
 }
 
-func endFunction(fn *ast.FuncDecl) instruction.Terminator {
+func endFunction(fn *ast.FuncDecl, ssa int) (instruction.Terminator, int) {
 	// TODO: Implement
-	log.Println("end function decl", fn)
+	log.Printf("end function decl %v\n", fn)
 	ret, err := instruction.NewRet(irtypes.NewVoid(), nil)
 	if err != nil {
 		log.Panic(errutil.New(err.Error()))
 	}
-	return ret
+	// TODO: how to return 0 from main without return stmt
+	return ret, ssa
 }
 
-func createCall(call *ast.CallExpr) []instruction.Instruction {
+func createCall(call *ast.CallExpr, ssa int) ([]instruction.Instruction, int) {
 	// TODO: Implement
-	log.Println("create call", call)
-	return nil
+	log.Printf("%v: create call %v\n", toLocalVarString(ssa), call)
+	ssa++
+	return nil, ssa
 }
 
-func createLocal(lv *ast.VarDecl) []instruction.Instruction {
+func createLocal(lv *ast.VarDecl, ssa int) ([]instruction.Instruction, int) {
 	// TODO: Implement
-	log.Println("create local variable", lv)
-	SsaCounter += 1
-	return nil
+	log.Printf("%v: create local variable %v\n", toLocalVarString(ssa), lv)
+	ssa++
+	return nil, ssa
 }
 
 func createGlobal(gv *ast.VarDecl) *ir.GlobalDecl {
 	// TODO: Implement
-	log.Println("create global variable", gv)
-	SsaCounter += 1
+	log.Printf("create global variable %v\n", gv)
 	return nil
 }
 
-func createWhile(gv *ast.WhileStmt) instruction.Terminator {
+func createWhile(ws *ast.WhileStmt, ssa int) (instruction.Terminator, int) {
 	// TODO: Implement
 
-	log.Println("start while loop", gv)
-	return nil
+	log.Printf("start while loop %v\n", ws)
+	return nil, ssa
 }
 
-func endWhile(gv *ast.WhileStmt) []instruction.Instruction {
+func endWhile(gv *ast.WhileStmt, ssa int) ([]instruction.Instruction, int) {
 	// TODO: Implement
-	log.Println("end while loop", gv)
-	return nil
+	log.Printf("end while loop %v\n", gv)
+	return nil, ssa
 }
 
 func toLocalVarString(ssa int) string {
