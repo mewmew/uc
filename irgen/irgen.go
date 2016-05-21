@@ -33,7 +33,7 @@ func Gen(file *ast.File) error {
 	// ssaCounter is counted up for anonymous assignments and basic blocks to
 	// give them an unique id
 	ssaCounter := 0
-
+	lastLabel := ssaCounter
 	var recurse func(ast.Node) error
 	recurse = func(n ast.Node) error {
 		switch n := n.(type) {
@@ -110,16 +110,35 @@ func Gen(file *ast.File) error {
 				module.Globals = append(module.Globals, gv)
 			}
 		case *ast.WhileStmt:
-			// TODO: Create branch and 2 new basic blocks
+			// Finnish last basic block with a branch to the basic block we
+			// are about to create (with label ssaCounter+1)
+			ssaCounter++
+			whileLabel := ssaCounter
 			allInsts := make([]instruction.Instruction, len(instructionBuffer))
 			copy(allInsts, instructionBuffer)
-			log.Printf("All basic block instrucitons: %v\n", allInsts)
-			branch, ssaCounter := createWhile(n, ssaCounter)
-			basicBlocks = append(basicBlocks, ir.NewBasicBlock(toLocalVarString(ssaCounter), instructionBuffer, branch))
+			log.Printf("Clear last basic block instrucitons: %v\n", allInsts)
+			brToWhileLabel, err := instruction.NewBr(nil, toLocalVarString(whileLabel), "")
+			if err != nil {
+				panic(errutil.Err(err))
+			}
+			//terminator, ssaCounter = createWhile(n, ssaCounter)
+			basicBlocks = append(basicBlocks, ir.NewBasicBlock(toLocalVarString(lastLabel), instructionBuffer, brToWhileLabel))
+
 			ssaCounter++
+			lastLabel = ssaCounter
 			instructionBuffer = instructionBuffer[:0]
 
-			_, ssaCounter = endWhile(n, ssaCounter)
+			// Recurse over body of while loop
+			log.Printf("while.Body = %#v\n", n.Body)
+			recurse(n.Body)
+
+			//_, ssaCounter = endWhile(n, ssaCounter)
+
+			// End the while loop with a branch to whileLabel
+			basicBlocks = append(basicBlocks, ir.NewBasicBlock(toLocalVarString(lastLabel), instructionBuffer, brToWhileLabel))
+			ssaCounter++
+			lastLabel = ssaCounter
+			instructionBuffer = instructionBuffer[:0]
 		}
 		// TODO: Implement the rest of the needed node types
 		return nil
