@@ -11,46 +11,97 @@ import (
 	"github.com/mewkiz/pkg/term"
 	"github.com/mewmew/uc/ast"
 	"github.com/mewmew/uc/ast/astutil"
-	"github.com/mewmew/uc/types"
+	uctypes "github.com/mewmew/uc/types"
 )
 
+// Gen generates LLVM IR based on the syntax tree of the given file.
 func Gen(file *ast.File) error {
-	// TODO: REMOVE
+	// TODO: REMOVE log messages
 	log.SetPrefix(term.BlueBold("Log:"))
 	log.SetFlags(log.Lshortfile)
 
 	var module ir.Module
 
-	var functions []*ir.Function
+	var funcDefStack []*ir.Function
 	var currentFunction *ir.Function
 	var basicBlocks []*ir.BasicBlock
 	var instructionBuffer []instruction.Instruction
 	var insts []instruction.Instruction
 
-	instructionBuffer = make([]instruction.Instruction, 10)
+	instructionBuffer = make([]instruction.Instruction, 0, 10)
 
 	// ssaCounter is counted up for anonymous assignments and basic blocks to
 	// give them an unique id
 	ssaCounter := 0
 
-	genBefore := func(n ast.Node) error {
+	var recurse func(ast.Node) error
+	recurse = func(n ast.Node) error {
 		switch n := n.(type) {
-		case *ast.FuncDecl:
-			var fn *ir.Function
-			fn, ssaCounter = createFunction(n, ssaCounter)
-			module.Funcs = append(module.Funcs, fn)
-			if astutil.IsDef(n) {
-				functions = append(functions, fn)
-				currentFunction = fn
+		case *ast.File:
+			for _, decl := range n.Decls {
+				recurse(decl)
 			}
+		case *ast.BlockStmt:
+			for _, blockItem := range n.Items {
+				log.Println(blockItem)
+				recurse(blockItem)
+			}
+		case *ast.FuncDecl:
+			//var fn *ir.Function
+			//fn, ssaCounter = createFunction(n, ssaCounter)
+
+			// TODO: Create unique names for nested functions, this should
+			// really be done in parser... the following currently breakes
+			// ability to call nested functions
+			var name string
+			for _, prevfn := range funcDefStack {
+				name = name + prevfn.Name() + "."
+			}
+			name = name + n.Name().String()
+			var ok bool
+			var funcType *uctypes.Func
+			if funcType, ok = n.Type().(*uctypes.Func); !ok {
+				panic(errutil.Newf("Function whitout uc types.Func type %#v", n.Type()))
+			}
+			sig := toIrFuncType(funcType)
+			fn := ir.NewFunction(name, sig)
+			module.Funcs = append(module.Funcs, fn)
+
+			if !astutil.IsDef(n) {
+				log.Printf("create function decl %v\n", fn)
+				return nil
+			}
+
+			log.Printf("create function def %v\n", fn)
+			funcDefStack = append(funcDefStack, fn)
+			currentFunction = fn
+
+			// Recurse body
+			if err := recurse(n.Body); err != nil {
+				return err
+			}
+
+			terminal, ssaCounter := endFunction(fn, ssaCounter)
+			allInsts := make([]instruction.Instruction, len(instructionBuffer))
+			copy(allInsts, instructionBuffer)
+			basicBlocks = append(basicBlocks, ir.NewBasicBlock(toLocalVarString(ssaCounter), instructionBuffer, terminal))
+			log.Print(basicBlocks)
+			ssaCounter++
+			funcDefStack = funcDefStack[:len(funcDefStack)-1]
+			if len(funcDefStack) > 0 {
+				currentFunction = funcDefStack[len(funcDefStack)-1]
+			} else {
+				currentFunction = nil
+			}
+			return nil
 		case *ast.CallExpr:
 			insts, ssaCounter = createCall(n, ssaCounter)
 			instructionBuffer = append(instructionBuffer, insts...)
 		case *ast.VarDecl:
-			if types.IsVoid(n.Type()) {
+			if uctypes.IsVoid(n.Type()) {
 				return nil
 			}
-			if len(functions) > 0 {
+			if len(funcDefStack) > 0 {
 				insts, ssaCounter = createLocal(n, ssaCounter)
 				instructionBuffer = append(instructionBuffer, insts...)
 			} else {
@@ -67,53 +118,27 @@ func Gen(file *ast.File) error {
 			basicBlocks = append(basicBlocks, ir.NewBasicBlock(toLocalVarString(ssaCounter), instructionBuffer, branch))
 			ssaCounter++
 			instructionBuffer = instructionBuffer[:0]
+
+			_, ssaCounter = endWhile(n, ssaCounter)
 		}
 		// TODO: Implement the rest of the needed node types
 		return nil
 	}
 
-	genAfter := func(n ast.Node) error {
-
-		switch n := n.(type) {
-		case *ast.WhileStmt:
-			_, ssaCounter = endWhile(n, ssaCounter)
-		case *ast.FuncDecl:
-			if astutil.IsDef(n) {
-				terminal, ssaCounter := endFunction(n, ssaCounter)
-				allInsts := make([]instruction.Instruction, len(instructionBuffer))
-				copy(allInsts, instructionBuffer)
-				basicBlocks = append(basicBlocks, ir.NewBasicBlock(toLocalVarString(ssaCounter), instructionBuffer, terminal))
-				log.Print(basicBlocks)
-				ssaCounter++
-				functions = functions[:len(functions)-1]
-				if len(functions)-1 > 0 {
-					currentFunction = functions[len(functions)-1]
-				} else {
-					currentFunction = nil
-				}
-			}
-
-		}
-		return nil
-	}
-
-	// Walk the AST of the given file to generate IR.
-	if err := astutil.WalkBeforeAfter(file, genBefore, genAfter); err != nil {
-		return errutil.Err(err)
-	}
-
+	recurse(file)
 	return nil
 }
 
 func createFunction(fn *ast.FuncDecl, ssa int) (*ir.Function, int) {
 	// TODO: Implement
+	//instr := ir.NewFunction(fn.Name(), )
 	log.Printf("create function decl %v\n", fn)
 	return nil, ssa
 }
 
-func endFunction(fn *ast.FuncDecl, ssa int) (instruction.Terminator, int) {
+func endFunction(fn *ir.Function, ssa int) (instruction.Terminator, int) {
 	// TODO: Implement
-	log.Printf("end function decl %v\n", fn)
+	log.Printf("end function def %v\n", fn)
 	ret, err := instruction.NewRet(irtypes.NewVoid(), nil)
 	if err != nil {
 		log.Panic(errutil.New(err.Error()))
@@ -157,4 +182,55 @@ func endWhile(gv *ast.WhileStmt, ssa int) ([]instruction.Instruction, int) {
 
 func toLocalVarString(ssa int) string {
 	return fmt.Sprintf("%%%v", ssa)
+}
+
+func toIrType(n uctypes.Type) irtypes.Type {
+	//TODO: implement, placeholder implementation
+	var t irtypes.Type
+	var err error
+	switch ucType := n.(type) {
+	case *uctypes.Basic:
+		switch ucType.Kind {
+		case uctypes.Int:
+			//TODO: Get int width from compile env
+			t, err = irtypes.NewInt(32)
+		case uctypes.Char:
+			t, err = irtypes.NewInt(8)
+		case uctypes.Void:
+			t = irtypes.NewVoid()
+		}
+	case *uctypes.Array:
+		elem := toIrType(ucType.Elem)
+		t, err = irtypes.NewArray(elem, ucType.Len)
+	default:
+		panic(fmt.Sprintf("support for translating type %T not yet implemented.", ucType))
+	}
+	if err != nil {
+		panic(errutil.Err(err))
+	}
+	if t == nil {
+		panic(errutil.Newf("Conversion failed: %#v\n", n))
+	}
+	return t
+}
+
+func toIrFuncType(t *uctypes.Func) *irtypes.Func {
+	var params []*irtypes.Param
+	variadic := false
+	for _, p := range t.Params {
+		//TODO: Add support for variadic
+		if uctypes.IsVoid(p.Type) {
+			break
+		}
+		pt := toIrType(p.Type)
+		log.Printf("converting type %#v to %#v", p.Type, pt)
+		params = append(params, irtypes.NewParam(pt, ""))
+	}
+	result := toIrType(t.Result)
+	nf, err := irtypes.NewFunc(result, params, variadic)
+	if err != nil {
+		log.Print(err)
+		panic(errutil.Newf("conversion from type %#v failed", t))
+	}
+	return nf
 }
