@@ -58,13 +58,13 @@ func Gen(file *ast.File) error {
 				name = name + prevfn.Name() + "."
 			}
 			name = name + n.Name().String()
-			var ok bool
-			var funcType *uctypes.Func
-			if funcType, ok = n.Type().(*uctypes.Func); !ok {
-				panic(errutil.Newf("Function whitout uc types.Func type %#v", n.Type()))
+			sig := toIrType(n.Type())
+			var fn *ir.Function
+			if sig, ok := sig.(*irtypes.Func); ok {
+				fn = ir.NewFunction(name, sig)
+			} else {
+				panic(errutil.Newf("Conversion from uc function type failed: %#v %#v", sig, n.Type()))
 			}
-			sig := toIrFuncType(funcType)
-			fn := ir.NewFunction(name, sig)
 			module.Funcs = append(module.Funcs, fn)
 
 			if !astutil.IsDef(n) {
@@ -202,6 +202,20 @@ func toIrType(n uctypes.Type) irtypes.Type {
 	case *uctypes.Array:
 		elem := toIrType(ucType.Elem)
 		t, err = irtypes.NewArray(elem, ucType.Len)
+	case *uctypes.Func:
+		var params []*irtypes.Param
+		variadic := false
+		for _, p := range ucType.Params {
+			//TODO: Add support for variadic
+			if uctypes.IsVoid(p.Type) {
+				break
+			}
+			pt := toIrType(p.Type)
+			log.Printf("converting type %#v to %#v", p.Type, pt)
+			params = append(params, irtypes.NewParam(pt, ""))
+		}
+		result := toIrType(ucType.Result)
+		t, err = irtypes.NewFunc(result, params, variadic)
 	default:
 		panic(fmt.Sprintf("support for translating type %T not yet implemented.", ucType))
 	}
@@ -212,25 +226,4 @@ func toIrType(n uctypes.Type) irtypes.Type {
 		panic(errutil.Newf("Conversion failed: %#v\n", n))
 	}
 	return t
-}
-
-func toIrFuncType(t *uctypes.Func) *irtypes.Func {
-	var params []*irtypes.Param
-	variadic := false
-	for _, p := range t.Params {
-		//TODO: Add support for variadic
-		if uctypes.IsVoid(p.Type) {
-			break
-		}
-		pt := toIrType(p.Type)
-		log.Printf("converting type %#v to %#v", p.Type, pt)
-		params = append(params, irtypes.NewParam(pt, ""))
-	}
-	result := toIrType(t.Result)
-	nf, err := irtypes.NewFunc(result, params, variadic)
-	if err != nil {
-		log.Print(err)
-		panic(errutil.Newf("conversion from type %#v failed", t))
-	}
-	return nf
 }
