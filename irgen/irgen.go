@@ -11,6 +11,7 @@ import (
 	"github.com/mewkiz/pkg/term"
 	"github.com/mewmew/uc/ast"
 	"github.com/mewmew/uc/ast/astutil"
+	"github.com/mewmew/uc/token"
 	uctypes "github.com/mewmew/uc/types"
 )
 
@@ -39,12 +40,18 @@ func Gen(file *ast.File) error {
 		switch n := n.(type) {
 		case *ast.File:
 			for _, decl := range n.Decls {
-				recurse(decl)
+
+				if err := recurse(decl); err != nil {
+					return errutil.Err(err)
+				}
 			}
 		case *ast.BlockStmt:
 			for _, blockItem := range n.Items {
-				log.Println(blockItem)
-				recurse(blockItem)
+				log.Printf("blockItem %#v of type %t\n", blockItem, blockItem)
+
+				if err := recurse(blockItem); err != nil {
+					return errutil.Err(err)
+				}
 			}
 		case *ast.FuncDecl:
 			//var fn *ir.Function
@@ -55,9 +62,9 @@ func Gen(file *ast.File) error {
 			// ability to call nested functions
 			var name string
 			for _, prevfn := range funcDefStack {
-				name = name + prevfn.Name() + "."
+				name += prevfn.Name() + "."
 			}
-			name = name + n.Name().String()
+			name += n.Name().String()
 			sig := toIrType(n.Type())
 			var fn *ir.Function
 			if sig, ok := sig.(*irtypes.Func); ok {
@@ -78,12 +85,13 @@ func Gen(file *ast.File) error {
 
 			// Recurse body
 			if err := recurse(n.Body); err != nil {
-				return err
+				return errutil.Err(err)
 			}
-
-			terminal, ssaCounter := endFunction(fn, ssaCounter)
+			var terminal instruction.Terminator
+			terminal, ssaCounter = endFunction(fn, ssaCounter)
 			allInsts := make([]instruction.Instruction, len(instructionBuffer))
 			copy(allInsts, instructionBuffer)
+			instructionBuffer = instructionBuffer[:0]
 			basicBlocks = append(basicBlocks, ir.NewBasicBlock(toLocalVarString(ssaCounter), instructionBuffer, terminal))
 			log.Print(basicBlocks)
 			ssaCounter++
@@ -109,6 +117,32 @@ func Gen(file *ast.File) error {
 				gv := createGlobal(n)
 				module.Globals = append(module.Globals, gv)
 			}
+		case *ast.Ident:
+
+			log.Println("ident")
+			log.Println(n)
+
+		case *ast.BinaryExpr:
+			log.Println("bin expr")
+			log.Println(n)
+			if err := recurse(n.Y); err != nil {
+				return errutil.Err(err)
+			}
+			switch n.Op {
+			case token.Assign:
+				log.Println(n.X)
+				if x, ok := n.X.(*ast.Ident); ok {
+					log.Printf("Assign %v %v %v to %#v", n.X, n.Op, n.Y, x)
+					return nil
+				}
+			default:
+				ssaCounter++
+				log.Printf("Assign %v %v %v to %#v", n.X, n.Op, n.Y, toLocalVarString(ssaCounter))
+			}
+		case *ast.ExprStmt:
+			if err := recurse(n.X); err != nil {
+				return errutil.Err(err)
+			}
 		case *ast.WhileStmt:
 			// Finnish last basic block with a branch to the basic block we
 			// are about to create (with label ssaCounter+1)
@@ -122,7 +156,7 @@ func Gen(file *ast.File) error {
 				panic(errutil.Err(err))
 			}
 			//terminator, ssaCounter = createWhile(n, ssaCounter)
-			basicBlocks = append(basicBlocks, ir.NewBasicBlock(toLocalVarString(lastLabel), instructionBuffer, brToWhileLabel))
+			basicBlocks = append(basicBlocks, ir.NewBasicBlock(toLocalVarString(lastLabel), allInsts, brToWhileLabel))
 
 			ssaCounter++
 			lastLabel = ssaCounter
@@ -130,12 +164,15 @@ func Gen(file *ast.File) error {
 
 			// Recurse over body of while loop
 			log.Printf("while.Body = %#v\n", n.Body)
-			recurse(n.Body)
+
+			if err := recurse(n.Body); err != nil {
+				return errutil.Err(err)
+			}
 
 			//_, ssaCounter = endWhile(n, ssaCounter)
 
 			// End the while loop with a branch to whileLabel
-			basicBlocks = append(basicBlocks, ir.NewBasicBlock(toLocalVarString(lastLabel), instructionBuffer, brToWhileLabel))
+			basicBlocks = append(basicBlocks, ir.NewBasicBlock(toLocalVarString(lastLabel), allInsts, brToWhileLabel))
 			ssaCounter++
 			lastLabel = ssaCounter
 			instructionBuffer = instructionBuffer[:0]
@@ -175,8 +212,7 @@ func createCall(call *ast.CallExpr, ssa int) ([]instruction.Instruction, int) {
 
 func createLocal(lv *ast.VarDecl, ssa int) ([]instruction.Instruction, int) {
 	// TODO: Implement
-	log.Printf("%v: create local variable %v\n", toLocalVarString(ssa), lv)
-	ssa++
+	log.Printf("create local variable %v\n", lv)
 	return nil, ssa
 }
 
