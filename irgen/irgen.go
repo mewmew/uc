@@ -28,10 +28,11 @@ func Gen(file *ast.File) error {
 	var instructionBuffer []instruction.Instruction
 	var insts []instruction.Instruction
 
+	// NOTE: Motivate initial capacity of 10.
 	instructionBuffer = make([]instruction.Instruction, 0, 10)
 
 	// ssaCounter is counted up for anonymous assignments and basic blocks to
-	// give them an unique id
+	// give them a unique id
 	ssaCounter := 0
 
 	var recurse func(ast.Node) error
@@ -106,11 +107,18 @@ func Gen(file *ast.File) error {
 				instructionBuffer = append(instructionBuffer, insts...)
 			} else {
 				// Global values are compile time constant, no need for ssa
+				// NOTE: Global variables may still be unnamed, but they would have
+				// a different counter; e.g. @0 and %0 may co-exist. We may split
+				// ssaCounter into a local and a global counter, along the lines of:
+				//
+				//    localCounter := 0
+				//    globalCounter := 0
 				gv := createGlobal(n)
 				module.Globals = append(module.Globals, gv)
 			}
 		case *ast.WhileStmt:
 			// TODO: Create branch and 2 new basic blocks
+			// NOTE: What is allInsts used for?
 			allInsts := make([]instruction.Instruction, len(instructionBuffer))
 			copy(allInsts, instructionBuffer)
 			log.Printf("All basic block instrucitons: %v\n", allInsts)
@@ -180,6 +188,7 @@ func endWhile(gv *ast.WhileStmt, ssa int) ([]instruction.Instruction, int) {
 	return nil, ssa
 }
 
+// NOTE: Replace with asm.EncLocal.
 func toLocalVarString(ssa int) string {
 	return fmt.Sprintf("%%%v", ssa)
 }
