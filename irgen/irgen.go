@@ -93,7 +93,11 @@ func Gen(file *ast.File) error {
 			allInsts := make([]instruction.Instruction, len(instructionBuffer))
 			copy(allInsts, instructionBuffer)
 			instructionBuffer = instructionBuffer[:0]
-			basicBlocks = append(basicBlocks, ir.NewBasicBlock(toLocalVarString(ssaCounter), instructionBuffer, terminal))
+			bb, err := ir.NewBasicBlock(toLocalVarString(lastLabel), allInsts, terminal)
+			if err != nil {
+				return errutil.Err(err)
+			}
+			basicBlocks = append(basicBlocks, bb)
 			log.Print(basicBlocks)
 			ssaCounter++
 			funcDefStack = funcDefStack[:len(funcDefStack)-1]
@@ -163,7 +167,11 @@ func Gen(file *ast.File) error {
 				panic(errutil.Err(err))
 			}
 			//terminator, ssaCounter = createWhile(n, ssaCounter)
-			basicBlocks = append(basicBlocks, ir.NewBasicBlock(toLocalVarString(lastLabel), allInsts, brToWhileLabel))
+			bb, err := ir.NewBasicBlock(toLocalVarString(lastLabel), allInsts, brToWhileLabel)
+			if err != nil {
+				return errutil.Err(err)
+			}
+			basicBlocks = append(basicBlocks, bb)
 
 			ssaCounter++
 			lastLabel = ssaCounter
@@ -179,7 +187,11 @@ func Gen(file *ast.File) error {
 			//_, ssaCounter = endWhile(n, ssaCounter)
 
 			// End the while loop with a branch to whileLabel
-			basicBlocks = append(basicBlocks, ir.NewBasicBlock(toLocalVarString(lastLabel), allInsts, brToWhileLabel))
+			bb, err = ir.NewBasicBlock(toLocalVarString(lastLabel), allInsts, brToWhileLabel)
+			if err != nil {
+				return errutil.Err(err)
+			}
+			basicBlocks = append(basicBlocks, bb)
 			ssaCounter++
 			lastLabel = ssaCounter
 			instructionBuffer = instructionBuffer[:0]
