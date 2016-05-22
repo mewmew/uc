@@ -5,8 +5,10 @@ import (
 	"log"
 
 	"github.com/llir/llvm/ir"
+	"github.com/llir/llvm/ir/constant"
 	"github.com/llir/llvm/ir/instruction"
 	irtypes "github.com/llir/llvm/ir/types"
+	"github.com/llir/llvm/ir/value"
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewkiz/pkg/term"
 	"github.com/mewmew/uc/ast"
@@ -48,7 +50,7 @@ func Gen(file *ast.File) error {
 			}
 		case *ast.BlockStmt:
 			for _, blockItem := range n.Items {
-				log.Printf("blockItem %#v of type %t\n", blockItem, blockItem)
+				log.Printf("blockItem %#v of type %T\n", blockItem, blockItem)
 
 				if err := recurse(blockItem); err != nil {
 					return errutil.Err(err)
@@ -129,16 +131,43 @@ func Gen(file *ast.File) error {
 				module.Globals = append(module.Globals, gv)
 			}
 		case *ast.Ident:
+			ssaCounter++
+			log.Printf("loading ident %v into %v", n.Name, toLocalVarString(ssaCounter))
+			typ := toIrType(n.Decl.Type())
+			var newVar value.Value
+			var err error
+			// TODO: add data fields or deduce if n is local or global
 
-			log.Println("ident")
-			log.Println(n)
+			if true {
+				newVar, err = ir.NewLocal(n.Name, typ)
+			} else {
+				var ptrType *irtypes.Pointer
+				ptrType, err = irtypes.NewPointer(typ)
+				if err != nil {
+					return errutil.Err(err)
+				}
+				newVar, err = constant.NewPointer(ptrType, n.Name)
+			}
+			if err != nil {
+				return errutil.Err(err)
+			}
 
+			lvd, err := instruction.NewLoad(typ, newVar)
+			if err != nil {
+				return errutil.Err(err)
+			}
+			instr, err := instruction.NewLocalVarDef("", lvd)
+			if err != nil {
+				return errutil.Err(err)
+			}
+			instructionBuffer = append(instructionBuffer, instr)
 		case *ast.BinaryExpr:
 			log.Println("bin expr")
 			log.Println(n)
 			if err := recurse(n.Y); err != nil {
 				return errutil.Err(err)
 			}
+			_ = ssaCounter
 			switch n.Op {
 			case token.Assign:
 				log.Println(n.X)
@@ -146,10 +175,11 @@ func Gen(file *ast.File) error {
 					log.Printf("Assign %v %v %v to %#v", n.X, n.Op, n.Y, x)
 					return nil
 				}
-			default:
-				ssaCounter++
-				log.Printf("Assign %v %v %v to %#v", n.X, n.Op, n.Y, toLocalVarString(ssaCounter))
+				//default:
 			}
+			ssaCounter++
+			log.Printf("Assign %v %v %v to %#v", n.X, n.Op, n.Y, toLocalVarString(ssaCounter))
+
 		case *ast.ExprStmt:
 			if err := recurse(n.X); err != nil {
 				return errutil.Err(err)
@@ -164,7 +194,7 @@ func Gen(file *ast.File) error {
 			log.Printf("Clear last basic block instrucitons: %v\n", allInsts)
 			brToWhileLabel, err := instruction.NewBr(nil, toLocalVarString(whileLabel), "")
 			if err != nil {
-				panic(errutil.Err(err))
+				return errutil.Err(err)
 			}
 			//terminator, ssaCounter = createWhile(n, ssaCounter)
 			bb, err := ir.NewBasicBlock(toLocalVarString(lastLabel), allInsts, brToWhileLabel)
