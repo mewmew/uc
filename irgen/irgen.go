@@ -41,22 +41,22 @@ type generator struct {
 func (gen *generator) recurse(n ast.Node) error {
 	var err error
 	switch n := n.(type) {
-	case *ast.File:
-		err = gen.createFile(n)
-	case *ast.BlockStmt:
-		err = gen.createBlock(n)
-	case *ast.FuncDecl:
-		err = gen.createFunction(n)
-	case *ast.CallExpr:
-		err = gen.createCall(n)
-	case *ast.VarDecl:
-		err = gen.createVar(n)
-	case *ast.Ident:
-		err = gen.loadIdent(n)
 	case *ast.BinaryExpr:
 		err = gen.createBinaryExpr(n)
+	case *ast.BlockStmt:
+		err = gen.createBlock(n)
+	case *ast.CallExpr:
+		err = gen.createCall(n)
 	case *ast.ExprStmt:
 		err = gen.createExprStmt(n)
+	case *ast.File:
+		err = gen.createFile(n)
+	case *ast.FuncDecl:
+		err = gen.createFunction(n)
+	case *ast.Ident:
+		err = gen.loadIdent(n)
+	case *ast.VarDecl:
+		err = gen.createVar(n)
 	case *ast.WhileStmt:
 		err = gen.createWhile(n)
 	default:
@@ -91,13 +91,25 @@ func Gen(file *ast.File) error {
 	return nil
 }
 
-// createFile recurses over the declarations in an *ast.File.
-func (gen *generator) createFile(n *ast.File) error {
-	for _, decl := range n.Decls {
-		if err := gen.recurse(decl); err != nil {
-			return errutil.Err(err)
-		}
+// createBinaryExpr creates the instructions for a binary expression.
+func (gen *generator) createBinaryExpr(n *ast.BinaryExpr) error {
+	log.Println("bin expr")
+	log.Println(n)
+	if err := gen.recurse(n.Y); err != nil {
+		return errutil.Err(err)
 	}
+	_ = gen.ssaCounter
+	switch n.Op {
+	case token.Assign:
+		log.Println(n.X)
+		if x, ok := n.X.(*ast.Ident); ok {
+			log.Printf("Assign %v %v %v to %#v", n.X, n.Op, n.Y, x)
+			return nil
+		}
+		//default:
+	}
+	gen.ssaCounter++
+	log.Printf("Assign %v %v %v to %#v", n.X, n.Op, n.Y, encLocal(gen.ssaCounter))
 	return nil
 }
 
@@ -106,6 +118,43 @@ func (gen *generator) createBlock(n *ast.BlockStmt) error {
 	for _, blockItem := range n.Items {
 		log.Printf("blockItem %#v of type %T\n", blockItem, blockItem)
 		if err := gen.recurse(blockItem); err != nil {
+			return errutil.Err(err)
+		}
+	}
+	return nil
+}
+
+// createCall creates the instructions for calling a function.
+func (gen *generator) createCall(n *ast.CallExpr) error {
+	var insts []instruction.Instruction
+	log.Printf("%v: create call %v with:\n", encLocal(gen.ssaCounter), n)
+	if callType, ok := n.Name.Decl.Type().(*uctypes.Func); ok {
+		// TODO: Add support for elipsis/variadic functions
+		for i, arg := range n.Args {
+			log.Printf("Arg %v of type %v", arg.String(), callType.Params[i].Type.String())
+		}
+		//instruction.NewCall(toIrType(callType.Result), n.Name.String(), args)
+		gen.ssaCounter++
+		//instruction.NewLocalVarDef("")
+	} else {
+		return errutil.Newf("invalid type assertion; expected: *types.Func, got: %T", n.Name.Decl.Type())
+	}
+	gen.instructionBuffer = append(gen.instructionBuffer, insts...)
+	return nil
+}
+
+// createExprStmt creates the instructions for an expression statment.
+func (gen *generator) createExprStmt(n *ast.ExprStmt) error {
+	if err := gen.recurse(n.X); err != nil {
+		return errutil.Err(err)
+	}
+	return nil
+}
+
+// createFile recurses over the declarations in an *ast.File.
+func (gen *generator) createFile(n *ast.File) error {
+	for _, decl := range n.Decls {
+		if err := gen.recurse(decl); err != nil {
 			return errutil.Err(err)
 		}
 	}
@@ -170,54 +219,6 @@ func (gen *generator) createFunction(n *ast.FuncDecl) error {
 	return nil
 }
 
-// createCall creates the instructions for calling a function.
-func (gen *generator) createCall(n *ast.CallExpr) error {
-	var insts []instruction.Instruction
-	log.Printf("%v: create call %v with:\n", encLocal(gen.ssaCounter), n)
-	if callType, ok := n.Name.Decl.Type().(*uctypes.Func); ok {
-		// TODO: Add support for elipsis/variadic functions
-		for i, arg := range n.Args {
-			log.Printf("Arg %v of type %v", arg.String(), callType.Params[i].Type.String())
-		}
-		//instruction.NewCall(toIrType(callType.Result), n.Name.String(), args)
-		gen.ssaCounter++
-		//instruction.NewLocalVarDef("")
-	} else {
-		return errutil.Newf("invalid type assertion; expected: *types.Func, got: %T", n.Name.Decl.Type())
-	}
-	gen.instructionBuffer = append(gen.instructionBuffer, insts...)
-	return nil
-}
-
-// createVar creates the instruction for allocating place for a variable.
-func (gen *generator) createVar(n *ast.VarDecl) error {
-	// Protect against void parameter
-	// TODO: Check that only those are caught
-	if uctypes.IsVoid(n.Type()) {
-		log.Printf("Void caught, hopfully in function definition parameter: %#v", n)
-		return nil
-	}
-	if len(gen.funcDefStack) > 0 {
-		err := gen.createLocal(n)
-		if err != nil {
-			return errutil.Err(err)
-		}
-	} else {
-		// Global values are compile time constant, no need for ssa
-		// NOTE: Global variables may still be unnamed, but they would have
-		// a different counter; e.g. @0 and %0 may co-exist. We may split
-		// ssaCounter into a local and a global counter, along the lines of:
-		//
-		//    localCounter := 0
-		//    globalCounter := 0
-		err := gen.createGlobal(n)
-		if err != nil {
-			return errutil.Err(err)
-		}
-	}
-	return nil
-}
-
 // loadIdent creates the instruction for loading an ident into a local var.
 func (gen *generator) loadIdent(n *ast.Ident) error {
 	gen.ssaCounter++
@@ -251,52 +252,32 @@ func (gen *generator) loadIdent(n *ast.Ident) error {
 	return nil
 }
 
-// createBinaryExpr creates the instructions for a binary expression.
-func (gen *generator) createBinaryExpr(n *ast.BinaryExpr) error {
-	log.Println("bin expr")
-	log.Println(n)
-	if err := gen.recurse(n.Y); err != nil {
-		return errutil.Err(err)
+// createVar creates the instruction for allocating place for a variable.
+func (gen *generator) createVar(n *ast.VarDecl) error {
+	// Protect against void parameter
+	// TODO: Check that only those are caught
+	if uctypes.IsVoid(n.Type()) {
+		log.Printf("Void caught, hopfully in function definition parameter: %#v", n)
+		return nil
 	}
-	_ = gen.ssaCounter
-	switch n.Op {
-	case token.Assign:
-		log.Println(n.X)
-		if x, ok := n.X.(*ast.Ident); ok {
-			log.Printf("Assign %v %v %v to %#v", n.X, n.Op, n.Y, x)
-			return nil
+	if len(gen.funcDefStack) > 0 {
+		err := gen.createLocal(n)
+		if err != nil {
+			return errutil.Err(err)
 		}
-		//default:
+	} else {
+		// Global values are compile time constant, no need for ssa
+		// NOTE: Global variables may still be unnamed, but they would have
+		// a different counter; e.g. @0 and %0 may co-exist. We may split
+		// ssaCounter into a local and a global counter, along the lines of:
+		//
+		//    localCounter := 0
+		//    globalCounter := 0
+		err := gen.createGlobal(n)
+		if err != nil {
+			return errutil.Err(err)
+		}
 	}
-	gen.ssaCounter++
-	log.Printf("Assign %v %v %v to %#v", n.X, n.Op, n.Y, encLocal(gen.ssaCounter))
-	return nil
-}
-
-// createExprStmt creates the instructions for an expression statment.
-func (gen *generator) createExprStmt(n *ast.ExprStmt) error {
-	if err := gen.recurse(n.X); err != nil {
-		return errutil.Err(err)
-	}
-	return nil
-}
-
-// createLocal creates the instructions for a local variable declaration.
-func (gen *generator) createLocal(n *ast.VarDecl) error {
-	// TODO: Implement
-	var insts []instruction.Instruction
-	log.Printf("create local variable %v\n", n)
-
-	gen.instructionBuffer = append(gen.instructionBuffer, insts...)
-	return nil
-}
-
-// createGlobal creates the instructions for a global variable declaration.
-func (gen *generator) createGlobal(n *ast.VarDecl) error {
-	// TODO: Implement
-	log.Printf("create global variable %v\n", n)
-	var gv *ir.GlobalDecl
-	gen.module.Globals = append(gen.module.Globals, gv)
 	return nil
 }
 
@@ -345,6 +326,25 @@ func (gen *generator) createWhile(n *ast.WhileStmt) error {
 	gen.instructionBuffer = gen.instructionBuffer[:0]
 	// TODO: Implement
 
+	return nil
+}
+
+// createLocal creates the instructions for a local variable declaration.
+func (gen *generator) createLocal(n *ast.VarDecl) error {
+	// TODO: Implement
+	var insts []instruction.Instruction
+	log.Printf("create local variable %v\n", n)
+
+	gen.instructionBuffer = append(gen.instructionBuffer, insts...)
+	return nil
+}
+
+// createGlobal creates the instructions for a global variable declaration.
+func (gen *generator) createGlobal(n *ast.VarDecl) error {
+	// TODO: Implement
+	log.Printf("create global variable %v\n", n)
+	var gv *ir.GlobalDecl
+	gen.module.Globals = append(gen.module.Globals, gv)
 	return nil
 }
 
