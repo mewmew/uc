@@ -3,7 +3,9 @@ package irgen
 import (
 	"fmt"
 	"log"
+	"strconv"
 
+	"github.com/llir/llvm/asm"
 	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/constant"
 	"github.com/llir/llvm/ir/instruction"
@@ -32,8 +34,216 @@ type generator struct {
 	ssaCounter int
 	// lastLabel holds the ssa of the last created basic block
 	lastLabel int
-	// lastLabel holds the ssa of the last created basic block
-	recurse func(ast.Node) error
+}
+
+func (gen *generator) recurse(n ast.Node) error {
+	switch n := n.(type) {
+	case *ast.File:
+		for _, decl := range n.Decls {
+
+			if err := gen.recurse(decl); err != nil {
+				return errutil.Err(err)
+			}
+		}
+	case *ast.BlockStmt:
+		for _, blockItem := range n.Items {
+			log.Printf("blockItem %#v of type %T\n", blockItem, blockItem)
+
+			if err := gen.recurse(blockItem); err != nil {
+				return errutil.Err(err)
+			}
+		}
+	case *ast.FuncDecl:
+		//var fn *ir.Function
+		//fn, ssaCounter = createFunction(n, ssaCounter)
+
+		// TODO: Create unique names for nested functions, this should
+		// really be done in parser... the following currently breakes
+		// ability to call nested functions
+		var name string
+		for _, prevfn := range gen.funcDefStack {
+			name += prevfn.Name() + "."
+		}
+		name += n.Name().String()
+		sig := toIrType(n.Type())
+		var fn *ir.Function
+		if sig, ok := sig.(*irtypes.Func); ok {
+			fn = ir.NewFunction(name, sig)
+		} else {
+			panic(errutil.Newf("Conversion from uc function type failed: %#v %#v", sig, n.Type()))
+		}
+		gen.module.Funcs = append(gen.module.Funcs, fn)
+
+		if !astutil.IsDef(n) {
+			log.Printf("create function decl %v\n", fn)
+			return nil
+		}
+
+		log.Printf("create function def %v\n", fn)
+		gen.funcDefStack = append(gen.funcDefStack, fn)
+		gen.currentFunction = fn
+
+		// Recurse body
+		if err := gen.recurse(n.Body); err != nil {
+			return errutil.Err(err)
+		}
+		ret, err := instruction.NewRet(irtypes.NewVoid(), nil)
+		if err != nil {
+			return errutil.Err(err)
+		}
+		allInsts := make([]instruction.Instruction, len(gen.instructionBuffer))
+		copy(allInsts, gen.instructionBuffer)
+		gen.instructionBuffer = gen.instructionBuffer[:0]
+		bb, err := ir.NewBasicBlock(encLocal(gen.lastLabel), allInsts, ret)
+		if err != nil {
+			return errutil.Err(err)
+		}
+		gen.basicBlocks = append(gen.basicBlocks, bb)
+		log.Print(gen.basicBlocks)
+		gen.ssaCounter++
+		gen.funcDefStack = gen.funcDefStack[:len(gen.funcDefStack)-1]
+		if len(gen.funcDefStack) > 0 {
+			gen.currentFunction = gen.funcDefStack[len(gen.funcDefStack)-1]
+		} else {
+			gen.currentFunction = nil
+		}
+		return nil
+
+	case *ast.CallExpr:
+		insts, err := gen.createCall(n)
+		if err != nil {
+			return errutil.Err(err)
+		}
+		gen.instructionBuffer = append(gen.instructionBuffer, insts...)
+	case *ast.VarDecl:
+		if uctypes.IsVoid(n.Type()) {
+			return nil
+		}
+		if len(gen.funcDefStack) > 0 {
+			insts, err := gen.createLocal(n)
+			if err != nil {
+				return errutil.Err(err)
+			}
+			gen.instructionBuffer = append(gen.instructionBuffer, insts...)
+		} else {
+			// Global values are compile time constant, no need for ssa
+			// NOTE: Global variables may still be unnamed, but they would have
+			// a different counter; e.g. @0 and %0 may co-exist. We may split
+			// ssaCounter into a local and a global counter, along the lines of:
+			//
+			//    localCounter := 0
+			//    globalCounter := 0
+			gv, err := gen.createGlobal(n)
+			if err != nil {
+				return errutil.Err(err)
+			}
+			gen.module.Globals = append(gen.module.Globals, gv)
+		}
+	case *ast.Ident:
+		gen.ssaCounter++
+		log.Printf("loading ident %v into %v", n.Name, encLocal(gen.ssaCounter))
+		typ := toIrType(n.Decl.Type())
+		var newVar value.Value
+		var err error
+		// TODO: add data fields or deduce if n is local or global
+
+		ptrType, err := irtypes.NewPointer(typ)
+		if err != nil {
+			return errutil.Err(err)
+		}
+		if true {
+			newVar, err = ir.NewLocal(n.Name, ptrType)
+		} else {
+			newVar, err = constant.NewPointer(ptrType, n.Name)
+		}
+		if err != nil {
+			return errutil.Err(err)
+		}
+		lvd, err := instruction.NewLoad(typ, newVar)
+		if err != nil {
+			return errutil.Err(err)
+		}
+		instr, err := instruction.NewLocalVarDef("", lvd)
+		if err != nil {
+			return errutil.Err(err)
+		}
+		gen.instructionBuffer = append(gen.instructionBuffer, instr)
+	case *ast.BinaryExpr:
+		log.Println("bin expr")
+		log.Println(n)
+		if err := gen.recurse(n.Y); err != nil {
+			return errutil.Err(err)
+		}
+		_ = gen.ssaCounter
+		switch n.Op {
+		case token.Assign:
+			log.Println(n.X)
+			if x, ok := n.X.(*ast.Ident); ok {
+				log.Printf("Assign %v %v %v to %#v", n.X, n.Op, n.Y, x)
+				return nil
+			}
+			//default:
+		}
+		gen.ssaCounter++
+		log.Printf("Assign %v %v %v to %#v", n.X, n.Op, n.Y, encLocal(gen.ssaCounter))
+
+	case *ast.ExprStmt:
+		if err := gen.recurse(n.X); err != nil {
+			return errutil.Err(err)
+		}
+	case *ast.WhileStmt:
+		// Finnish last basic block with a branch to the basic block we
+		// are about to create (with label ssaCounter+1)
+		gen.ssaCounter++
+		whileLabel := gen.ssaCounter
+		allInsts := make([]instruction.Instruction, len(gen.instructionBuffer))
+		copy(allInsts, gen.instructionBuffer)
+		log.Printf("Clear last basic block instrucitons: %v\n", allInsts)
+		brToWhileLabel, err := instruction.NewBr(nil, encLocal(whileLabel), "")
+		if err != nil {
+			return errutil.Err(err)
+		}
+		//terminator, gen.ssaCounter = createWhile(n, gen.ssaCounter)
+		bb, err := ir.NewBasicBlock(encLocal(gen.lastLabel), allInsts, brToWhileLabel)
+		if err != nil {
+			return errutil.Err(err)
+		}
+		gen.basicBlocks = append(gen.basicBlocks, bb)
+
+		gen.ssaCounter++
+		gen.lastLabel = gen.ssaCounter
+		gen.instructionBuffer = gen.instructionBuffer[:0]
+
+		// Recurse over body of while loop
+		log.Printf("while.Body = %#v\n", n.Body)
+
+		if err := gen.recurse(n.Body); err != nil {
+			return errutil.Err(err)
+		}
+
+		//_, gen.ssaCounter = endWhile(n, gen.ssaCounter)
+
+		// End the while loop with a branch to whileLabel
+		bb, err = ir.NewBasicBlock(encLocal(gen.lastLabel), allInsts, brToWhileLabel)
+		if err != nil {
+			return errutil.Err(err)
+		}
+		gen.basicBlocks = append(gen.basicBlocks, bb)
+		gen.ssaCounter++
+		gen.lastLabel = gen.ssaCounter
+		gen.instructionBuffer = gen.instructionBuffer[:0]
+	}
+	// TODO: Implement the rest of the needed node types
+	return nil
+}
+
+func newGenerator() *generator {
+	gen := new(generator)
+	// The usual size of a basic block seems to be less than 10 instructions.
+	gen.instructionBuffer = make([]instruction.Instruction, 0, 10)
+	gen.ssaCounter = 0
+	gen.lastLabel = gen.ssaCounter
+	return gen
 }
 
 // Gen generates LLVM IR based on the syntax tree of the given file.
@@ -41,262 +251,63 @@ func Gen(file *ast.File) error {
 	// TODO: REMOVE log messages
 	log.SetPrefix(term.BlueBold("Log:"))
 	log.SetFlags(log.Lshortfile)
-	var gen generator
-	// The usual size of a basic block seems to be less than 10 instructions.
-	gen.instructionBuffer = make([]instruction.Instruction, 0, 10)
-
-	var insts []instruction.Instruction
-
-	gen.ssaCounter = 0
-	gen.lastLabel = gen.ssaCounter
-	gen.recurse = func(n ast.Node) error {
-		switch n := n.(type) {
-		case *ast.File:
-			for _, decl := range n.Decls {
-
-				if err := gen.recurse(decl); err != nil {
-					return errutil.Err(err)
-				}
-			}
-		case *ast.BlockStmt:
-			for _, blockItem := range n.Items {
-				log.Printf("blockItem %#v of type %T\n", blockItem, blockItem)
-
-				if err := gen.recurse(blockItem); err != nil {
-					return errutil.Err(err)
-				}
-			}
-		case *ast.FuncDecl:
-			//var fn *ir.Function
-			//fn, ssaCounter = createFunction(n, ssaCounter)
-
-			// TODO: Create unique names for nested functions, this should
-			// really be done in parser... the following currently breakes
-			// ability to call nested functions
-			var name string
-			for _, prevfn := range gen.funcDefStack {
-				name += prevfn.Name() + "."
-			}
-			name += n.Name().String()
-			sig := toIrType(n.Type())
-			var fn *ir.Function
-			if sig, ok := sig.(*irtypes.Func); ok {
-				fn = ir.NewFunction(name, sig)
-			} else {
-				panic(errutil.Newf("Conversion from uc function type failed: %#v %#v", sig, n.Type()))
-			}
-			gen.module.Funcs = append(gen.module.Funcs, fn)
-
-			if !astutil.IsDef(n) {
-				log.Printf("create function decl %v\n", fn)
-				return nil
-			}
-
-			log.Printf("create function def %v\n", fn)
-			gen.funcDefStack = append(gen.funcDefStack, fn)
-			gen.currentFunction = fn
-
-			// Recurse body
-			if err := gen.recurse(n.Body); err != nil {
-				return errutil.Err(err)
-			}
-			var terminal instruction.Terminator
-			terminal, gen.ssaCounter = endFunction(fn, gen.ssaCounter)
-			allInsts := make([]instruction.Instruction, len(gen.instructionBuffer))
-			copy(allInsts, gen.instructionBuffer)
-			gen.instructionBuffer = gen.instructionBuffer[:0]
-			bb, err := ir.NewBasicBlock(toLocalVarString(gen.lastLabel), allInsts, terminal)
-			if err != nil {
-				return errutil.Err(err)
-			}
-			gen.basicBlocks = append(gen.basicBlocks, bb)
-			log.Print(gen.basicBlocks)
-			gen.ssaCounter++
-			gen.funcDefStack = gen.funcDefStack[:len(gen.funcDefStack)-1]
-			if len(gen.funcDefStack) > 0 {
-				gen.currentFunction = gen.funcDefStack[len(gen.funcDefStack)-1]
-			} else {
-				gen.currentFunction = nil
-			}
-			return nil
-		case *ast.CallExpr:
-			insts, gen.ssaCounter = createCall(n, gen.ssaCounter)
-			gen.instructionBuffer = append(gen.instructionBuffer, insts...)
-		case *ast.VarDecl:
-			if uctypes.IsVoid(n.Type()) {
-				return nil
-			}
-			if len(gen.funcDefStack) > 0 {
-				insts, gen.ssaCounter = createLocal(n, gen.ssaCounter)
-				gen.instructionBuffer = append(gen.instructionBuffer, insts...)
-			} else {
-				// Global values are compile time constant, no need for ssa
-				// NOTE: Global variables may still be unnamed, but they would have
-				// a different counter; e.g. @0 and %0 may co-exist. We may split
-				// ssaCounter into a local and a global counter, along the lines of:
-				//
-				//    localCounter := 0
-				//    globalCounter := 0
-				gv := createGlobal(n)
-				gen.module.Globals = append(gen.module.Globals, gv)
-			}
-		case *ast.Ident:
-			gen.ssaCounter++
-			log.Printf("loading ident %v into %v", n.Name, toLocalVarString(gen.ssaCounter))
-			typ := toIrType(n.Decl.Type())
-			var newVar value.Value
-			var err error
-			// TODO: add data fields or deduce if n is local or global
-
-			if true {
-				newVar, err = ir.NewLocal(n.Name, typ)
-			} else {
-				var ptrType *irtypes.Pointer
-				ptrType, err = irtypes.NewPointer(typ)
-				if err != nil {
-					return errutil.Err(err)
-				}
-				newVar, err = constant.NewPointer(ptrType, n.Name)
-			}
-			if err != nil {
-				return errutil.Err(err)
-			}
-
-			lvd, err := instruction.NewLoad(typ, newVar)
-			if err != nil {
-				return errutil.Err(err)
-			}
-			instr, err := instruction.NewLocalVarDef("", lvd)
-			if err != nil {
-				return errutil.Err(err)
-			}
-			gen.instructionBuffer = append(gen.instructionBuffer, instr)
-		case *ast.BinaryExpr:
-			log.Println("bin expr")
-			log.Println(n)
-			if err := gen.recurse(n.Y); err != nil {
-				return errutil.Err(err)
-			}
-			_ = gen.ssaCounter
-			switch n.Op {
-			case token.Assign:
-				log.Println(n.X)
-				if x, ok := n.X.(*ast.Ident); ok {
-					log.Printf("Assign %v %v %v to %#v", n.X, n.Op, n.Y, x)
-					return nil
-				}
-				//default:
-			}
-			gen.ssaCounter++
-			log.Printf("Assign %v %v %v to %#v", n.X, n.Op, n.Y, toLocalVarString(gen.ssaCounter))
-
-		case *ast.ExprStmt:
-			if err := gen.recurse(n.X); err != nil {
-				return errutil.Err(err)
-			}
-		case *ast.WhileStmt:
-			// Finnish last basic block with a branch to the basic block we
-			// are about to create (with label ssaCounter+1)
-			gen.ssaCounter++
-			whileLabel := gen.ssaCounter
-			allInsts := make([]instruction.Instruction, len(gen.instructionBuffer))
-			copy(allInsts, gen.instructionBuffer)
-			log.Printf("Clear last basic block instrucitons: %v\n", allInsts)
-			brToWhileLabel, err := instruction.NewBr(nil, toLocalVarString(whileLabel), "")
-			if err != nil {
-				return errutil.Err(err)
-			}
-			//terminator, gen.ssaCounter = createWhile(n, gen.ssaCounter)
-			bb, err := ir.NewBasicBlock(toLocalVarString(gen.lastLabel), allInsts, brToWhileLabel)
-			if err != nil {
-				return errutil.Err(err)
-			}
-			gen.basicBlocks = append(gen.basicBlocks, bb)
-
-			gen.ssaCounter++
-			gen.lastLabel = gen.ssaCounter
-			gen.instructionBuffer = gen.instructionBuffer[:0]
-
-			// Recurse over body of while loop
-			log.Printf("while.Body = %#v\n", n.Body)
-
-			if err := gen.recurse(n.Body); err != nil {
-				return errutil.Err(err)
-			}
-
-			//_, gen.ssaCounter = endWhile(n, gen.ssaCounter)
-
-			// End the while loop with a branch to whileLabel
-			bb, err = ir.NewBasicBlock(toLocalVarString(gen.lastLabel), allInsts, brToWhileLabel)
-			if err != nil {
-				return errutil.Err(err)
-			}
-			gen.basicBlocks = append(gen.basicBlocks, bb)
-			gen.ssaCounter++
-			gen.lastLabel = gen.ssaCounter
-			gen.instructionBuffer = gen.instructionBuffer[:0]
-		}
-		// TODO: Implement the rest of the needed node types
-		return nil
+	gen := newGenerator()
+	if err := gen.recurse(file); err != nil {
+		return errutil.Err(err)
 	}
-
-	gen.recurse(file)
 	return nil
 }
 
-func createFunction(fn *ast.FuncDecl, ssa int) (*ir.Function, int) {
+func (gen *generator) createFunction(fn *ast.FuncDecl) (*ir.Function, error) {
 	// TODO: Implement
 	//instr := ir.NewFunction(fn.Name(), )
 	log.Printf("create function decl %v\n", fn)
-	return nil, ssa
+	return nil, nil
 }
 
-func endFunction(fn *ir.Function, ssa int) (instruction.Terminator, int) {
+func (gen *generator) createCall(call *ast.CallExpr) ([]instruction.Instruction, error) {
 	// TODO: Implement
-	log.Printf("end function def %v\n", fn)
-	ret, err := instruction.NewRet(irtypes.NewVoid(), nil)
-	if err != nil {
-		log.Panic(errutil.New(err.Error()))
+	log.Printf("%v: create call %v with:\n", encLocal(gen.ssaCounter), call)
+	if callType, ok := call.Name.Decl.Type().(*uctypes.Func); ok {
+		// TODO: Add support for elipsis/variadic functions
+		for i, arg := range call.Args {
+			log.Printf("Arg %v of type %v", arg.String(), callType.Params[i].Type.String())
+		}
+		//instruction.NewCall(toIrType(callType.Result), call.Name.String(), args)
+		gen.ssaCounter++
+		//instruction.NewLocalVarDef("")
 	}
-	// TODO: how to return 0 from main without return stmt
-	return ret, ssa
+	return nil, nil
 }
 
-func createCall(call *ast.CallExpr, ssa int) ([]instruction.Instruction, int) {
-	// TODO: Implement
-	log.Printf("%v: create call %v\n", toLocalVarString(ssa), call)
-	ssa++
-	return nil, ssa
-}
-
-func createLocal(lv *ast.VarDecl, ssa int) ([]instruction.Instruction, int) {
+func (gen *generator) createLocal(lv *ast.VarDecl) ([]instruction.Instruction, error) {
 	// TODO: Implement
 	log.Printf("create local variable %v\n", lv)
-	return nil, ssa
+	return nil, nil
 }
 
-func createGlobal(gv *ast.VarDecl) *ir.GlobalDecl {
+func (gen *generator) createGlobal(gv *ast.VarDecl) (*ir.GlobalDecl, error) {
 	// TODO: Implement
 	log.Printf("create global variable %v\n", gv)
-	return nil
+	return nil, nil
 }
 
-func createWhile(ws *ast.WhileStmt, ssa int) (instruction.Terminator, int) {
+func (gen *generator) createWhile(ws *ast.WhileStmt) (instruction.Terminator, error) {
 	// TODO: Implement
 
 	log.Printf("start while loop %v\n", ws)
-	return nil, ssa
+	return nil, nil
 }
 
-func endWhile(gv *ast.WhileStmt, ssa int) ([]instruction.Instruction, int) {
+func (gen *generator) endWhile(gv *ast.WhileStmt) ([]instruction.Instruction, error) {
 	// TODO: Implement
 	log.Printf("end while loop %v\n", gv)
-	return nil, ssa
+	return nil, nil
 }
 
 // NOTE: Replace with asm.EncLocal.
-func toLocalVarString(ssa int) string {
-	return fmt.Sprintf("%%%v", ssa)
+func encLocal(ssa int) string {
+	return asm.EncLocal(strconv.Itoa(ssa))
 }
 
 func toIrType(n uctypes.Type) irtypes.Type {
