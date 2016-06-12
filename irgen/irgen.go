@@ -457,8 +457,6 @@ func (gen *generator) createGlobal(n *ast.VarDecl) error {
 func isTentativeVarDef(n *ast.VarDecl) bool {
 	ident := n.Name()
 	def := ident.Decl.Name()
-	fmt.Println("ident.Start()", ident.Start())
-	fmt.Println("def.Start()", def.Start())
 	return ident.Start() != def.Start()
 }
 
