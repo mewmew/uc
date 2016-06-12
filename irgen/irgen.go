@@ -22,7 +22,7 @@ import (
 // generator hold the variables needed for recursing over node types.
 type generator struct {
 	// module is the current module being created
-	module ir.Module
+	module *ir.Module
 	// funcDefStack holds all current function nests
 	funcDefStack []*ir.Function
 	// currentFunction points to the function being created
@@ -87,15 +87,15 @@ func newGenerator() *generator {
 }
 
 // Gen generates LLVM IR based on the syntax tree of the given file.
-func Gen(file *ast.File) error {
+func Gen(file *ast.File) (*ir.Module, error) {
 	// TODO: REMOVE log messages
 	log.SetPrefix(term.BlueBold("Log:"))
 	log.SetFlags(log.Lshortfile)
 	gen := newGenerator()
 	if err := gen.recurse(file); err != nil {
-		return errutil.Err(err)
+		return nil, errutil.Err(err)
 	}
-	return nil
+	return gen.module, nil
 }
 
 // loadBasicLit loads the basic lit into next ssaCount.
