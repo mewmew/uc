@@ -376,7 +376,10 @@ func (gen *generator) createWhile(n *ast.WhileStmt) error {
 	allInsts := make([]instruction.Instruction, len(gen.instructionBuffer))
 	copy(allInsts, gen.instructionBuffer)
 	log.Printf("Clear last basic block instrucitons: %v", allInsts)
-	gen.recurse(n.Cond)
+
+	if err := gen.recurse(n.Cond); err != nil {
+		return errutil.Err(err)
+	}
 
 	brToWhileLabel, err := instruction.NewBr(gen.instructionBuffer[len(gen.instructionBuffer)-1], encLocal(whileLabel), "") // -1 place holder value
 	if err != nil {
