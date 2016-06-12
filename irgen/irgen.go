@@ -64,6 +64,7 @@ func (gen *generator) recurse(n ast.Node) error {
 		err = gen.createWhile(n)
 	case *ast.EmptyStmt:
 		// nothing to do.
+		return nil
 	case *ast.IndexExpr:
 		err = gen.loadIndexExpr(n)
 	default:
@@ -352,21 +353,13 @@ func (gen *generator) loadIdent(n *ast.Ident) error {
 
 // createVar creates the instruction for allocating place for a variable.
 func (gen *generator) createVar(n *ast.VarDecl) error {
-	// Protect against void parameter
-	// TODO: Check that only those are caught
-	if uctypes.IsVoid(n.Type()) {
-		log.Printf("Void caught, hopfully in function definition parameter: %#v", n)
-		return nil
-	}
 	if len(gen.funcDefStack) > 0 {
-		err := gen.createLocal(n)
-		if err != nil {
+		if err := gen.createLocal(n); err != nil {
 			return errutil.Err(err)
 		}
 	} else {
 		// Global values are compile time constant, no need for ssa.
-		err := gen.createGlobal(n)
-		if err != nil {
+		if err := gen.createGlobal(n); err != nil {
 			return errutil.Err(err)
 		}
 	}
@@ -433,11 +426,23 @@ func (gen *generator) createLocal(n *ast.VarDecl) error {
 
 // createGlobal creates the instructions for a global variable declaration.
 func (gen *generator) createGlobal(n *ast.VarDecl) error {
+	if isTentativeVarDef(n) {
+		// Ignore tentative definitions.
+		return nil
+	}
 	// TODO: Implement
 	log.Printf("create global variable %v\n", n)
 	var gv *ir.GlobalDecl
 	gen.module.Globals = append(gen.module.Globals, gv)
 	return nil
+}
+
+// isTentative reports whether the given global variable declaration is a
+// tentative variable definition.
+func isTentativeVarDef(n *ast.VarDecl) bool {
+	ident := n.Name()
+	def := ident.Decl.Name()
+	return ident.Start() != def.Start()
 }
 
 // encLocal makes a anonymous local variable string representation from int.
