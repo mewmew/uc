@@ -113,7 +113,7 @@ func (gen *generator) loadBasicLit(n *ast.BasicLit) error {
 	if err != nil {
 		return errutil.Err(err)
 	}
-	val, err := instruction.NewAdd(typ, con, zero)
+	val, err := instruction.NewAdd(con, zero)
 	if err != nil {
 		return errutil.Err(err)
 	}

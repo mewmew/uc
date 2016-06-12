@@ -8,7 +8,7 @@
 //   -gocc-lexer
 //        use the gocc uC lexer (default false)
 //   -no-colors
-//        do not use ANSI escape codes in output. (default false)
+//        do not use ANSI escape codes in output (default false)
 //   -no-nested-functions
 //        do not allow nested function declarations (default false)
 package main
