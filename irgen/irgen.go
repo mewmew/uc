@@ -368,29 +368,38 @@ func (gen *generator) createVar(n *ast.VarDecl) error {
 
 // createWhile creates the instructions for a while loop.
 func (gen *generator) createWhile(n *ast.WhileStmt) error {
-	log.Printf("start while loop %v", n)
+	log.Printf("start while loop: %v", n)
 	// Finnish last basic block with a branch to the basic block we
 	// are about to create (with label ssaCounter+1)
 	gen.ssaCounter++
-	whileLabel := gen.ssaCounter
+	whileCond := gen.ssaCounter
 	allInsts := make([]instruction.Instruction, len(gen.instructionBuffer))
 	copy(allInsts, gen.instructionBuffer)
-	log.Printf("Clear last basic block instrucitons: %v", allInsts)
+	log.Printf("Clear last basic block instructions: %v", allInsts)
+
+	jmpToWhileCond, err := instruction.NewJmp(encLocal(whileCond))
+	if err != nil {
+		return errutil.Err(err)
+	}
+
+	bb, err := ir.NewBasicBlock(encLocal(gen.lastLabel), allInsts, jmpToWhileCond)
+	gen.basicBlocks = append(gen.basicBlocks, bb)
+	gen.lastLabel = gen.ssaCounter
+	whileBody := gen.ssaCounter
 
 	if err := gen.recurse(n.Cond); err != nil {
 		return errutil.Err(err)
 	}
 
-	brToWhileLabel, err := instruction.NewBr(gen.instructionBuffer[len(gen.instructionBuffer)-1], encLocal(whileLabel), "") // -1 place holder value
+	brToWhileBody, err := instruction.NewBr(gen.instructionBuffer[len(gen.instructionBuffer)-1], encLocal(whileBody), "-1")
 	if err != nil {
 		return errutil.Err(err)
 	}
-	//terminator, gen.ssaCounter = createWhile(n, gen.ssaCounter)
-	bb, err := ir.NewBasicBlock(encLocal(gen.lastLabel), allInsts, brToWhileLabel)
+	condbb, err := ir.NewBasicBlock(encLocal(gen.lastLabel), allInsts, brToWhileBody)
 	if err != nil {
 		return errutil.Err(err)
 	}
-	gen.basicBlocks = append(gen.basicBlocks, bb)
+	gen.basicBlocks = append(gen.basicBlocks, condbb)
 
 	gen.ssaCounter++
 	gen.lastLabel = gen.ssaCounter
@@ -405,8 +414,8 @@ func (gen *generator) createWhile(n *ast.WhileStmt) error {
 
 	//_, gen.ssaCounter = endWhile(n, gen.ssaCounter)
 
-	// End the while loop with a branch to whileLabel
-	bb, err = ir.NewBasicBlock(encLocal(gen.lastLabel), allInsts, brToWhileLabel)
+	// End the while loop with a branch to whileCond
+	bb, err = ir.NewBasicBlock(encLocal(gen.lastLabel), allInsts, jmpToWhileCond)
 	if err != nil {
 		return errutil.Err(err)
 	}
