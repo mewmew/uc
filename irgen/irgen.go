@@ -31,14 +31,10 @@ type generator struct {
 	basicBlocks []*ir.BasicBlock
 	// instructionBuffer holds instructions before basic block creation.
 	instructionBuffer []instruction.Instruction
-	// valueStack holds values before instruction creation.
-	valueStack []value.Value
 	// ssaCounter give a unique id for anonymous assignments and basic blocks.
 	ssaCounter int
 	// lastLabel holds the ssa of the last created basic block
 	lastLabel int
-	// indexType is the type used for indexing pointers
-	indexType irtypes.Type
 }
 
 // recurse calls the appropriate function for the type of node.
@@ -104,7 +100,7 @@ func Gen(file *ast.File) error {
 // loadBasicLit loads the basic lit into next ssaCount.
 func (gen *generator) loadBasicLit(n *ast.BasicLit) error {
 	gen.ssaCounter++
-	//TODO: Fix early conversions
+	//TODO: Fix early conversions, get type, now highest accuracy.
 	typ, err := irtypes.NewInt(32)
 	if err != nil {
 		return errutil.Err(err)
@@ -121,8 +117,8 @@ func (gen *generator) loadBasicLit(n *ast.BasicLit) error {
 	if err != nil {
 		return errutil.Err(err)
 	}
-	//gen.valueStack = append(gen.valueStack, val)
 	instr, err := instruction.NewLocalVarDef("", val)
+	// Add 'add n.Val 0' instruction for storing in anon local var
 	gen.instructionBuffer = append(gen.instructionBuffer, instr)
 	return nil
 }
