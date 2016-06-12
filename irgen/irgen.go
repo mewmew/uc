@@ -31,7 +31,8 @@ type generator struct {
 	basicBlocks []*ir.BasicBlock
 	// instructionBuffer holds instructions before basic block creation.
 	instructionBuffer []instruction.Instruction
-	// ssaCounter give a unique id for anonymous assignments and basic blocks.
+	// ssaCounter give a unique id for anonymous assignments and basic blocks,
+	// starting at 0.
 	ssaCounter int
 	// lastLabel holds the ssa of the last created basic block
 	lastLabel int
@@ -62,7 +63,7 @@ func (gen *generator) recurse(n ast.Node) error {
 	case *ast.WhileStmt:
 		err = gen.createWhile(n)
 	case *ast.EmptyStmt:
-
+		// nothing to do.
 	case *ast.IndexExpr:
 		err = gen.loadIndexExpr(n)
 	default:
@@ -80,7 +81,6 @@ func newGenerator() *generator {
 	gen := new(generator)
 	// The usual size of a basic block seems to be less than 10 instructions.
 	gen.instructionBuffer = make([]instruction.Instruction, 0, 10)
-	gen.ssaCounter = 0
 	gen.lastLabel = gen.ssaCounter
 	return gen
 }
@@ -364,13 +364,7 @@ func (gen *generator) createVar(n *ast.VarDecl) error {
 			return errutil.Err(err)
 		}
 	} else {
-		// Global values are compile time constant, no need for ssa
-		// NOTE: Global variables may still be unnamed, but they would have
-		// a different counter; e.g. @0 and %0 may co-exist. We may split
-		// ssaCounter into a local and a global counter, along the lines of:
-		//
-		//    localCounter := 0
-		//    globalCounter := 0
+		// Global values are compile time constant, no need for ssa.
 		err := gen.createGlobal(n)
 		if err != nil {
 			return errutil.Err(err)
