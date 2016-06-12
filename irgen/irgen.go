@@ -29,7 +29,7 @@ type generator struct {
 	currentFunction *ir.Function
 	// basicBlocks holds basic blocks before function creation
 	basicBlocks []*ir.BasicBlock
-	// instructionBuffer is appens instruction before basic block creation.
+	// instructionBuffer holds instructions before basic block creation.
 	instructionBuffer []instruction.Instruction
 	// ssaCounter give a unique id for anonymous assignments and basic blocks.
 	ssaCounter int
@@ -41,6 +41,8 @@ type generator struct {
 func (gen *generator) recurse(n ast.Node) error {
 	var err error
 	switch n := n.(type) {
+	case *ast.BasicLit:
+		err = gen.loadBasicLit(n)
 	case *ast.BinaryExpr:
 		err = gen.createBinaryExpr(n)
 	case *ast.BlockStmt:
@@ -59,8 +61,12 @@ func (gen *generator) recurse(n ast.Node) error {
 		err = gen.createVar(n)
 	case *ast.WhileStmt:
 		err = gen.createWhile(n)
+	case *ast.EmptyStmt:
+
+	case *ast.IndexExpr:
+		err = gen.loadIndexExpr(n)
 	default:
-		log.Printf("Not yet implemented: type %#v", n)
+		log.Printf("recurse does not yet implement type %#v", n)
 	}
 	// TODO: Implement the rest of the needed node types
 	if err != nil {
@@ -91,6 +97,32 @@ func Gen(file *ast.File) error {
 	return nil
 }
 
+// loadBasicLit loads the basic lit into next ssaCount.
+func (gen *generator) loadBasicLit(n *ast.BasicLit) error {
+	gen.ssaCounter++
+	//TODO: Fix early conversions, get type, now highest accuracy.
+	typ, err := irtypes.NewInt(32)
+	if err != nil {
+		return errutil.Err(err)
+	}
+	con, err := constant.NewInt(typ, n.Val)
+	if err != nil {
+		return errutil.Err(err)
+	}
+	zero, err := constant.NewInt(typ, "0")
+	if err != nil {
+		return errutil.Err(err)
+	}
+	val, err := instruction.NewAdd(typ, con, zero)
+	if err != nil {
+		return errutil.Err(err)
+	}
+	instr, err := instruction.NewLocalVarDef("", val)
+	// Add 'add n.Val 0' instruction for storing in anon local var
+	gen.instructionBuffer = append(gen.instructionBuffer, instr)
+	return nil
+}
+
 // createBinaryExpr creates the instructions for a binary expression.
 func (gen *generator) createBinaryExpr(n *ast.BinaryExpr) error {
 	log.Println("bin expr")
@@ -98,18 +130,84 @@ func (gen *generator) createBinaryExpr(n *ast.BinaryExpr) error {
 	if err := gen.recurse(n.Y); err != nil {
 		return errutil.Err(err)
 	}
-	_ = gen.ssaCounter
+	rValue := gen.ssaCounter
 	switch n.Op {
+	// handle assignment specially from ident
 	case token.Assign:
-		log.Println(n.X)
-		if x, ok := n.X.(*ast.Ident); ok {
-			log.Printf("Assign %v %v %v to %#v", n.X, n.Op, n.Y, x)
-			return nil
+		log.Printf("saving %%%v to %v", rValue, n.X)
+		err := gen.store(n.X)
+		if err != nil {
+			return errutil.Err(err)
 		}
-		//default:
+		// val := gen.valueStack[len(gen.valueStack)-1]
+		// gen.valueStack = gen.valueStack[0 : len(gen.valueStack)-1]
+		//log.Printf("Assign %v %v %v to %#v", n.X, n.Op, n.Y, n.X.String())
+
+	default:
+		gen.ssaCounter++
+		log.Printf("%v %v %v saved to %#v ", n.X, n.Op, n.Y, encLocal(gen.ssaCounter))
 	}
+	return nil
+}
+
+func (gen *generator) getElemPtr(index ast.Expr) error {
+	switch n := index.(type) {
+	case *ast.BasicLit:
+		//n.Val
+		//instr:= instruction.NewGetElementPtr(elem, addr, indices)
+		return nil
+	default:
+		gen.recurse(n)
+	}
+	return nil
+}
+func (gen *generator) loadIndexExpr(n *ast.IndexExpr) error {
+
+	return nil
+}
+
+func (gen *generator) store(n ast.Expr) error {
+	//valSsa := gen.ssaCounter
+
+	//instruction.NewStore(val, addr)
+	return nil
+}
+
+func (gen *generator) storeIndexExpr(n *ast.IndexExpr) error {
+	// TODO: support multi dim arrays
+	typ, ok := n.Name.Decl.Type().(*uctypes.Array)
+	if !ok {
+		errutil.Newf("indexing non array %v", n.Name.String())
+	}
+	arrayType := toIrType(typ)
+
+	log.Printf("arrayType is %v", arrayType)
+
+	// Get a pointer to the indexed element in the array
+	//n.Val
+	//instr:= instruction.NewGetElementPtr(elem, addr, indices)
 	gen.ssaCounter++
-	log.Printf("Assign %v %v %v to %#v", n.X, n.Op, n.Y, encLocal(gen.ssaCounter))
+	log.Printf("Index is stored in %v", encLocal(gen.ssaCounter))
+	//gen.getElemPtr(n.Index)
+
+	gen.ssaCounter++
+	log.Printf("Create pointer to indexed position %v in array %v", encLocal(gen.ssaCounter), n.Name.String())
+	return nil
+}
+
+func (gen *generator) storeIdent(n *ast.Ident) error {
+	// TODO: Convert type
+	switch typ := n.Decl.Type().(type) {
+	case *uctypes.Basic:
+		log.Printf("Storing ident %v of basic type %v", n.Name, typ.Kind)
+	case *uctypes.Array:
+		//if typ.Elem.(*uctypes.Basic)
+		log.Printf("Storing array type %#v %T with elem %#v %T", typ, typ, typ.Elem, typ.Elem)
+
+	}
+
+	//log.Printf("store %v to %v", val, n.X)
+	//log.Printf("Assign %v to %#v with type ", n.Y, n.X, n.X)
 	return nil
 }
 
@@ -127,7 +225,7 @@ func (gen *generator) createBlock(n *ast.BlockStmt) error {
 // createCall creates the instructions for calling a function.
 func (gen *generator) createCall(n *ast.CallExpr) error {
 	var insts []instruction.Instruction
-	log.Printf("%v: create call %v with:\n", encLocal(gen.ssaCounter), n)
+	log.Printf("%v: create call %v with:", encLocal(gen.ssaCounter), n)
 	if callType, ok := n.Name.Decl.Type().(*uctypes.Func); ok {
 		// TODO: Add support for elipsis/variadic functions
 		for i, arg := range n.Args {
