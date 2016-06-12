@@ -66,9 +66,14 @@ func resolve(file *ast.File) error {
 	resolve := func(n ast.Node) error {
 		switch n := n.(type) {
 		case ast.Decl:
-			if err := scope.Insert(n); err != nil {
-				return errutil.Err(err)
+			// Insert declaration into the scope if not already added by the
+			// file scope pre-pass.
+			if scope != fileScope {
+				if err := scope.Insert(n); err != nil {
+					return errutil.Err(err)
+				}
 			}
+			// Create nested scope for function definitions.
 			if fn, ok := n.(*ast.FuncDecl); ok {
 				if astutil.IsDef(fn) {
 					skip = true
