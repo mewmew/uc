@@ -215,7 +215,7 @@ func (gen *generator) storeIdent(n *ast.Ident) error {
 // createBlock creates the instructions for a block statement.
 func (gen *generator) createBlock(n *ast.BlockStmt) error {
 	for _, blockItem := range n.Items {
-		log.Printf("blockItem %#v of type %T\n", blockItem, blockItem)
+		log.Printf("blockItem %#v of type %T", blockItem, blockItem)
 		if err := gen.recurse(blockItem); err != nil {
 			return errutil.Err(err)
 		}
@@ -283,11 +283,11 @@ func (gen *generator) createFunction(n *ast.FuncDecl) error {
 	gen.module.Funcs = append(gen.module.Funcs, fn)
 
 	if !astutil.IsDef(n) {
-		log.Printf("create function decl %v\n", fn)
+		log.Printf("create function decl %v", fn)
 		return nil
 	}
 
-	log.Printf("create function def %v\n", fn)
+	log.Printf("create function def %v", fn)
 	gen.funcDefStack = append(gen.funcDefStack, fn)
 	gen.currentFunction = fn
 
@@ -368,14 +368,14 @@ func (gen *generator) createVar(n *ast.VarDecl) error {
 
 // createWhile creates the instructions for a while loop.
 func (gen *generator) createWhile(n *ast.WhileStmt) error {
-	log.Printf("start while loop %v\n", n)
+	log.Printf("start while loop %v", n)
 	// Finnish last basic block with a branch to the basic block we
 	// are about to create (with label ssaCounter+1)
 	gen.ssaCounter++
 	whileLabel := gen.ssaCounter
 	allInsts := make([]instruction.Instruction, len(gen.instructionBuffer))
 	copy(allInsts, gen.instructionBuffer)
-	log.Printf("Clear last basic block instrucitons: %v\n", allInsts)
+	log.Printf("Clear last basic block instrucitons: %v", allInsts)
 	brToWhileLabel, err := instruction.NewBr(nil, encLocal(whileLabel), "")
 	if err != nil {
 		return errutil.Err(err)
@@ -392,7 +392,7 @@ func (gen *generator) createWhile(n *ast.WhileStmt) error {
 	gen.instructionBuffer = gen.instructionBuffer[:0]
 
 	// Recurse over body of while loop
-	log.Printf("while.Body = %#v\n", n.Body)
+	log.Printf("while.Body = %#v", n.Body)
 
 	if err := gen.recurse(n.Body); err != nil {
 		return errutil.Err(err)
@@ -418,7 +418,7 @@ func (gen *generator) createWhile(n *ast.WhileStmt) error {
 func (gen *generator) createLocal(n *ast.VarDecl) error {
 	// TODO: Implement
 	var insts []instruction.Instruction
-	log.Printf("create local variable %v\n", n)
+	log.Printf("create local variable %v", n)
 
 	gen.instructionBuffer = append(gen.instructionBuffer, insts...)
 	return nil
@@ -426,12 +426,13 @@ func (gen *generator) createLocal(n *ast.VarDecl) error {
 
 // createGlobal creates the instructions for a global variable declaration.
 func (gen *generator) createGlobal(n *ast.VarDecl) error {
+	// Ignore tentative definitions.
 	if isTentativeVarDef(n) {
-		// Ignore tentative definitions.
+		log.Printf("Ignoring tentative definition of %v", n.Name())
 		return nil
 	}
 	// TODO: Implement
-	log.Printf("create global variable %v\n", n)
+	log.Printf("create global variable %v", n)
 	var gv *ir.GlobalDecl
 	gen.module.Globals = append(gen.module.Globals, gv)
 	return nil
@@ -489,7 +490,7 @@ func toIrType(n uctypes.Type) irtypes.Type {
 		panic(errutil.Err(err))
 	}
 	if t == nil {
-		panic(errutil.Newf("Conversion failed: %#v\n", n))
+		panic(errutil.Newf("Conversion failed: %#v", n))
 	}
 	return t
 }
