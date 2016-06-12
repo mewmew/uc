@@ -428,7 +428,7 @@ func (gen *generator) createLocal(n *ast.VarDecl) error {
 func (gen *generator) createGlobal(n *ast.VarDecl) error {
 	// Ignore tentative definitions.
 	if isTentativeVarDef(n) {
-		log.Printf("Ignoring tentative definition of %v", n.Name())
+		log.Printf("ignoring tentative global variable definition of %v", n.Name())
 		return nil
 	}
 	// TODO: Implement
@@ -443,6 +443,8 @@ func (gen *generator) createGlobal(n *ast.VarDecl) error {
 func isTentativeVarDef(n *ast.VarDecl) bool {
 	ident := n.Name()
 	def := ident.Decl.Name()
+	fmt.Println("ident.Start()", ident.Start())
+	fmt.Println("def.Start()", def.Start())
 	return ident.Start() != def.Start()
 }
 
