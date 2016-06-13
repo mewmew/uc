@@ -109,7 +109,7 @@ func checkFile(path string, hand bool) error {
 	file := f.(*ast.File)
 	input := string(buf)
 	src := semerrors.NewSource(path, input)
-	if err := sem.Check(file); err != nil {
+	if _, err := sem.Check(file); err != nil {
 		if err, ok := err.(*errutil.ErrInfo); ok {
 			// Unwrap errutil error.
 			if err, ok := err.Err.(*semerrors.Error); ok {
