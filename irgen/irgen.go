@@ -309,7 +309,11 @@ func (gen *generator) createFunction(n *ast.FuncDecl) error {
 	}
 	gen.basicBlocks = append(gen.basicBlocks, bb)
 	log.Print(gen.basicBlocks)
-	gen.ssaCounter++
+
+	gen.currentFunction.SetBlocks(gen.basicBlocks)
+	gen.basicBlocks = gen.basicBlocks[:0:0]
+
+	gen.ssaCounter = 0 // TODO: check if in nested function
 	gen.funcDefStack = gen.funcDefStack[:len(gen.funcDefStack)-1]
 	if len(gen.funcDefStack) > 0 {
 		gen.currentFunction = gen.funcDefStack[len(gen.funcDefStack)-1]
