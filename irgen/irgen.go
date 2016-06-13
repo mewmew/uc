@@ -81,6 +81,7 @@ func (gen *generator) recurse(n ast.Node) error {
 func newGenerator() *generator {
 	gen := new(generator)
 	// The usual size of a basic block seems to be less than 10 instructions.
+	gen.module = new(ir.Module)
 	gen.instructionBuffer = make([]instruction.Instruction, 0, 10)
 	gen.lastLabel = gen.ssaCounter
 	return gen
