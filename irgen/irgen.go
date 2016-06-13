@@ -15,6 +15,7 @@ import (
 	"github.com/mewkiz/pkg/term"
 	"github.com/mewmew/uc/ast"
 	"github.com/mewmew/uc/ast/astutil"
+	"github.com/mewmew/uc/sem"
 	"github.com/mewmew/uc/token"
 	uctypes "github.com/mewmew/uc/types"
 )
@@ -23,6 +24,8 @@ import (
 type generator struct {
 	// module is the current module being created
 	module *ir.Module
+	// info holds usefull info from the semantic checker
+	info *sem.Info
 	// funcDefStack holds all current function nests
 	funcDefStack []*ir.Function
 	// currentFunction points to the function being created
@@ -88,11 +91,12 @@ func newGenerator() *generator {
 }
 
 // Gen generates LLVM IR based on the syntax tree of the given file.
-func Gen(file *ast.File) (*ir.Module, error) {
+func Gen(file *ast.File, info *sem.Info) (*ir.Module, error) {
 	// TODO: REMOVE log messages
 	log.SetPrefix(term.BlueBold("Log:"))
 	log.SetFlags(log.Lshortfile)
 	gen := newGenerator()
+	gen.info = info
 	if err := gen.recurse(file); err != nil {
 		return nil, errutil.Err(err)
 	}
