@@ -112,7 +112,8 @@ func compileFile(path string, useGoccLexer bool) error {
 	file := f.(*ast.File)
 	input := string(buf)
 	src := semerrors.NewSource(path, input)
-	if err := sem.Check(file); err != nil {
+	info, err := sem.Check(file)
+	if err != nil {
 		if err, ok := err.(*errutil.ErrInfo); ok {
 			// Unwrap errutil error.
 			if err, ok := err.Err.(*semerrors.Error); ok {
@@ -124,7 +125,7 @@ func compileFile(path string, useGoccLexer bool) error {
 		return errutil.Err(err)
 	}
 
-	module, err := irgen.Gen(file)
+	module, err := irgen.Gen(file, info)
 	if err != nil {
 		return errutil.Err(err)
 	}
