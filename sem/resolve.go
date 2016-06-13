@@ -14,7 +14,7 @@ const universePos = -1
 
 // resolve performs identifier resolution, mapping identifiers to corresponding
 // declarations.
-func resolve(file *ast.File) error {
+func resolve(file *ast.File, scopes map[ast.Node]*Scope) error {
 	// TODO: Verify that type keywords cannot be redeclared.
 
 	// Pre-pass, add keyword types and universe scope.
@@ -41,6 +41,7 @@ func resolve(file *ast.File) error {
 
 	// First pass, add global declarations to file scope.
 	fileScope := NewScope(universe)
+	scopes[file] = fileScope
 	fileScope.IsDef = func(decl ast.Decl) bool {
 		// Consider variable declarations as tentative definitions; i.e. return
 		// false, unless variable definition.
@@ -79,10 +80,12 @@ func resolve(file *ast.File) error {
 					skip = true
 				}
 				scope = NewScope(scope)
+				scopes[fn] = scope
 			}
 		case *ast.BlockStmt:
 			if !skip {
 				scope = NewScope(scope)
+				scopes[n] = scope
 			}
 			skip = false
 		case *ast.Ident:

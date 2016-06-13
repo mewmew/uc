@@ -11,11 +11,9 @@ import (
 	"github.com/mewmew/uc/types"
 )
 
-// deduce performs type deduction of expressions.
-func deduce(file *ast.File) (exprTypes map[ast.Expr]types.Type, err error) {
-	// exprTypes maps expression nodes to types.
-	exprTypes = make(map[ast.Expr]types.Type)
-
+// deduce performs type deduction of expressions, and store the result in
+// exprTypes.
+func deduce(file *ast.File, exprTypes map[ast.Expr]types.Type) error {
 	// deduce performs type deduction of the given expression.
 	deduce := func(n ast.Node) error {
 		if expr, ok := n.(ast.Expr); ok {
@@ -30,10 +28,10 @@ func deduce(file *ast.File) (exprTypes map[ast.Expr]types.Type, err error) {
 
 	// Walk the AST of the given file to deduce the types of expression nodes.
 	if err := astutil.Walk(file, deduce); err != nil {
-		return nil, errutil.Err(err)
+		return errutil.Err(err)
 	}
 
-	return exprTypes, nil
+	return nil
 }
 
 // typeOf returns the type of the given expression.

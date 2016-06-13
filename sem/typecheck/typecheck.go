@@ -11,11 +11,11 @@ import (
 	"github.com/mewmew/uc/types"
 )
 
-// Check type-checks the given file.
-func Check(file *ast.File) error {
+// Check type-checks the given file, and store a mapping from expression nodes
+// to types in exprTypes.
+func Check(file *ast.File, exprTypes map[ast.Expr]types.Type) error {
 	// Deduce the types of expressions.
-	exprTypes, err := deduce(file)
-	if err != nil {
+	if err := deduce(file, exprTypes); err != nil {
 		return errutil.Err(err)
 	}
 
