@@ -46,13 +46,14 @@ func TestGen(t *testing.T) {
 		file := f.(*ast.File)
 
 		// Verify input.
-		if err := sem.Check(file); err != nil {
+		info, err := sem.Check(file)
+		if err != nil {
 			t.Errorf("%q: semantic analysis error: %v", g.path, err)
 			continue
 		}
 
 		// Generate IR.
-		module, err := irgen.Gen(file)
+		module, err := irgen.Gen(file, info)
 		if err != nil {
 			t.Errorf("%q: unable to generate IR: %v", g.path, err)
 			continue

@@ -368,10 +368,17 @@ func (gen *generator) createVar(n *ast.VarDecl) error {
 			return errutil.Err(err)
 		}
 	} else {
+		// Ignore tentative definitions.
+		if isTentativeVarDef(n) {
+			log.Printf("ignoring tentative global variable definition of %v", n.Name())
+			return nil
+		}
 		// Global values are compile time constant, no need for ssa.
-		if err := gen.createGlobal(n); err != nil {
+		global, err := gen.createGlobal(n)
+		if err != nil {
 			return errutil.Err(err)
 		}
+		gen.module.Globals = append(gen.module.Globals, global)
 	}
 	return nil
 }
@@ -454,17 +461,76 @@ func (gen *generator) createLocal(n *ast.VarDecl) error {
 }
 
 // createGlobal creates the instructions for a global variable declaration.
-func (gen *generator) createGlobal(n *ast.VarDecl) error {
-	// Ignore tentative definitions.
-	if isTentativeVarDef(n) {
-		log.Printf("ignoring tentative global variable definition of %v", n.Name())
-		return nil
+func (gen *generator) createGlobal(n *ast.VarDecl) (*ir.GlobalDecl, error) {
+	name := n.Name().Name
+	log.Printf("create global variable %q", name)
+	typ := toIrType(n.Type())
+	var val value.Value
+	var err error
+	switch {
+	case n.Val != nil:
+		val, err = gen.createConstant(n.Val)
+		if err != nil {
+			return nil, errutil.Err(err)
+		}
+	case irtypes.IsInt(typ):
+		val, err = constant.NewInt(typ, "0")
+		if err != nil {
+			return nil, errutil.Err(err)
+		}
+	default:
+		val, err = constant.NewZeroInitializer(typ)
+		if err != nil {
+			return nil, errutil.Err(err)
+		}
 	}
-	// TODO: Implement
-	log.Printf("create global variable %v", n)
-	var gv *ir.GlobalDecl
-	gen.module.Globals = append(gen.module.Globals, gv)
-	return nil
+	global := ir.NewGlobalDef(name, val, false)
+	return global, nil
+}
+
+// createConstant converts the given uC expression to an LLVM IR constant
+// expression.
+func (gen *generator) createConstant(expr ast.Expr) (constant.Constant, error) {
+	typ := gen.typeOf(expr)
+	switch expr := expr.(type) {
+	case *ast.BasicLit:
+		switch expr.Kind {
+		case token.CharLit:
+			s, err := strconv.Unquote(expr.Val)
+			if err != nil {
+				return nil, errutil.Err(err)
+			}
+			val, err := constant.NewInt(typ, s)
+			if err != nil {
+				return nil, errutil.Err(err)
+			}
+			return val, nil
+		case token.IntLit:
+			val, err := constant.NewInt(typ, expr.Val)
+			if err != nil {
+				return nil, errutil.Err(err)
+			}
+			return val, nil
+		default:
+			panic(fmt.Sprintf("support for basic literal kind %v not yet implemented", expr.Kind))
+		}
+	//case *ast.BinaryExpr:
+	//case *ast.CallExpr:
+	//case *ast.Ident:
+	//case *ast.IndexExpr:
+	//case *ast.ParenExpr:
+	//case *ast.UnaryExpr:
+	default:
+		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
+	}
+}
+
+// typeOf returns the LLVM IR type of the given expression.
+func (gen *generator) typeOf(expr ast.Expr) irtypes.Type {
+	if typ, ok := gen.info.Types[expr]; ok {
+		return toIrType(typ)
+	}
+	panic(fmt.Sprintf("unable to locate type for expression %v", expr))
 }
 
 // isTentative reports whether the given global variable declaration is a
