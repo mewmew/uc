@@ -40,7 +40,7 @@ func TestGen(t *testing.T) {
 		p := parser.NewParser()
 		f, err := p.Parse(s)
 		if err != nil {
-			t.Errorf("%q: parse error: %v", err)
+			t.Errorf("%q: parse error: %v", g.path, err)
 			continue
 		}
 		file := f.(*ast.File)
@@ -54,7 +54,7 @@ func TestGen(t *testing.T) {
 		// Generate IR.
 		module, err := irgen.Gen(file)
 		if err != nil {
-			t.Errorf("%q: unable to generate IR: %v", err)
+			t.Errorf("%q: unable to generate IR: %v", g.path, err)
 			continue
 		}
 
@@ -66,7 +66,7 @@ func TestGen(t *testing.T) {
 		}
 		got, want := module.String(), string(buf)
 		if got != want {
-			t.Errorf("%q: module mismatch; expected `%v`, got `%v`", want, got)
+			t.Errorf("%q: module mismatch; expected `%v`, got `%v`", g.path, want, got)
 		}
 	}
 }
