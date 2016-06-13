@@ -368,14 +368,14 @@ func (gen *generator) createVar(n *ast.VarDecl) error {
 
 // createWhile creates the instructions for a while loop.
 func (gen *generator) createWhile(n *ast.WhileStmt) error {
-	log.Printf("start while loop: %v", n)
 	// Finnish last basic block with a branch to the basic block we
 	// are about to create (with label ssaCounter+1)
 	gen.ssaCounter++
 	whileCond := gen.ssaCounter
+
+	log.Printf("Clear last basic block instructions: %v", gen.instructionBuffer)
 	allInsts := make([]instruction.Instruction, len(gen.instructionBuffer))
 	copy(allInsts, gen.instructionBuffer)
-	log.Printf("Clear last basic block instructions: %v", allInsts)
 
 	jmpToWhileCond, err := instruction.NewJmp(encLocal(whileCond))
 	if err != nil {
@@ -386,6 +386,7 @@ func (gen *generator) createWhile(n *ast.WhileStmt) error {
 	gen.basicBlocks = append(gen.basicBlocks, bb)
 	gen.lastLabel = gen.ssaCounter
 	whileBody := gen.ssaCounter
+	log.Printf("start while loop: %v", n)
 
 	if err := gen.recurse(n.Cond); err != nil {
 		return errutil.Err(err)
