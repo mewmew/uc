@@ -331,11 +331,12 @@ func (gen *generator) loadIdent(n *ast.Ident) error {
 	if err != nil {
 		return errutil.Err(err)
 	}
-	if true {
-		newVar, err = ir.NewLocal(n.Name, ptrType)
-	} else {
-		newVar, err = constant.NewPointer(ptrType, n.Name)
-	}
+	// TODO: implement fix plix
+	// if true {
+	// 	newVar, err = ir.NewLocal(n.Name, ptrType)
+	// } else {
+	newVar, err = constant.NewPointer(ptrType, n.Name)
+	// }
 	if err != nil {
 		return errutil.Err(err)
 	}
@@ -392,7 +393,11 @@ func (gen *generator) createWhile(n *ast.WhileStmt) error {
 		return errutil.Err(err)
 	}
 
-	brToWhileBody, err := instruction.NewBr(gen.instructionBuffer[len(gen.instructionBuffer)-1], encLocal(whileBody), "-1")
+	val, ok := gen.instructionBuffer[len(gen.instructionBuffer)-1].(value.Value)
+	if !ok {
+		panic("Last instruction not a valid value for branch condition")
+	}
+	brToWhileBody, err := instruction.NewBr(val, encLocal(whileBody), "-1")
 	if err != nil {
 		return errutil.Err(err)
 	}
