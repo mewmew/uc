@@ -128,7 +128,10 @@ func compileFile(path string, useGoccLexer bool) error {
 	if err != nil {
 		return errutil.Err(err)
 	}
-	pretty.Println("module:", module)
+	log.Println("=== [ Pretty module ] ===\n")
+	pretty.Println(module)
+	log.Println("=== [ LLVM IR module ] ===\n")
+	fmt.Println(module)
 
 	return nil
 }
