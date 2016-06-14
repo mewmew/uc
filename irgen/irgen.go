@@ -1,3 +1,5 @@
+//+build ignore
+
 package irgen
 
 import (
@@ -26,10 +28,9 @@ type generator struct {
 	module *ir.Module
 	// info holds usefull info from the semantic checker
 	info *sem.Info
-	// funcDefStack holds all current function nests
-	funcDefStack []*ir.Function
-	// currentFunction points to the function being created
-	currentFunction *ir.Function
+	// funcStack represents a stack of the current nested functions, with the
+	// innermost function at the top of the stack (i.e. end of the slice).
+	funcStack []*ir.Function
 	// basicBlocks holds basic blocks before function creation
 	basicBlocks []*ir.BasicBlock
 	// instructionBuffer holds instructions before basic block creation.
@@ -58,7 +59,17 @@ func (gen *generator) recurse(n ast.Node) error {
 	case *ast.File:
 		err = gen.createFile(n)
 	case *ast.FuncDecl:
-		err = gen.createFunction(n)
+		// Ignore tentative definitions.
+		if isTentativeDef(n) {
+			log.Printf("ignoring tentative function definition of %v", n.Name())
+			return nil
+		}
+		f, err := gen.createFunction(n)
+		if err != nil {
+			return errutil.Err(err)
+		}
+		gen.module.Funcs = append(gen.module.Funcs, f)
+		return nil
 	case *ast.Ident:
 		err = gen.loadIdent(n)
 	case *ast.VarDecl:
@@ -265,41 +276,93 @@ func (gen *generator) createFile(n *ast.File) error {
 	return nil
 }
 
-// createFunction creates the instructions for creating a function.
-func (gen *generator) createFunction(n *ast.FuncDecl) error {
-	//var fn *ir.Function
-	//fn, ssaCounter = createFunction(n, ssaCounter)
-
-	// TODO: Create unique names for nested functions, this should
-	// really be done in parser... the following currently breakes
-	// ability to call nested functions
-	var name string
-	for _, prevfn := range gen.funcDefStack {
-		name += prevfn.Name() + "."
+// createFunction converts the given uC function declaration to an LLVM IR
+// function declaration.
+func (gen *generator) createFunction(n *ast.FuncDecl) (*ir.Function, error) {
+	// Create function signature.
+	name := n.Name().String()
+	typ := toIrType(n.Type())
+	sig, ok := typ.(*irtypes.Func)
+	if !ok {
+		return nil, errutil.Newf("invalid function type; expected *types.Func, got %T", typ)
 	}
-	name += n.Name().String()
-	sig := toIrType(n.Type())
-	var fn *ir.Function
-	if sig, ok := sig.(*irtypes.Func); ok {
-		fn = ir.NewFunction(name, sig)
-	} else {
-		panic(errutil.Newf("Conversion from uc function type failed: %#v %#v", sig, n.Type()))
-	}
-	gen.module.Funcs = append(gen.module.Funcs, fn)
-
+	f := ir.NewFunction(name, sig)
 	if !astutil.IsDef(n) {
-		log.Printf("create function decl %v", fn)
-		return nil
+		log.Printf("create function declaration %v", n)
+		return f, nil
+	}
+	log.Printf("create function definition %v", n)
+	gen.funcStack = append(gen.funcStack, f)
+
+	// Create function body.
+	blocks, err := gen.createBlockStmt(n.Body)
+	if err != nil {
+		return nil, errutil.Err(err)
+	}
+	if err := f.SetBlocks(blocks); err != nil {
+		return nil, errutil.Err(err)
 	}
 
-	log.Printf("create function def %v", fn)
-	gen.funcDefStack = append(gen.funcDefStack, fn)
-	gen.currentFunction = fn
+	gen.ssaCounter = 0 // TODO: check if in nested function
+	gen.funcStack = gen.funcStack[:len(gen.funcStack)-1]
+	return f, nil
+}
 
-	// Recurse body
-	if err := gen.recurse(n.Body); err != nil {
-		return errutil.Err(err)
+// createReturnStmt converts the given uC return statement to a set of LLVM IR
+// basic blocks.
+func (gen *generator) createReturnStmt(n *ast.ReturnStmt) ([]*ir.BasicBlock, error) {
+	//resultBlocks, err := createExpr(n.Result)
+	// TODO(u)
+	return nil, nil
+}
+
+// createBlockStmt converts the given uC block statement to a set of LLVM IR
+// basic blocks.
+func (gen *generator) createBlockStmt(n *ast.BlockStmt) ([]*ir.BasicBlock, error) {
+	var blocks []*ir.BasicBlock
+	curBlock := &ir.BasicBlock{}
+	for _, item := range n.Items {
+		switch item := item.(type) {
+		case ast.Decl:
+			switch decl := item.(type) {
+			//case *ast.FuncDecl:
+			case *ast.VarDecl:
+				insts, err := gen.createLocal(decl)
+				if err != nil {
+					return nil, errutil.Err(err)
+				}
+				for _, inst := range insts {
+					curBlock.AppendInst(inst)
+				}
+			//case *ast.TypeDef:
+			default:
+				panic(fmt.Sprintf("support for type %T not yet implemented", decl))
+			}
+		case ast.Stmt:
+			switch stmt := item.(type) {
+			//case *ast.BlockStmt:
+			case *ast.EmptyStmt:
+				// nothing to do.
+			//case *ast.ExprStmt:
+			//case *ast.IfStmt:
+			case *ast.ReturnStmt:
+				term, err := gen.createReturnStmt(stmt)
+				if err != nil {
+					return nil, errutil.Err(err)
+				}
+				curBlock.SetTerm(term)
+				blocks = append(blocks, curBlock)
+				curBlock := &ir.BasicBlock{}
+			//case *ast.WhileStmt:
+			default:
+				panic(fmt.Sprintf("support for type %T not yet implemented", decl))
+			}
+		}
 	}
+	if len(curBlock.Insts()) > 0 || curBlock.Term() != nil {
+		blocks = append(blocks, curBlock)
+	}
+
 	ret, err := instruction.NewRet(irtypes.NewVoid(), nil)
 	if err != nil {
 		return errutil.Err(err)
@@ -307,24 +370,17 @@ func (gen *generator) createFunction(n *ast.FuncDecl) error {
 	allInsts := make([]instruction.Instruction, len(gen.instructionBuffer))
 	copy(allInsts, gen.instructionBuffer)
 	gen.instructionBuffer = gen.instructionBuffer[:0]
-	bb, err := ir.NewBasicBlock(encLocal(gen.lastLabel), allInsts, ret)
+	bb, err := ir.NewBasicBlock("", allInsts, ret)
 	if err != nil {
 		return errutil.Err(err)
 	}
 	gen.basicBlocks = append(gen.basicBlocks, bb)
 	log.Print(gen.basicBlocks)
 
-	gen.currentFunction.SetBlocks(gen.basicBlocks)
+	f.SetBlocks(gen.basicBlocks)
 	gen.basicBlocks = gen.basicBlocks[:0:0]
 
-	gen.ssaCounter = 0 // TODO: check if in nested function
-	gen.funcDefStack = gen.funcDefStack[:len(gen.funcDefStack)-1]
-	if len(gen.funcDefStack) > 0 {
-		gen.currentFunction = gen.funcDefStack[len(gen.funcDefStack)-1]
-	} else {
-		gen.currentFunction = nil
-	}
-	return nil
+	return blocks, nil
 }
 
 // loadIdent creates the instruction for loading an ident into a local var.
@@ -363,14 +419,15 @@ func (gen *generator) loadIdent(n *ast.Ident) error {
 
 // createVar creates the instruction for allocating place for a variable.
 func (gen *generator) createVar(n *ast.VarDecl) error {
-	if len(gen.funcDefStack) > 0 {
-		if err := gen.createLocal(n); err != nil {
+	if len(gen.funcStack) > 0 {
+		insts, err := gen.createLocal(n)
+		if err != nil {
 			return errutil.Err(err)
 		}
 	} else {
 		// Ignore tentative definitions.
-		if isTentativeVarDef(n) {
-			log.Printf("ignoring tentative global variable definition of %v", n.Name())
+		if isTentativeDef(n) {
+			log.Printf("ignoring tentative global variable definition of %q", n.Name())
 			return nil
 		}
 		// Global values are compile time constant, no need for ssa.
@@ -399,7 +456,7 @@ func (gen *generator) createWhile(n *ast.WhileStmt) error {
 		return errutil.Err(err)
 	}
 
-	bb, err := ir.NewBasicBlock(encLocal(gen.lastLabel), allInsts, jmpToWhileCond)
+	bb, err := ir.NewBasicBlock("", allInsts, jmpToWhileCond)
 	gen.basicBlocks = append(gen.basicBlocks, bb)
 	gen.lastLabel = gen.ssaCounter
 	whileBody := gen.ssaCounter
@@ -417,7 +474,7 @@ func (gen *generator) createWhile(n *ast.WhileStmt) error {
 	if err != nil {
 		return errutil.Err(err)
 	}
-	condbb, err := ir.NewBasicBlock(encLocal(gen.lastLabel), allInsts, brToWhileBody)
+	condbb, err := ir.NewBasicBlock("", allInsts, brToWhileBody)
 	if err != nil {
 		return errutil.Err(err)
 	}
@@ -437,7 +494,7 @@ func (gen *generator) createWhile(n *ast.WhileStmt) error {
 	//_, gen.ssaCounter = endWhile(n, gen.ssaCounter)
 
 	// End the while loop with a branch to whileCond
-	bb, err = ir.NewBasicBlock(encLocal(gen.lastLabel), allInsts, jmpToWhileCond)
+	bb, err = ir.NewBasicBlock("", allInsts, jmpToWhileCond)
 	if err != nil {
 		return errutil.Err(err)
 	}
@@ -450,20 +507,20 @@ func (gen *generator) createWhile(n *ast.WhileStmt) error {
 	return nil
 }
 
-// createLocal creates the instructions for a local variable declaration.
-func (gen *generator) createLocal(n *ast.VarDecl) error {
-	// TODO: Implement
+// createLocal converts the given uC local variable declaration to an LLVM IR
+// local variable declaration.
+func (gen *generator) createLocal(n *ast.VarDecl) ([]instruction.Instruction, error) {
+	log.Printf("create local variable declaration %v", n)
 	var insts []instruction.Instruction
-	log.Printf("create local variable %v", n)
-
-	gen.instructionBuffer = append(gen.instructionBuffer, insts...)
-	return nil
+	// TODO: Implement.
+	return insts, nil
 }
 
-// createGlobal creates the instructions for a global variable declaration.
+// createGlobal converts the given uC global variable declaration to an LLVM IR
+// global variable declaration.
 func (gen *generator) createGlobal(n *ast.VarDecl) (*ir.GlobalDecl, error) {
 	name := n.Name().Name
-	log.Printf("create global variable %q", name)
+	log.Printf("create global variable %v", n)
 	typ := toIrType(n.Type())
 	var val value.Value
 	var err error
@@ -500,7 +557,7 @@ func (gen *generator) createConstant(expr ast.Expr) (constant.Constant, error) {
 			if err != nil {
 				return nil, errutil.Err(err)
 			}
-			val, err := constant.NewInt(typ, s)
+			val, err := constant.NewInt(typ, strconv.Itoa(int(s[0])))
 			if err != nil {
 				return nil, errutil.Err(err)
 			}
@@ -533,9 +590,9 @@ func (gen *generator) typeOf(expr ast.Expr) irtypes.Type {
 	panic(fmt.Sprintf("unable to locate type for expression %v", expr))
 }
 
-// isTentative reports whether the given global variable declaration is a
-// tentative variable definition.
-func isTentativeVarDef(n *ast.VarDecl) bool {
+// isTentativeDef reports whether the given global variable or function
+// declaration is a tentative definition.
+func isTentativeDef(n ast.Decl) bool {
 	ident := n.Name()
 	def := ident.Decl.Name()
 	return ident.Start() != def.Start()

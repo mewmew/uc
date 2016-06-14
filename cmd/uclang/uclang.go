@@ -125,10 +125,7 @@ func compileFile(path string, useGoccLexer bool) error {
 		return errutil.Err(err)
 	}
 
-	module, err := irgen.Gen(file, info)
-	if err != nil {
-		return errutil.Err(err)
-	}
+	module := irgen.Gen(file, info)
 	log.Println("=== [ Pretty module ] ===\n")
 	pretty.Println(module)
 	log.Println("=== [ LLVM IR module ] ===\n")
