@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	irtypes "github.com/llir/llvm/ir/types"
+	"github.com/llir/llvm/ir/value"
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
 	uctypes "github.com/mewmew/uc/types"
@@ -15,6 +16,14 @@ func isTentativeDef(n ast.Decl) bool {
 	ident := n.Name()
 	def := ident.Decl.Name()
 	return ident.Start() != def.Start()
+}
+
+// getLocal returns the LLVM IR value of the given local variable name.
+func (f *Function) local(name string) value.Value {
+	if v, ok := f.locals[name]; ok {
+		return v
+	}
+	panic(fmt.Sprintf("unable to locate local variable %q", name))
 }
 
 // typeOf returns the LLVM IR type of the given expression.

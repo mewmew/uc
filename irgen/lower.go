@@ -134,7 +134,7 @@ func (m *Module) typeDef(def *ast.TypeDef) {
 func (m *Module) localVarDef(f *Function, n *ast.VarDecl) {
 	// Input:
 	//    void f() {
-	//       int a;
+	//       int a;           // <-- relevant line
 	//    }
 	// Output:
 	//    %a = alloca i32
@@ -215,7 +215,7 @@ func (m *Module) ifStmt(f *Function, stmt *ast.IfStmt) {
 func (m *Module) returnStmt(f *Function, stmt *ast.ReturnStmt) {
 	// Input:
 	//    int f() {
-	//       return 42;
+	//       return 42;       // <-- relevant line
 	//    }
 	// Output:
 	//    ret i32 42
@@ -228,7 +228,7 @@ func (m *Module) returnStmt(f *Function, stmt *ast.ReturnStmt) {
 		f.curBlock = nil
 		return
 	}
-	result := m.expr(stmt.Result)
+	result := m.expr(f, stmt.Result)
 	term, err := instruction.NewRet(result.Type(), result)
 	if err != nil {
 		panic(fmt.Sprintf("unable to create ret instruction; %v", err))
@@ -249,36 +249,17 @@ func (m *Module) whileStmt(f *Function, stmt *ast.WhileStmt) {
 // (e.g. initializer of global variable definition).
 
 // expr lowers the given expression to LLVM IR, emitting code to f.
-func (m *Module) expr(expr ast.Expr) value.Value {
+func (m *Module) expr(f *Function, expr ast.Expr) value.Value {
 	typ := m.typeOf(expr)
 	switch expr := expr.(type) {
 	case *ast.BasicLit:
-		switch expr.Kind {
-		case token.CharLit:
-			s, err := strconv.Unquote(expr.Val)
-			if err != nil {
-				panic(fmt.Sprintf("unable to unquote character literal; %v", err))
-			}
-			val, err := constant.NewInt(typ, strconv.Itoa(int(s[0])))
-			if err != nil {
-				panic(fmt.Sprintf("unable to create integer constant; %v", err))
-			}
-			return val
-		case token.IntLit:
-			val, err := constant.NewInt(typ, expr.Val)
-			if err != nil {
-				panic(fmt.Sprintf("unable to create integer constant; %v", err))
-			}
-			return val
-		default:
-			panic(fmt.Sprintf("support for basic literal kind %v not yet implemented", expr.Kind))
-		}
+		return m.basicLit(f, expr, typ)
 	case *ast.BinaryExpr:
 		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
 	case *ast.CallExpr:
 		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
 	case *ast.Ident:
-		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
+		return m.ident(f, expr, typ)
 	case *ast.IndexExpr:
 		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
 	case *ast.ParenExpr:
@@ -289,6 +270,49 @@ func (m *Module) expr(expr ast.Expr) value.Value {
 		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
 	}
 	panic("unreachable")
+}
+
+// basicLit lowers the given basic literal to LLVM IR, emitting code to f.
+func (m *Module) basicLit(f *Function, n *ast.BasicLit, typ irtypes.Type) value.Value {
+	switch n.Kind {
+	case token.CharLit:
+		s, err := strconv.Unquote(n.Val)
+		if err != nil {
+			panic(fmt.Sprintf("unable to unquote character literal; %v", err))
+		}
+		val, err := constant.NewInt(typ, strconv.Itoa(int(s[0])))
+		if err != nil {
+			panic(fmt.Sprintf("unable to create integer constant; %v", err))
+		}
+		return val
+	case token.IntLit:
+		val, err := constant.NewInt(typ, n.Val)
+		if err != nil {
+			panic(fmt.Sprintf("unable to create integer constant; %v", err))
+		}
+		return val
+	default:
+		panic(fmt.Sprintf("support for basic literal kind %v not yet implemented", n.Kind))
+	}
+}
+
+// ident lowers the given identifier to LLVM IR, emitting code to f.
+func (m *Module) ident(f *Function, ident *ast.Ident, typ irtypes.Type) value.Value {
+	// Input:
+	//    void f() {
+	//       int x;
+	//       x;               // <-- relevant line
+	//    }
+	// Output:
+	//    %1 = load i32, i32* %x
+	addr := f.local(ident.String())
+	inst, err := instruction.NewLoad(typ, addr)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create local instruction; %v", err))
+	}
+
+	// Emit load instruction.
+	return f.emitLocal("", inst)
 }
 
 // constExpr converts the given expression to an LLVM IR constant expression.

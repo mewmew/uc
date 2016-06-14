@@ -50,7 +50,7 @@ type Function struct {
 	// Current basic block being generated.
 	curBlock *BasicBlock
 	// Local variables.
-	local map[string]value.Value
+	locals map[string]value.Value
 }
 
 // NewFunction returns a new function generator based on the given function name
@@ -59,7 +59,7 @@ type Function struct {
 // The caller is responsible for initializing basic blocks.
 func NewFunction(name string, sig *irtypes.Func) *Function {
 	f := ir.NewFunction(name, sig)
-	return &Function{Function: f, local: make(map[string]value.Value)}
+	return &Function{Function: f, locals: make(map[string]value.Value)}
 }
 
 // startBody initializes the generation of the function body.
@@ -73,7 +73,7 @@ func (f *Function) endBody() error {
 	if block := f.curBlock; block != nil && block.Term() == nil {
 		// Add void return terminator to the current basic block, if a terminator
 		// is missing.
-		if result := f.Type().Result(); !irtypes.IsVoid(result) {
+		if result := f.Sig().Result(); !irtypes.IsVoid(result) {
 			panic(fmt.Sprintf("unable to finalize current basic block of function body; expected void return since terminator was missing, got %v", result))
 		}
 		term, err := instruction.NewRet(irtypes.NewVoid(), nil)
@@ -124,6 +124,6 @@ func (b *BasicBlock) emitInst(inst instruction.ValueInst) value.Value {
 func (b *BasicBlock) emitLocal(name string, inst instruction.ValueInst) value.Value {
 	def := instruction.NewLocalVarDef(name, inst)
 	b.AppendInst(def)
-	b.parent.local[name] = def
+	b.parent.locals[name] = def
 	return def
 }
