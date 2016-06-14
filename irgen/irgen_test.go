@@ -2,6 +2,7 @@ package irgen_test
 
 import (
 	"io/ioutil"
+	"log"
 	"testing"
 
 	"github.com/mewmew/uc/ast"
@@ -32,10 +33,10 @@ func TestGen(t *testing.T) {
 			path: "../testdata/extra/irgen/int_ret.c",
 			want: "../testdata/extra/irgen/int_ret.ll",
 		},
-		//{
-		//	path: "../testdata/extra/irgen/local.c",
-		//	want: "../testdata/extra/irgen/local.ll",
-		//},
+		{
+			path: "../testdata/extra/irgen/local.c",
+			want: "../testdata/extra/irgen/local.ll",
+		},
 	}
 
 	for _, g := range golden {
@@ -65,6 +66,7 @@ func TestGen(t *testing.T) {
 		}
 
 		// Generate IR.
+		log.Println("path:", g.want) // TODO: Remove debug output.
 		module := irgen.Gen(file, info)
 
 		// Compare generated module against gold standard.
