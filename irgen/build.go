@@ -39,6 +39,8 @@ type Function struct {
 	*ir.Function
 	// Current basic block being generated.
 	curBlock *BasicBlock
+	// Local variables.
+	local map[string]value.Value
 }
 
 // NewFunction returns a new function generator based on the given function name
@@ -47,17 +49,20 @@ type Function struct {
 // The caller is responsible for initializing basic blocks.
 func NewFunction(name string, sig *irtypes.Func) *Function {
 	f := ir.NewFunction(name, sig)
-	return &Function{Function: f}
+	return &Function{Function: f, local: make(map[string]value.Value)}
 }
 
 // startBody initializes the generation of the function body.
 func (f *Function) startBody() {
-	entry := NewBasicBlock("") // "entry"
+	entry := NewBasicBlock("", f) // "entry"
 	f.curBlock = entry
 }
 
 // endBody finalizes the generation of the function body.
 func (f *Function) endBody() error {
+	if f.curBlock != nil {
+		f.AppendBlock(f.curBlock.BasicBlock)
+	}
 	f.curBlock = nil
 	if err := f.AssignIDs(); err != nil {
 		return errutil.Err(err)
@@ -65,26 +70,40 @@ func (f *Function) endBody() error {
 	return nil
 }
 
-// emitInst emits to f the given instruction.
+// emitInst emits to f the given unnamed value instruction.
 func (f *Function) emitInst(inst instruction.ValueInst) value.Value {
 	return f.curBlock.emitInst(inst)
+}
+
+// emitLocal emits to f the given named value instruction.
+func (f *Function) emitLocal(name string, inst instruction.ValueInst) value.Value {
+	return f.curBlock.emitLocal(name, inst)
 }
 
 // A BasicBlock represents an LLVM IR basic block generator.
 type BasicBlock struct {
 	// Basic block being generated.
 	*ir.BasicBlock
+	// Parent function of the basic block.
+	parent *Function
 }
 
-// NewBasicBlock returns a new basic block generator.
-func NewBasicBlock(name string) *BasicBlock {
+// NewBasicBlock returns a new basic block generator based on the given name and
+// parent function.
+func NewBasicBlock(name string, parent *Function) *BasicBlock {
 	block := ir.NewBasicBlock(name)
-	return &BasicBlock{BasicBlock: block}
+	return &BasicBlock{BasicBlock: block, parent: parent}
 }
 
-// emitInst emits to b the given instruction.
+// emitInst emits to b the given unnamed value instruction.
 func (b *BasicBlock) emitInst(inst instruction.ValueInst) value.Value {
-	def := instruction.NewLocalVarDef("", inst)
+	return b.emitLocal("", inst)
+}
+
+// emitLocal emits to b the given named value instruction.
+func (b *BasicBlock) emitLocal(name string, inst instruction.ValueInst) value.Value {
+	def := instruction.NewLocalVarDef(name, inst)
 	b.AppendInst(def)
+	b.parent.local[name] = def
 	return def
 }

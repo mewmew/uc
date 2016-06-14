@@ -7,6 +7,7 @@ import (
 
 	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/constant"
+	"github.com/llir/llvm/ir/instruction"
 	irtypes "github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/mewmew/uc/ast"
@@ -44,6 +45,8 @@ func gen(file *ast.File, info *sem.Info) *ir.Module {
 	}
 	return m.Module
 }
+
+// --- [ Function declaration ] ------------------------------------------------
 
 // funcDecl lowers the given function declaration to LLVM IR, emitting code to
 // m.
@@ -86,9 +89,15 @@ func (m *Module) funcBody(f *Function, body *ast.BlockStmt) {
 	m.emitFunc(f)
 }
 
+// --- [ Global variable declaration ] -----------------------------------------
+
 // globalVarDecl lowers the given global variable declaration to LLVM IR,
 // emitting code to m.
 func (m *Module) globalVarDecl(n *ast.VarDecl) {
+	// Input:
+	//    int x;
+	// Output:
+	//    @x = global i32 0
 	name := n.Name().Name
 	log.Printf("create global variable: %v", n)
 	typ := toIrType(n.Type())
@@ -106,9 +115,114 @@ func (m *Module) globalVarDecl(n *ast.VarDecl) {
 		val = constant.NewZeroInitializer(typ)
 	}
 	global := ir.NewGlobalDef(name, val, false)
-	// Emit global variable declaration.
+	// Emit global variable definition.
 	m.emitGlobal(global)
 }
+
+// --- [ Type definition ] -----------------------------------------------------
+
+// typeDef lowers the given type definition to LLVM IR, emitting code to m.
+func (m *Module) typeDef(def *ast.TypeDef) {
+	panic("not yet implemented")
+}
+
+// === [ Function scope ] ======================================================
+
+// --- [ Local variable definition ] -------------------------------------------
+
+// localVarDef lowers the given local variable definition to LLVM IR, emitting
+// code to f.
+func (m *Module) localVarDef(f *Function, n *ast.VarDecl) {
+	// Input:
+	//    void f() {
+	//       int a;
+	//    }
+	// Output:
+	//    %a = alloca i32
+	name := n.Name().Name
+	log.Printf("create local variable: %v", n)
+	typ := toIrType(n.Type())
+	inst, err := instruction.NewAlloca(typ, 1)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create alloca instruction; %v", err))
+	}
+	// Emit local variable definition.
+	f.emitLocal(name, inst)
+	if n.Val != nil {
+		panic("support for local variable definition initializer not yet implemented")
+	}
+}
+
+// --- [ Statements ] ----------------------------------------------------------
+
+// stmt lowers the given statement to LLVM IR, emitting code to f.
+func (m *Module) stmt(f *Function, stmt ast.Stmt) {
+	switch stmt := stmt.(type) {
+	case *ast.BlockStmt:
+		m.blockStmt(f, stmt)
+		return
+	case *ast.EmptyStmt:
+		// nothing to do.
+		return
+	case *ast.ExprStmt:
+		m.exprStmt(f, stmt)
+		return
+	case *ast.IfStmt:
+		m.ifStmt(f, stmt)
+		return
+	case *ast.ReturnStmt:
+		m.returnStmt(f, stmt)
+		return
+	case *ast.WhileStmt:
+		m.whileStmt(f, stmt)
+		return
+	default:
+		panic(fmt.Sprintf("support for %T not yet implemented", stmt))
+	}
+	panic("unreachable")
+}
+
+// blockStmt lowers the given block statement to LLVM IR, emitting code to f.
+func (m *Module) blockStmt(f *Function, stmt *ast.BlockStmt) {
+	for _, item := range stmt.Items {
+		switch item := item.(type) {
+		case ast.Decl:
+			switch decl := item.(type) {
+			case *ast.FuncDecl:
+				panic(fmt.Sprintf("support for nested function declarations not yet implemented: %v", decl))
+			case *ast.VarDecl:
+				m.localVarDef(f, decl)
+			case *ast.TypeDef:
+				panic(fmt.Sprintf("support for scoped type definitions not yet implemented: %v", decl))
+			}
+		case ast.Stmt:
+			m.stmt(f, item)
+		}
+	}
+}
+
+// exprStmt lowers the given expression statement to LLVM IR, emitting code to
+// f.
+func (m *Module) exprStmt(f *Function, stmt *ast.ExprStmt) {
+	panic("not yet implemented")
+}
+
+// ifStmt lowers the given if statement to LLVM IR, emitting code to f.
+func (m *Module) ifStmt(f *Function, stmt *ast.IfStmt) {
+	panic("not yet implemented")
+}
+
+// returnStmt lowers the given return statement to LLVM IR, emitting code to f.
+func (m *Module) returnStmt(f *Function, stmt *ast.ReturnStmt) {
+	panic("not yet implemented")
+}
+
+// whileStmt lowers the given while statement to LLVM IR, emitting code to f.
+func (m *Module) whileStmt(f *Function, stmt *ast.WhileStmt) {
+	panic("not yet implemented")
+}
+
+// --- [ Expressions ] ----------------------------------------------------------
 
 // constExpr converts the given expression to an LLVM IR constant expression.
 func (m *Module) constExpr(expr ast.Expr) constant.Constant {
@@ -145,64 +259,4 @@ func (m *Module) constExpr(expr ast.Expr) constant.Constant {
 		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
 	}
 	panic("unreachable")
-}
-
-// typeDef lowers the given type definition to LLVM IR, emitting code to m.
-func (m *Module) typeDef(def *ast.TypeDef) {
-	panic("not yet implemented")
-}
-
-// === [ Function scope ] ======================================================
-
-// stmt lowers the given statement to LLVM IR, emitting code to f.
-func (m *Module) stmt(f *Function, stmt ast.Stmt) {
-	switch stmt := stmt.(type) {
-	case *ast.BlockStmt:
-		m.blockStmt(f, stmt)
-		return
-	case *ast.EmptyStmt:
-		// nothing to do.
-		return
-	case *ast.ExprStmt:
-		m.exprStmt(f, stmt)
-		return
-	case *ast.IfStmt:
-		m.ifStmt(f, stmt)
-		return
-	case *ast.ReturnStmt:
-		m.returnStmt(f, stmt)
-		return
-	case *ast.WhileStmt:
-		m.whileStmt(f, stmt)
-		return
-	default:
-		panic(fmt.Sprintf("support for %T not yet implemented", stmt))
-	}
-	panic("unreachable")
-}
-
-// blockStmt lowers the given block statement to LLVM IR, emitting code to f.
-func (m *Module) blockStmt(f *Function, stmt ast.Stmt) {
-	panic("not yet implemented")
-}
-
-// exprStmt lowers the given expression statement to LLVM IR, emitting code to
-// f.
-func (m *Module) exprStmt(f *Function, stmt ast.Stmt) {
-	panic("not yet implemented")
-}
-
-// ifStmt lowers the given if statement to LLVM IR, emitting code to f.
-func (m *Module) ifStmt(f *Function, stmt ast.Stmt) {
-	panic("not yet implemented")
-}
-
-// returnStmt lowers the given return statement to LLVM IR, emitting code to f.
-func (m *Module) returnStmt(f *Function, stmt ast.Stmt) {
-	panic("not yet implemented")
-}
-
-// whileStmt lowers the given while statement to LLVM IR, emitting code to f.
-func (m *Module) whileStmt(f *Function, stmt ast.Stmt) {
-	panic("not yet implemented")
 }

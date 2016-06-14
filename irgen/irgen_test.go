@@ -28,6 +28,10 @@ func TestGen(t *testing.T) {
 		//	path: "../testdata/extra/irgen/function.c",
 		//	want: "../testdata/extra/irgen/function.ll",
 		//},
+		{
+			path: "../testdata/extra/irgen/local.c",
+			want: "../testdata/extra/irgen/local.ll",
+		},
 	}
 
 	for _, g := range golden {
