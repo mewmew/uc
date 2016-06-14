@@ -67,7 +67,8 @@ extra/semantic/void-array.c \
 extra/semantic/void-array-arg.c \
 extra/semantic/void-param.c \
 extra/semantic/void-params.c \
-extra/semantic/void-var.c \
+extra/semantic/void-var.c
+
 #$(patsubst $(TESTDATA)/%,%,$(wildcard $(TESTDATA)/noisy/advanced/*.c))
 
 OBJECTS=$(SOURCES:%.c=%.txt)
@@ -75,14 +76,14 @@ OBJECTDIRS=$(sort $(dir $(OBJECTS)))
 
 UPROGPATH=$(shell which $(UPROG))
 
-semantic_analysis: $(OBJECTDIRS:=listing.tex) $(OBJECTDIRS:=listref.tex)
+semantic_analysis: $(OBJECTDIRS:=listing.tex)
 
 $(OBJECTDIRS):
 	mkdir -p "$@"
 
 $(OBJECTS): %.txt: %.c $(UPROGPATH) | $(OBJECTDIRS)
 	@echo making $@
-	cd $(CURDIR)/$(TESTDATA); $(UPROG) $(UCFLAGS) $(<:$(TESTDATA)/%=%) > $(CURDIR:$(TESTDATA)/%=%)/$@ $(REDIRECTS)
+	@cd $(TESTDATA) && $(UPROG) $(UCFLAGS) $${OLDPWD}/$< > $${OLDPWD}/$@ $(REDIRECTS)
 
 # Does not work for adding of older files, only files newer than Makefile.depend
 Makefile.depend: $(OBJECTS)
@@ -91,17 +92,19 @@ Makefile.depend: $(OBJECTS)
 	@(for a in $(OBJECTDIRS); do echo -n $$a"listing.tex: " >>$@; b=` for i in $(OBJECTS); do echo $$i; done | grep $$a `; echo $$b >>  $@; done;)
 
 # Gets its prerequisits from Makefile.depend
+# Also makes listref.tex
 %listing.tex:
-	@echo making $@
-	ls $(@D)/*.txt | awk '{name=$$1;\
- sub(/.txt/,".c",name); printf "\\lstinputlisting[style=go,\
- caption=%s,label=lst:$(UPROG)/%s]{inc/$(UPROG)/%s}\n\n", name, name, $$1}' > $@
-
-%listref.tex: %listing.tex
-	@echo making $@
-	ls $(@D)/*.txt | awk '{name=$$1;\
- sub(/.txt/,".c",name); printf "\nListing~\\ref{lst:$(UPROG)/%s}:~\\nameref{lst:$(UPROG)/%s}\n",\
- name, name}' > $(@D)/listref.tex
+	@echo making $@ $(@D)/listref.tex
+	@-rm -f $@ $(@D)/listref.tex
+	@for txt in $^; do\
+		c="$${txt%%.txt}.c";\
+		printf "\\\\lstinputlisting[style=go,\n\
+		caption=%s,\n\
+		label=lst:$(UPROG)/%s\n\
+		]{inc/$(UPROG)/%s}\n\n" "$$c" "$$c" "$$txt" >> $@;\
+		printf "\n\nListing~\\\\ref{lst:$(UPROG)/%s}:~\\\\nameref{lst:$(UPROG)/%s}"\
+		"$$c" "$$c" >> $(@D)/listref.tex; \
+	done
 
 clean:
 	rm -rf $(OBJECTDIRS) Makefile.depend

@@ -16,7 +16,7 @@ Declaration:
 	\item If none is found, the declaration is inserted into the symbol table of the current scope.
 	\item The types of the current and previous declarations are checked and if not matching an error is reported.
 	\item If the previous declaration is not a definition, the current declaration is inserted in the symbol table, replacing the previous declaration in the current scope. This enables tentative declarations in the file scope.
-	\item If the previous declaration is not a definition, and current declaration is also a definition, an error is reported. A variable declaration in a local scope is always a definition, which prevents tentative declarations in local scope.
+	\item If the previous declaration is a definition, and current declaration is also a definition, an error is reported. A variable declaration in a local scope is always a definition, which prevents tentative declarations in local scope.
 	\item If the declaration is a function declaration with definition:
 	\begin{enumerate}[1.]
 		\item The current scope is set to a newly created scope with its outer scope set to point to the previous scope.
@@ -34,6 +34,6 @@ Block statement:
 Identifier:
 \begin{enumerate}
 	\item A lookup in the scopes symbol tables is made, recursively outwards from the nearest scope.
-	\item If found, the identifier gets an pointer to the declaration in its \texttt{Decl} field.
-	\item Otherwise an error is reported saying that the identifier is undeclared.
+	\item If found, the identifier gets a pointer to the declaration in its \texttt{Decl} field.
+	\item Otherwise an error is reported stating that the identifier is undeclared.
 \end{enumerate}

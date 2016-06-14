@@ -6,10 +6,6 @@
 
 A compiler for the [µC programming language](https://www.it.uu.se/katalog/aleji304/CompilersProject/uc.html).
 
-## Public Discussion
-
-Join the `#uc` Slack channel at https://gophers.slack.com/messages/uc/
-
 ## Installation
 
 1. [Install Go](https://golang.org/doc/install).

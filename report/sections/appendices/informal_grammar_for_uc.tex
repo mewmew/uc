@@ -1,0 +1,54 @@
+% --- [ Informal grammar for µC ] ----------------------------------------------
+
+\subsection{Informal grammar for µC}
+\label{app:informal_grammar_for_uc}
+
+This is an informal context-free grammar for uC (included without modification from \url{https://www.it.uu.se/katalog/aleji304/CompilersProject/uc.html}):
+
+\begin{itemize}
+	\item The start symbol is \texttt{program}.
+	\item Keywords and special symbols are written within double-quotes.
+	\item \texttt{/empty/} denotes the empty string.
+	\item \texttt{intconst} and \texttt{ident} denote classes of lexical elements.
+	\item Associativity and precedence for expression operators is not expressed.
+	\item The grammar has not been adjusted to fit any particular parsing method.
+\end{itemize}
+
+\begin{verbatim}
+program         ::= topdec_list
+topdec_list     ::= /empty/ | topdec topdec_list
+topdec          ::= vardec ";"
+                  | funtype ident "(" formals ")" funbody
+vardec          ::= scalardec | arraydec
+scalardec       ::= typename ident
+arraydec        ::= typename ident "[" intconst "]"
+typename        ::= "int" | "char"
+funtype         ::= typename | "void"
+funbody         ::= "{" locals stmts "}" | ";"
+formals         ::= "void" | formal_list
+formal_list     ::= formaldec | formaldec "," formal_list
+formaldec       ::= scalardec | typename ident "[" "]"
+locals          ::= /empty/ | vardec ";" locals
+stmts           ::= /empty/ | stmt stmts
+stmt            ::= expr ";"
+                  | "return" expr ";" | "return" ";"
+                  | "while" condition stmt
+                  | "if" condition stmt else_part
+                  | "{" stmts "}"
+                  | ";"
+else_part       ::= /empty/ | "else" stmt
+condition       ::= "(" expr ")"
+expr            ::= intconst
+                  | ident | ident "[" expr "]"
+                  | unop expr
+                  | expr binop expr
+                  | ident "(" actuals ")"
+                  | "(" expr ")"
+unop            ::= "-" | "!"
+binop           ::= "+" | "-" | "*" | "/"
+                  | "<" | ">" | "<=" | ">=" | "!=" | "=="
+                  | "&&"
+                  | "="
+actuals         ::= /empty/ | expr_list
+expr_list       ::= expr | expr "," expr_list
+\end{verbatim}

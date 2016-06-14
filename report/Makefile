@@ -27,6 +27,7 @@ clean: clean_aux
 lex: 2_lex.pdf clean_aux
 parse: 3_parse.pdf clean_aux
 sem: 4_sem.pdf clean_aux
+ir: 5_ir.pdf clean_aux
 
 %.pdf: %.tex
 	pdflatex $<

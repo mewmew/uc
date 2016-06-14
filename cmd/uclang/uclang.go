@@ -1,12 +1,16 @@
-// usem is a static semantic checker for the µC language which validates the
-// input and reports errors to standard error.
+// uclang is compiler for the µC language which validates the input, creates
+// instructions from the input and reports errors to standard error.
 //
-// Usage: usem [OPTION]... FILE...
+// Usage: uclang [OPTION]... FILE...
 //
 // If FILE is -, read standard input.
 //
-//   -hand
-//        use hand-written lexer (default true)
+//   -gocc-lexer
+//        use the gocc uC lexer (default false)
+//   -no-colors
+//        do not use ANSI escape codes in output (default false)
+//   -no-nested-functions
+//        do not allow nested function declarations (default false)
 package main
 
 import (
@@ -15,6 +19,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/kr/pretty"
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewkiz/pkg/ioutilx"
 	"github.com/mewmew/uc/ast"
@@ -22,6 +27,7 @@ import (
 	"github.com/mewmew/uc/gocc/parser"
 	goccscanner "github.com/mewmew/uc/gocc/scanner"
 	handscanner "github.com/mewmew/uc/hand/scanner"
+	"github.com/mewmew/uc/irgen"
 	"github.com/mewmew/uc/sem"
 	semerrors "github.com/mewmew/uc/sem/errors"
 	"github.com/mewmew/uc/sem/semcheck"
@@ -29,7 +35,7 @@ import (
 
 func usage() {
 	const use = `
-Usage: usem [OPTION]... FILE...
+Usage: uclang [OPTION]... FILE...
 
 If FILE is -, read standard input.
 `
@@ -41,13 +47,15 @@ func main() {
 	var (
 		// hand specifies whether to use the hand-written lexer, instead of the
 		// Gocc generated.
-		hand bool
+		useGoccLexer bool
+		noColors     bool
 	)
-	flag.BoolVar(&hand, "hand", true, "use hand-written lexer")
-	flag.BoolVar(&semerrors.UseColor, "colors", true, "use colors in output")
+	flag.BoolVar(&useGoccLexer, "gocc-lexer", false, "use gocc lexer")
+	flag.BoolVar(&noColors, "no-colors", false, "use colors in output")
 	flag.BoolVar(&semcheck.NoNestedFunctions, "no-nested-functions", false, "use colors in output")
 	flag.Usage = usage
 	flag.Parse()
+	semerrors.UseColor = !noColors
 	if flag.NArg() == 0 {
 		flag.Usage()
 		os.Exit(1)
@@ -55,7 +63,7 @@ func main() {
 
 	// Parse input.
 	for _, path := range flag.Args() {
-		err := checkFile(path, hand)
+		err := compileFile(path, useGoccLexer)
 		if err != nil {
 			if _, ok := err.(*semerrors.Error); ok {
 				elog.Print(err)
@@ -67,18 +75,11 @@ func main() {
 }
 
 // checkFile performs a static semantic analysis check on the given file.
-func checkFile(path string, hand bool) error {
+func compileFile(path string, useGoccLexer bool) error {
 	// Lexical analysis
-	// Syntactic analysis (skip function bodies)
-	// Top-level declarations; used for forward-declarations.
-	// Syntactic analysis (including function bodies)
-
-	// NOTE: "For each method body, we rewind the lexer to the point where the
-	// method body began and parse the method body."
-	//
-	// ref: https://blogs.msdn.microsoft.com/ericlippert/2010/02/04/how-many-passes/
-
+	// Syntactic analysis
 	// Semantic analysis
+	// Intermediate representation generation
 
 	// Create lexer for the input.
 	buf, err := ioutilx.ReadFile(path)
@@ -88,12 +89,14 @@ func checkFile(path string, hand bool) error {
 	if path == "-" {
 		path = "<stdin>"
 	}
-	fmt.Fprintf(os.Stderr, "Checking %q\n", path)
+
+	fmt.Fprintf(os.Stderr, "Compiling %q\n", path)
+
 	var s parser.Scanner
-	if hand {
-		s = handscanner.NewFromBytes(buf)
-	} else {
+	if useGoccLexer {
 		s = goccscanner.NewFromBytes(buf)
+	} else {
+		s = handscanner.NewFromBytes(buf)
 	}
 
 	// Parse input.
@@ -109,7 +112,8 @@ func checkFile(path string, hand bool) error {
 	file := f.(*ast.File)
 	input := string(buf)
 	src := semerrors.NewSource(path, input)
-	if _, err := sem.Check(file); err != nil {
+	info, err := sem.Check(file)
+	if err != nil {
 		if err, ok := err.(*errutil.ErrInfo); ok {
 			// Unwrap errutil error.
 			if err, ok := err.Err.(*semerrors.Error); ok {
@@ -120,6 +124,12 @@ func checkFile(path string, hand bool) error {
 		}
 		return errutil.Err(err)
 	}
+
+	module := irgen.Gen(file, info)
+	log.Println("=== [ Pretty module ] ===\n")
+	pretty.Println(module)
+	log.Println("=== [ LLVM IR module ] ===\n")
+	fmt.Println(module)
 
 	return nil
 }

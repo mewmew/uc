@@ -2,14 +2,46 @@
 
 \usepackage{preamble}
 
+\title{µC Compiler Design - Assignment 4\\Intermediate Representation}
+\author{Alexander Andersson \and Robin Eklind}
+\date{\today}
+
 % Document
 
 \begin{document}
 
+% === [ Front matter ] =========================================================
+
+\pagenumbering{roman}
+
+% --- [ Title page ] -----------------------------------------------------------
+
+\maketitle
+
+\clearpage
+
 \tableofcontents
+
+\clearpage
+
+% === [ Main matter ] ==========================================================
+
+\pagenumbering{arabic}
 
 \include{sections/5_intermediate_representation}
 
-%\bibliography{references}
+\bibliography{references}
+
+% === [ Appendices ] ===========================================================
+
+\clearpage
+
+\appendix
+\setcounter{secnumdepth}{0}
+\section{Appendices}
+\setcounter{secnumdepth}{3}
+\renewcommand{\thesubsection}{\Alph{subsection}}
+
+\include{sections/appendices/5_intermediate_representation}
 
 \end{document}
