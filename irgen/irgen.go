@@ -72,6 +72,8 @@ func (gen *generator) recurse(n ast.Node) error {
 		return nil
 	case *ast.Ident:
 		err = gen.loadIdent(n)
+	case *ast.UnaryExpr:
+		err = gen.createUnaryExpr(n)
 	case *ast.VarDecl:
 		err = gen.createVar(n)
 	case *ast.WhileStmt:
@@ -142,24 +144,52 @@ func (gen *generator) loadBasicLit(n *ast.BasicLit) error {
 
 // createBinaryExpr creates the instructions for a binary expression.
 func (gen *generator) createBinaryExpr(n *ast.BinaryExpr) error {
-	log.Println("bin expr")
-	log.Println(n)
+	xtype := gen.info.Types[n.X]
+	ytype := gen.info.Types[n.Y]
+	log.Printf("bin expr: n.X: %v %v; Op: %v; n.Y: %v %v", toIrType(xtype), n.X, n.Op, toIrType(ytype), n.Y)
 	if err := gen.recurse(n.Y); err != nil {
 		return errutil.Err(err)
 	}
-	rValue := gen.ssaCounter
-	switch n.Op {
+	yssa := gen.ssaCounter
+	yval, ok := gen.instructionBuffer[len(gen.instructionBuffer)-1].(value.Value)
+	if !ok {
+		panic("Last instruction not a value.Value")
+	}
+
 	// handle assignment specially from ident
-	case token.Assign:
-		log.Printf("saving %%%v to %v", rValue, n.X)
+	if n.Op == token.Assign {
+		log.Printf("saving %%%v to %v", yssa, n.X)
 		err := gen.store(n.X)
 		if err != nil {
 			return errutil.Err(err)
 		}
-		// val := gen.valueStack[len(gen.valueStack)-1]
-		// gen.valueStack = gen.valueStack[0 : len(gen.valueStack)-1]
-		//log.Printf("Assign %v %v %v to %#v", n.X, n.Op, n.Y, n.X.String())
+		return nil
+	}
 
+	//not an assignment, evaluate both sides
+
+	if err := gen.recurse(n.X); err != nil {
+		return errutil.Err(err)
+	}
+	xssa := gen.ssaCounter
+	xval, ok := gen.instructionBuffer[len(gen.instructionBuffer)-1].(value.Value)
+	if !ok {
+		panic("Last instruction not a value.Value")
+	}
+
+	log.Printf("Y: %v evaluated in %%%v", n.Y, yssa)
+	log.Printf("Y: %v evaluated in %%%v", n.X, xssa)
+	log.Printf("comparing %%%v to %%%v", xssa, yssa)
+
+	switch n.Op {
+	case token.Eq:
+		log.Printf("with cond ICondEq")
+		gen.ssaCounter++
+		instruction.NewICmp(instruction.ICondEq, xval, yval)
+		err := gen.store(n.X)
+		if err != nil {
+			return errutil.Err(err)
+		}
 	default:
 		gen.ssaCounter++
 		log.Printf("%v %v %v saved to %#v ", n.X, n.Op, n.Y, encLocal(gen.ssaCounter))
@@ -167,19 +197,70 @@ func (gen *generator) createBinaryExpr(n *ast.BinaryExpr) error {
 	return nil
 }
 
-func (gen *generator) getElemPtr(index ast.Expr) error {
+func (gen *generator) getElemPtr(addr value.Value, index ast.Expr) error {
+	// The often misunderstood GEP instruction's most likely grotesquely
+	// misguided implementation
+	i64, err := irtypes.NewInt(64)
+	if err != nil {
+		return errutil.Err(err)
+	}
+	zero, err := constant.NewInt(i64, "0")
+	indices := []value.Value{zero}
 	switch n := index.(type) {
 	case *ast.BasicLit:
-		//n.Val
-		//instr:= instruction.NewGetElementPtr(elem, addr, indices)
+
+		strconv.Atoi(n.Val)
+		val, err := instruction.NewGetElementPtr(i64, addr, indices)
+		if err != nil {
+			return errutil.Err(err)
+		}
+		instr, err := instruction.NewLocalVarDef("", val)
+		if err != nil {
+			return errutil.Err(err)
+		}
+		gen.instructionBuffer = append(gen.instructionBuffer, instr)
 		return nil
 	default:
 		gen.recurse(n)
 	}
+	val, err := instruction.NewGetElementPtr(i64, addr, indices)
+	inst, err := instruction.NewLocalVarDef("", val)
+	if err != nil {
+		return errutil.Err(err)
+	}
+	gen.instructionBuffer = append(gen.instructionBuffer, inst)
 	return nil
 }
-func (gen *generator) loadIndexExpr(n *ast.IndexExpr) error {
 
+func (gen *generator) loadIndexExpr(n *ast.IndexExpr) error {
+	// TODO: Fix this implementation
+	// Dummy value lookup
+	// i64, err := irtypes.NewInt(64)
+	// if err != nil {
+	// 	return errutil.Err(err)
+	// }
+	var nelems int
+	var valtype irtypes.Type
+	typ := toIrType(n.Name.Decl.Type())
+	switch a := typ.(type) {
+	case *irtypes.Array:
+		nelems = a.Len()
+		valtype = a.Elem()
+	}
+	val, err := instruction.NewAlloca(valtype, nelems)
+	if err != nil {
+		return errutil.Err(err)
+	}
+	//val := gen.instructionBuffer[len(gen.instructionBuffer)-1].(value.Value)
+	inst, err := instruction.NewLocalVarDef("", val)
+	if err != nil {
+		return errutil.Err(err)
+	}
+	gen.instructionBuffer = append(gen.instructionBuffer, inst)
+	err = gen.getElemPtr(inst, n.Index)
+	if err != nil {
+		return errutil.Err(err)
+	}
 	return nil
 }
 
@@ -242,15 +323,34 @@ func (gen *generator) createBlock(n *ast.BlockStmt) error {
 // createCall creates the instructions for calling a function.
 func (gen *generator) createCall(n *ast.CallExpr) error {
 	var insts []instruction.Instruction
+	var args []value.Value
 	log.Printf("%v: create call %v with:", encLocal(gen.ssaCounter), n)
 	if callType, ok := n.Name.Decl.Type().(*uctypes.Func); ok {
 		// TODO: Add support for elipsis/variadic functions
 		for i, arg := range n.Args {
 			log.Printf("Arg %v of type %v", arg.String(), callType.Params[i].Type.String())
+			if err := gen.recurse(arg); err != nil {
+				return errutil.Err(err)
+			}
+			lastvalue, ok := gen.instructionBuffer[len(gen.instructionBuffer)-1].(value.Value)
+			if !ok {
+				panic("Last instruction not a value.Value")
+			}
+			args = append(args, lastvalue)
 		}
-		//instruction.NewCall(toIrType(callType.Result), n.Name.String(), args)
+
+		val, err := instruction.NewCall(toIrType(callType.Result), n.Name.String(), args)
+		if err != nil {
+			return errutil.Err(err)
+		}
+
 		gen.ssaCounter++
-		//instruction.NewLocalVarDef("")
+		inst, err := instruction.NewLocalVarDef("", val)
+		if err != nil {
+			return errutil.Err(err)
+		}
+
+		insts = append(insts, inst)
 	} else {
 		return errutil.Newf("invalid type assertion; expected: *types.Func, got: %T", n.Name.Decl.Type())
 	}
@@ -414,6 +514,16 @@ func (gen *generator) loadIdent(n *ast.Ident) error {
 		return errutil.Err(err)
 	}
 	gen.instructionBuffer = append(gen.instructionBuffer, instr)
+	return nil
+}
+
+// createBinaryExpr creates the instructions for a binary expression.
+func (gen *generator) createUnaryExpr(n *ast.UnaryExpr) error {
+	// TODO: implement not and minus instructions
+	// Placeholder
+	if err := gen.recurse(n.X); err != nil {
+		return errutil.Err(err)
+	}
 	return nil
 }
 
