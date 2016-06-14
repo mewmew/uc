@@ -47,8 +47,7 @@ func TestCheckValid(t *testing.T) {
 		}
 		f := file.(*ast.File)
 
-		err = sem.Check(f)
-		if err != nil {
+		if _, err := sem.Check(f); err != nil {
 			if e, ok := err.(*errutil.ErrInfo); ok {
 				// Unwrap errutil error.
 				err = e.Err
@@ -379,9 +378,8 @@ void f(void, void) {
 		}
 		f := file.(*ast.File)
 
-		err = sem.Check(f)
 		got := ""
-		if err != nil {
+		if _, err := sem.Check(f); err != nil {
 			if e, ok := err.(*errutil.ErrInfo); ok {
 				// Unwrap errutil error.
 				err = e.Err
