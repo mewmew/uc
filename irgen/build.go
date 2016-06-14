@@ -19,12 +19,18 @@ type Module struct {
 
 // NewModule returns a new module generator.
 func NewModule(info *sem.Info) *Module {
-	return &Module{info: info}
+	m := ir.NewModule()
+	return &Module{Module: m, info: info}
 }
 
 // emitFunc emits to m the given function.
 func (m *Module) emitFunc(f *Function) {
 	m.Funcs = append(m.Funcs, f.Function)
+}
+
+// emitGlobal emits to m the given global variable declaration.
+func (m *Module) emitGlobal(global *ir.GlobalDecl) {
+	m.Globals = append(m.Globals, global)
 }
 
 // A Function represents an LLVM IR function generator.

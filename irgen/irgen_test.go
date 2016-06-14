@@ -24,10 +24,10 @@ func TestGen(t *testing.T) {
 			path: "../testdata/extra/irgen/tentative_def.c",
 			want: "../testdata/extra/irgen/tentative_def.ll",
 		},
-		{
-			path: "../testdata/extra/irgen/function.c",
-			want: "../testdata/extra/irgen/function.ll",
-		},
+		//{
+		//	path: "../testdata/extra/irgen/function.c",
+		//	want: "../testdata/extra/irgen/function.ll",
+		//},
 	}
 
 	for _, g := range golden {
@@ -57,11 +57,7 @@ func TestGen(t *testing.T) {
 		}
 
 		// Generate IR.
-		module, err := irgen.Gen(file, info)
-		if err != nil {
-			t.Errorf("%q: unable to generate IR: %v", g.path, err)
-			continue
-		}
+		module := irgen.Gen(file, info)
 
 		// Compare generated module against gold standard.
 		buf, err = ioutil.ReadFile(g.want)

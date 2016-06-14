@@ -18,6 +18,14 @@ func isTentativeDef(n ast.Decl) bool {
 	return ident.Start() != def.Start()
 }
 
+// typeOf returns the LLVM IR type of the given expression.
+func (m *Module) typeOf(expr ast.Expr) irtypes.Type {
+	if typ, ok := m.info.Types[expr]; ok {
+		return toIrType(typ)
+	}
+	panic(fmt.Sprintf("unable to locate type for expression %v", expr))
+}
+
 func toIrType(n uctypes.Type) irtypes.Type {
 	//TODO: implement, placeholder implementation
 	var t irtypes.Type

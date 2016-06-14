@@ -3,12 +3,16 @@ package irgen
 import (
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/llir/llvm/ir"
+	"github.com/llir/llvm/ir/constant"
 	irtypes "github.com/llir/llvm/ir/types"
+	"github.com/llir/llvm/ir/value"
 	"github.com/mewmew/uc/ast"
 	"github.com/mewmew/uc/ast/astutil"
 	"github.com/mewmew/uc/sem"
+	"github.com/mewmew/uc/token"
 )
 
 // Gen generates LLVM IR based on the syntax tree of the given file.
@@ -60,7 +64,7 @@ func (m *Module) funcDecl(n *ast.FuncDecl) {
 	}
 
 	// Generate function body.
-	log.Printf("create function definition %v", n)
+	log.Printf("create function definition: %v", n)
 	m.funcBody(f, n.Body)
 }
 
@@ -84,8 +88,63 @@ func (m *Module) funcBody(f *Function, body *ast.BlockStmt) {
 
 // globalVarDecl lowers the given global variable declaration to LLVM IR,
 // emitting code to m.
-func (m *Module) globalVarDecl(decl *ast.VarDecl) {
-	panic("not yet implemented")
+func (m *Module) globalVarDecl(n *ast.VarDecl) {
+	name := n.Name().Name
+	log.Printf("create global variable: %v", n)
+	typ := toIrType(n.Type())
+	var val value.Value
+	switch {
+	case n.Val != nil:
+		val = m.constExpr(n.Val)
+	case irtypes.IsInt(typ):
+		var err error
+		val, err = constant.NewInt(typ, "0")
+		if err != nil {
+			panic(fmt.Sprintf("unable to create integer constant; %v", err))
+		}
+	default:
+		val = constant.NewZeroInitializer(typ)
+	}
+	global := ir.NewGlobalDef(name, val, false)
+	// Emit global variable declaration.
+	m.emitGlobal(global)
+}
+
+// constExpr converts the given expression to an LLVM IR constant expression.
+func (m *Module) constExpr(expr ast.Expr) constant.Constant {
+	typ := m.typeOf(expr)
+	switch expr := expr.(type) {
+	case *ast.BasicLit:
+		switch expr.Kind {
+		case token.CharLit:
+			s, err := strconv.Unquote(expr.Val)
+			if err != nil {
+				panic(fmt.Sprintf("unable to unquote character literal; %v", err))
+			}
+			val, err := constant.NewInt(typ, strconv.Itoa(int(s[0])))
+			if err != nil {
+				panic(fmt.Sprintf("unable to create integer constant; %v", err))
+			}
+			return val
+		case token.IntLit:
+			val, err := constant.NewInt(typ, expr.Val)
+			if err != nil {
+				panic(fmt.Sprintf("unable to create integer constant; %v", err))
+			}
+			return val
+		default:
+			panic(fmt.Sprintf("support for basic literal kind %v not yet implemented", expr.Kind))
+		}
+	//case *ast.BinaryExpr:
+	//case *ast.CallExpr:
+	//case *ast.Ident:
+	//case *ast.IndexExpr:
+	//case *ast.ParenExpr:
+	//case *ast.UnaryExpr:
+	default:
+		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
+	}
+	panic("unreachable")
 }
 
 // typeDef lowers the given type definition to LLVM IR, emitting code to m.
