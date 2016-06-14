@@ -2,14 +2,20 @@ package irgen
 
 import (
 	"fmt"
+	"log"
+	"os"
 
 	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/instruction"
 	irtypes "github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/mewkiz/pkg/errutil"
+	"github.com/mewkiz/pkg/term"
 	"github.com/mewmew/uc/sem"
 )
+
+// dbg is a logger which prefixes debug messages with "irgen:".
+var dbg *log.Logger
 
 // A Module represents an LLVM IR module generator.
 type Module struct {
@@ -21,6 +27,8 @@ type Module struct {
 
 // NewModule returns a new module generator.
 func NewModule(info *sem.Info) *Module {
+	// TODO: Remove debug output.
+	dbg = log.New(os.Stderr, term.WhiteBold("irgen:"), log.Lshortfile)
 	m := ir.NewModule()
 	return &Module{Module: m, info: info}
 }

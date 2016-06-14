@@ -2,7 +2,6 @@ package irgen
 
 import (
 	"fmt"
-	"log"
 
 	irtypes "github.com/llir/llvm/ir/types"
 	"github.com/mewkiz/pkg/errutil"
@@ -53,7 +52,7 @@ func toIrType(n uctypes.Type) irtypes.Type {
 				break
 			}
 			pt := toIrType(p.Type)
-			log.Printf("converting type %#v to %#v", p.Type, pt)
+			dbg.Printf("converting type %#v to %#v", p.Type, pt)
 			params = append(params, irtypes.NewParam(pt, ""))
 		}
 		result := toIrType(ucType.Result)

@@ -2,7 +2,6 @@ package irgen
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 
 	"github.com/llir/llvm/ir"
@@ -29,7 +28,7 @@ func gen(file *ast.File, info *sem.Info) *ir.Module {
 	for _, decl := range file.Decls {
 		// Ignore tentative definitions.
 		if isTentativeDef(decl) {
-			log.Printf("ignoring tentative definition of %q", decl.Name())
+			dbg.Printf("ignoring tentative definition of %q", decl.Name())
 			continue
 		}
 		switch decl := decl.(type) {
@@ -60,14 +59,14 @@ func (m *Module) funcDecl(n *ast.FuncDecl) {
 	}
 	f := NewFunction(name, sig)
 	if !astutil.IsDef(n) {
-		log.Printf("create function declaration: %v", n)
+		dbg.Printf("create function declaration: %v", n)
 		// Emit function declaration.
 		m.emitFunc(f)
 		return
 	}
 
 	// Generate function body.
-	log.Printf("create function definition: %v", n)
+	dbg.Printf("create function definition: %v", n)
 	m.funcBody(f, n.Body)
 }
 
@@ -99,7 +98,7 @@ func (m *Module) globalVarDecl(n *ast.VarDecl) {
 	// Output:
 	//    @x = global i32 0
 	name := n.Name().Name
-	log.Printf("create global variable: %v", n)
+	dbg.Printf("create global variable: %v", n)
 	typ := toIrType(n.Type())
 	var val value.Value
 	switch {
@@ -140,7 +139,7 @@ func (m *Module) localVarDef(f *Function, n *ast.VarDecl) {
 	// Output:
 	//    %a = alloca i32
 	name := n.Name().Name
-	log.Printf("create local variable: %v", n)
+	dbg.Printf("create local variable: %v", n)
 	typ := toIrType(n.Type())
 	inst, err := instruction.NewAlloca(typ, 1)
 	if err != nil {

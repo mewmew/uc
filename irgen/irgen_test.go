@@ -1,8 +1,8 @@
 package irgen_test
 
 import (
+	"fmt"
 	"io/ioutil"
-	"log"
 	"testing"
 
 	"github.com/mewmew/uc/ast"
@@ -17,6 +17,7 @@ func TestGen(t *testing.T) {
 		path string
 		want string
 	}{
+		// Global variable declarations.
 		{
 			path: "../testdata/extra/irgen/global_def.c",
 			want: "../testdata/extra/irgen/global_def.ll",
@@ -25,17 +26,23 @@ func TestGen(t *testing.T) {
 			path: "../testdata/extra/irgen/tentative_def.c",
 			want: "../testdata/extra/irgen/tentative_def.ll",
 		},
+		// Return statements.
 		{
 			path: "../testdata/extra/irgen/void_ret.c",
 			want: "../testdata/extra/irgen/void_ret.ll",
 		},
 		{
+			path: "../testdata/extra/irgen/implicit_void_ret.c",
+			want: "../testdata/extra/irgen/implicit_void_ret.ll",
+		},
+		{
 			path: "../testdata/extra/irgen/int_ret.c",
 			want: "../testdata/extra/irgen/int_ret.ll",
 		},
+		// Local variable declarations.
 		{
-			path: "../testdata/extra/irgen/local.c",
-			want: "../testdata/extra/irgen/local.ll",
+			path: "../testdata/extra/irgen/local_def.c",
+			want: "../testdata/extra/irgen/local_def.ll",
 		},
 	}
 
@@ -66,7 +73,8 @@ func TestGen(t *testing.T) {
 		}
 
 		// Generate IR.
-		log.Println("path:", g.want) // TODO: Remove debug output.
+		// TODO: Remove debug output.
+		fmt.Printf("\n=== [ %s ] ====================================\n\n", g.want)
 		module := irgen.Gen(file, info)
 
 		// Compare generated module against gold standard.
