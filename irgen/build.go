@@ -1,6 +1,8 @@
 package irgen
 
 import (
+	"fmt"
+
 	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/instruction"
 	irtypes "github.com/llir/llvm/ir/types"
@@ -60,14 +62,30 @@ func (f *Function) startBody() {
 
 // endBody finalizes the generation of the function body.
 func (f *Function) endBody() error {
-	if f.curBlock != nil {
-		f.AppendBlock(f.curBlock.BasicBlock)
+	if block := f.curBlock; block != nil {
+		if block.Term() != nil {
+			panic(fmt.Sprintf("unable to finalize current basic block of function body; expected terminator to be nil, got %v", block.Term()))
+		}
+		if result := f.Type().Result(); !irtypes.IsVoid(result) {
+			panic(fmt.Sprintf("unable to finalize current basic block of function body; expected void return since terminator was missing, got %v", result))
+		}
+		term, err := instruction.NewRet(irtypes.NewVoid(), nil)
+		if err != nil {
+			panic(fmt.Sprintf("unable to create ret instruction; %v", err))
+		}
+		f.emitBlock(block, term)
 	}
 	f.curBlock = nil
 	if err := f.AssignIDs(); err != nil {
 		return errutil.Err(err)
 	}
 	return nil
+}
+
+// emitBlock emits to f the given basic block.
+func (f *Function) emitBlock(block *BasicBlock, term instruction.Terminator) {
+	block.SetTerm(term)
+	f.AppendBlock(block.BasicBlock)
 }
 
 // emitInst emits to f the given unnamed value instruction.

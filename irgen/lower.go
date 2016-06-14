@@ -214,7 +214,22 @@ func (m *Module) ifStmt(f *Function, stmt *ast.IfStmt) {
 
 // returnStmt lowers the given return statement to LLVM IR, emitting code to f.
 func (m *Module) returnStmt(f *Function, stmt *ast.ReturnStmt) {
-	panic("not yet implemented")
+	// Input:
+	//    int f() {
+	//       return 42;
+	//    }
+	// Output:
+	//    ret i32 42
+	if stmt.Result == nil {
+		term, err := instruction.NewRet(irtypes.NewVoid(), nil)
+		if err != nil {
+			panic(fmt.Sprintf("unable to create ret instruction; %v", err))
+		}
+		f.emitBlock(f.curBlock, term)
+		f.curBlock = nil
+		return
+	}
+	panic("support for return statements with expressions not yet implemented")
 }
 
 // whileStmt lowers the given while statement to LLVM IR, emitting code to f.
