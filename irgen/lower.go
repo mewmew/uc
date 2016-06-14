@@ -225,11 +225,17 @@ func (m *Module) returnStmt(f *Function, stmt *ast.ReturnStmt) {
 		if err != nil {
 			panic(fmt.Sprintf("unable to create ret instruction; %v", err))
 		}
-		f.emitBlock(f.curBlock, term)
+		f.curBlock.SetTerm(term)
 		f.curBlock = nil
 		return
 	}
-	panic("support for return statements with expressions not yet implemented")
+	result := m.expr(stmt.Result)
+	term, err := instruction.NewRet(result.Type(), result)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create ret instruction; %v", err))
+	}
+	f.curBlock.SetTerm(term)
+	f.curBlock = nil
 }
 
 // whileStmt lowers the given while statement to LLVM IR, emitting code to f.
@@ -238,6 +244,53 @@ func (m *Module) whileStmt(f *Function, stmt *ast.WhileStmt) {
 }
 
 // --- [ Expressions ] ----------------------------------------------------------
+
+// TODO: Consider merging expr and constExpr, and using type assertion on
+// constant.Constant to verify that the expression is constant where needed
+// (e.g. initializer of global variable definition).
+
+// expr lowers the given expression to LLVM IR, emitting code to f.
+func (m *Module) expr(expr ast.Expr) value.Value {
+	typ := m.typeOf(expr)
+	switch expr := expr.(type) {
+	case *ast.BasicLit:
+		switch expr.Kind {
+		case token.CharLit:
+			s, err := strconv.Unquote(expr.Val)
+			if err != nil {
+				panic(fmt.Sprintf("unable to unquote character literal; %v", err))
+			}
+			val, err := constant.NewInt(typ, strconv.Itoa(int(s[0])))
+			if err != nil {
+				panic(fmt.Sprintf("unable to create integer constant; %v", err))
+			}
+			return val
+		case token.IntLit:
+			val, err := constant.NewInt(typ, expr.Val)
+			if err != nil {
+				panic(fmt.Sprintf("unable to create integer constant; %v", err))
+			}
+			return val
+		default:
+			panic(fmt.Sprintf("support for basic literal kind %v not yet implemented", expr.Kind))
+		}
+	case *ast.BinaryExpr:
+		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
+	case *ast.CallExpr:
+		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
+	case *ast.Ident:
+		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
+	case *ast.IndexExpr:
+		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
+	case *ast.ParenExpr:
+		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
+	case *ast.UnaryExpr:
+		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
+	default:
+		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
+	}
+	panic("unreachable")
+}
 
 // constExpr converts the given expression to an LLVM IR constant expression.
 func (m *Module) constExpr(expr ast.Expr) constant.Constant {
