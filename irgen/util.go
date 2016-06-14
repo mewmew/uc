@@ -3,12 +3,22 @@ package irgen
 import (
 	"fmt"
 
+	"github.com/llir/llvm/ir/constant"
 	irtypes "github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
 	uctypes "github.com/mewmew/uc/types"
 )
+
+// constZero returns the integer constant zero of the given type.
+func constZero(typ irtypes.Type) constant.Constant {
+	zero, err := constant.NewInt(typ, "0")
+	if err != nil {
+		panic(fmt.Sprintf("unable to create integer constant zero; %v", err))
+	}
+	return zero
+}
 
 // isTentativeDef reports whether the given global variable or function
 // declaration is a tentative definition.

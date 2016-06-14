@@ -127,3 +127,16 @@ func (b *BasicBlock) emitLocal(name string, inst instruction.ValueInst) value.Va
 	b.parent.locals[name] = def
 	return def
 }
+
+// TODO: Consider changing the type of target from value.NamedValue to
+// *ir.BasicBlock or *BasicBlock.
+
+// emitJmp emits to b an unconditional branch terminator to the target basic
+// block.
+func (b *BasicBlock) emitJmp(target value.NamedValue) {
+	term, err := instruction.NewJmp(target)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create unconditional br instruction; %v", err))
+	}
+	b.SetTerm(term)
+}

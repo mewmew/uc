@@ -1,5 +1,8 @@
 package irgen
 
+// TODO: Add convenience functions for creating instruction in emit.go, to
+// remove if err != nil { panic("foo") } from the irgen code.
+
 import (
 	"fmt"
 	"strconv"
@@ -208,7 +211,38 @@ func (m *Module) exprStmt(f *Function, stmt *ast.ExprStmt) {
 
 // ifStmt lowers the given if statement to LLVM IR, emitting code to f.
 func (m *Module) ifStmt(f *Function, stmt *ast.IfStmt) {
-	panic("not yet implemented")
+	cond := m.expr(f, stmt.Cond)
+	// Create boolean expression if cond is not already of boolean type.
+	//
+	//    cond != 0
+	if !irtypes.IsBool(cond.Type()) {
+		// zero is the integer constant 0.
+		zero := constZero(cond.Type())
+		inst, err := instruction.NewICmp(instruction.ICondNE, cond, zero)
+		if err != nil {
+			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
+		}
+		cond = f.emitInst(inst)
+	}
+	trueBranch := f.NewBasicBlock("")
+	falseBranch := f.NewBasicBlock("")
+	term, err := instruction.NewBr(cond, trueBranch, falseBranch)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create br terminator; %v", err))
+	}
+	f.curBlock.SetTerm(term)
+	f.curBlock = trueBranch
+
+	m.stmt(f, stmt.Body)
+	trueBranch.emitJmp(falseBranch)
+	f.curBlock = falseBranch
+
+	if stmt.Else != nil {
+		m.stmt(f, stmt.Else)
+		end := f.NewBasicBlock("")
+		falseBranch.emitJmp(end)
+		f.curBlock = end
+	}
 }
 
 // returnStmt lowers the given return statement to LLVM IR, emitting code to f.
@@ -222,7 +256,7 @@ func (m *Module) returnStmt(f *Function, stmt *ast.ReturnStmt) {
 	if stmt.Result == nil {
 		term, err := instruction.NewRet(irtypes.NewVoid(), nil)
 		if err != nil {
-			panic(fmt.Sprintf("unable to create ret instruction; %v", err))
+			panic(fmt.Sprintf("unable to create ret terminator; %v", err))
 		}
 		f.curBlock.SetTerm(term)
 		f.curBlock = nil
@@ -231,7 +265,7 @@ func (m *Module) returnStmt(f *Function, stmt *ast.ReturnStmt) {
 	result := m.expr(f, stmt.Result)
 	term, err := instruction.NewRet(result.Type(), result)
 	if err != nil {
-		panic(fmt.Sprintf("unable to create ret instruction; %v", err))
+		panic(fmt.Sprintf("unable to create ret terminator; %v", err))
 	}
 	f.curBlock.SetTerm(term)
 	f.curBlock = nil
