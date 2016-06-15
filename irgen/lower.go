@@ -287,22 +287,22 @@ func (m *Module) whileStmt(f *Function, stmt *ast.WhileStmt) {
 
 // expr lowers the given expression to LLVM IR, emitting code to f.
 func (m *Module) expr(f *Function, expr ast.Expr) value.Value {
-	typ := m.typeOf(expr)
 	switch expr := expr.(type) {
 	case *ast.BasicLit:
-		return m.basicLit(f, expr, typ)
+		return m.basicLit(f, expr)
 	case *ast.BinaryExpr:
 		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
 	case *ast.CallExpr:
 		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
 	case *ast.Ident:
-		return m.ident(f, expr, typ)
+		return m.ident(f, expr)
 	case *ast.IndexExpr:
 		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
 	case *ast.ParenExpr:
 		return m.expr(f, expr.X)
 	case *ast.UnaryExpr:
 		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
+		//return m.unaryExpr(f, expr)
 	default:
 		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
 	}
@@ -310,7 +310,8 @@ func (m *Module) expr(f *Function, expr ast.Expr) value.Value {
 }
 
 // basicLit lowers the given basic literal to LLVM IR, emitting code to f.
-func (m *Module) basicLit(f *Function, n *ast.BasicLit, typ irtypes.Type) value.Value {
+func (m *Module) basicLit(f *Function, n *ast.BasicLit) value.Value {
+	typ := m.typeOf(n)
 	switch n.Kind {
 	case token.CharLit:
 		s, err := strconv.Unquote(n.Val)
@@ -334,7 +335,7 @@ func (m *Module) basicLit(f *Function, n *ast.BasicLit, typ irtypes.Type) value.
 }
 
 // ident lowers the given identifier to LLVM IR, emitting code to f.
-func (m *Module) ident(f *Function, ident *ast.Ident, typ irtypes.Type) value.Value {
+func (m *Module) ident(f *Function, ident *ast.Ident) value.Value {
 	// Input:
 	//    void f() {
 	//       int x;
@@ -342,6 +343,7 @@ func (m *Module) ident(f *Function, ident *ast.Ident, typ irtypes.Type) value.Va
 	//    }
 	// Output:
 	//    %1 = load i32, i32* %x
+	typ := m.typeOf(ident)
 	addr := f.local(ident.String())
 	inst, err := instruction.NewLoad(typ, addr)
 	if err != nil {
