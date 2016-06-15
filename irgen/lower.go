@@ -297,7 +297,7 @@ func (m *Module) expr(f *Function, expr ast.Expr) value.Value {
 	case *ast.BasicLit:
 		return m.basicLit(f, expr)
 	case *ast.BinaryExpr:
-		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
+		return m.binaryExpr(f, expr)
 	case *ast.CallExpr:
 		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
 	case *ast.Ident:
@@ -337,6 +337,64 @@ func (m *Module) basicLit(f *Function, n *ast.BasicLit) value.Value {
 	default:
 		panic(fmt.Sprintf("support for basic literal kind %v not yet implemented", n.Kind))
 	}
+	panic("unreachable")
+}
+
+// binaryExpr lowers the given binary expression to LLVM IR, emitting code to f.
+func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
+	if n.Op == token.Assign {
+		panic("support for assignment expression not yet implement")
+	}
+	x := m.expr(f, n.X)
+	y := m.expr(f, n.Y)
+	switch n.Op {
+	// +
+	case token.Add:
+		inst, err := instruction.NewAdd(x, y)
+		if err != nil {
+			panic(fmt.Sprintf("unable to create add instruction; %v", err))
+		}
+		// Emit add instruction.
+		return f.emitLocal("", inst)
+
+	// -
+	case token.Sub:
+
+	// *
+	case token.Mul:
+
+	// /
+	case token.Div:
+
+	// <
+	case token.Lt:
+
+	// >
+	case token.Gt:
+
+	// <=
+	case token.Le:
+
+	// >=
+	case token.Ge:
+
+	// !=
+	case token.Ne:
+
+	// ==
+	case token.Eq:
+
+	// &&
+	case token.Land:
+
+	// TODO: Remove comment.
+	// // =
+	// case token.Assign:
+
+	default:
+		panic(fmt.Sprintf("support for binary operator %v not yet implemented", n.Op))
+	}
+	panic("unreachable")
 }
 
 // ident lowers the given identifier to LLVM IR, emitting code to f.
@@ -409,6 +467,7 @@ func (m *Module) unaryExpr(f *Function, n *ast.UnaryExpr) value.Value {
 	default:
 		panic(fmt.Sprintf("support for unary operator %v not yet implemented", n.Op))
 	}
+	panic("unreachable")
 }
 
 // constExpr converts the given expression to an LLVM IR constant expression.
