@@ -20,6 +20,15 @@ func constZero(typ irtypes.Type) constant.Constant {
 	return zero
 }
 
+// constOne returns the integer constant one of the given type.
+func constOne(typ irtypes.Type) constant.Constant {
+	one, err := constant.NewInt(typ, "1")
+	if err != nil {
+		panic(fmt.Sprintf("unable to create integer constant one; %v", err))
+	}
+	return one
+}
+
 // isTentativeDef reports whether the given global variable or function
 // declaration is a tentative definition.
 func isTentativeDef(n ast.Decl) bool {
