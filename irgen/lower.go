@@ -521,7 +521,18 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 
 	// =
 	case token.Assign:
-		panic(fmt.Sprintf("support for binary operator %v not yet implemented", n.Op))
+		y := m.expr(f, n.Y)
+		ident, ok := n.X.(*ast.Ident)
+		if !ok {
+			panic(fmt.Sprintf("support for assignment to type %T not yet implemented", n.X))
+		}
+		x := f.local(ident.String())
+		storeInst, err := instruction.NewStore(y, x)
+		if err != nil {
+			panic(fmt.Sprintf("unable to create store instruction; %v", err))
+		}
+		f.curBlock.AppendInst(storeInst)
+		return y
 
 	default:
 		panic(fmt.Sprintf("support for binary operator %v not yet implemented", n.Op))

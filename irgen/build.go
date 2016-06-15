@@ -49,6 +49,10 @@ type Function struct {
 	*ir.Function
 	// Current basic block being generated.
 	curBlock *BasicBlock
+
+	// TODO: Refine locals to map from *ast.Ident or ast.Pos to value.Value, thus
+	// supporting nested variables of the same name.
+
 	// Local variables.
 	locals map[string]value.Value
 }

@@ -37,6 +37,8 @@ func isTentativeDef(n ast.Decl) bool {
 	return ident.Start() != def.Start()
 }
 
+// TODO: Change type of name from string to *ast.Ident or ast.Pos.
+
 // getLocal returns the LLVM IR value of the given local variable name.
 func (f *Function) local(name string) value.Value {
 	if v, ok := f.locals[name]; ok {
