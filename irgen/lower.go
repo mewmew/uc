@@ -144,12 +144,12 @@ func (m *Module) localVarDef(f *Function, n *ast.VarDecl) {
 	name := n.Name().Name
 	dbg.Printf("create local variable: %v", n)
 	typ := toIrType(n.Type())
-	inst, err := instruction.NewAlloca(typ, 1)
+	allocaInst, err := instruction.NewAlloca(typ, 1)
 	if err != nil {
 		panic(fmt.Sprintf("unable to create alloca instruction; %v", err))
 	}
 	// Emit local variable definition.
-	f.emitLocal(name, inst)
+	f.emitLocal(name, allocaInst)
 	if n.Val != nil {
 		panic("support for local variable definition initializer not yet implemented")
 	}
@@ -280,11 +280,11 @@ func (m *Module) cond(f *Function, expr ast.Expr) value.Value {
 	//    cond != 0
 	// zero is the integer constant 0.
 	zero := constZero(cond.Type())
-	inst, err := instruction.NewICmp(instruction.ICondNE, cond, zero)
+	icmpInst, err := instruction.NewICmp(instruction.ICondNE, cond, zero)
 	if err != nil {
 		panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
 	}
-	return f.emitInst(inst)
+	return f.emitInst(icmpInst)
 }
 
 // expr lowers the given expression to LLVM IR, emitting code to f.
@@ -338,151 +338,190 @@ func (m *Module) basicLit(f *Function, n *ast.BasicLit) value.Value {
 
 // binaryExpr lowers the given binary expression to LLVM IR, emitting code to f.
 func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
-	if n.Op == token.Assign {
-		panic("support for assignment expression not yet implement")
-	}
-	x := m.expr(f, n.X)
-	y := m.expr(f, n.Y)
 	switch n.Op {
 	// +
 	case token.Add:
-		inst, err := instruction.NewAdd(x, y)
+		x, y := m.expr(f, n.X), m.expr(f, n.Y)
+		addInst, err := instruction.NewAdd(x, y)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create add instruction; %v", err))
 		}
 		// Emit add instruction.
-		return f.emitLocal("", inst)
+		return f.emitInst(addInst)
 
 	// -
 	case token.Sub:
-		inst, err := instruction.NewSub(x, y)
+		x, y := m.expr(f, n.X), m.expr(f, n.Y)
+		subInst, err := instruction.NewSub(x, y)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create sub instruction; %v", err))
 		}
 		// Emit sub instruction.
-		return f.emitLocal("", inst)
+		return f.emitInst(subInst)
 
 	// *
 	case token.Mul:
-		inst, err := instruction.NewMul(x, y)
+		x, y := m.expr(f, n.X), m.expr(f, n.Y)
+		mulInst, err := instruction.NewMul(x, y)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create mul instruction; %v", err))
 		}
 		// Emit mul instruction.
-		return f.emitLocal("", inst)
+		return f.emitInst(mulInst)
 
 	// /
 	case token.Div:
+		x, y := m.expr(f, n.X), m.expr(f, n.Y)
 		// TODO: Add support for unsigned division.
-		inst, err := instruction.NewSDiv(x, y)
+		sdivInst, err := instruction.NewSDiv(x, y)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create sdiv instruction; %v", err))
 		}
 		// Emit sdiv instruction.
-		return f.emitLocal("", inst)
+		return f.emitInst(sdivInst)
 
 	// <
 	case token.Lt:
-		var inst instruction.ValueInst
-		inst, err := instruction.NewICmp(instruction.ICondSLT, x, y)
+		x, y := m.expr(f, n.X), m.expr(f, n.Y)
+		icmpInst, err := instruction.NewICmp(instruction.ICondSLT, x, y)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
 		}
 		// Emit icmp instruction.
-		cond := f.emitLocal("", inst)
-		inst, err = instruction.NewZExt(cond, x.Type())
+		cond := f.emitInst(icmpInst)
+		zextInst, err := instruction.NewZExt(cond, x.Type())
 		if err != nil {
 			panic(fmt.Sprintf("unable to create zext instruction; %v", err))
 		}
 		// Emit zext instruction.
-		return f.emitLocal("", inst)
+		return f.emitInst(zextInst)
 
 	// >
 	case token.Gt:
-		var inst instruction.ValueInst
-		inst, err := instruction.NewICmp(instruction.ICondSGT, x, y)
+		x, y := m.expr(f, n.X), m.expr(f, n.Y)
+		icmpInst, err := instruction.NewICmp(instruction.ICondSGT, x, y)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
 		}
 		// Emit icmp instruction.
-		cond := f.emitLocal("", inst)
-		inst, err = instruction.NewZExt(cond, x.Type())
+		cond := f.emitInst(icmpInst)
+		zextInst, err := instruction.NewZExt(cond, x.Type())
 		if err != nil {
 			panic(fmt.Sprintf("unable to create zext instruction; %v", err))
 		}
 		// Emit zext instruction.
-		return f.emitLocal("", inst)
+		return f.emitInst(zextInst)
 
 	// <=
 	case token.Le:
-		var inst instruction.ValueInst
-		inst, err := instruction.NewICmp(instruction.ICondSLE, x, y)
+		x, y := m.expr(f, n.X), m.expr(f, n.Y)
+		icmpInst, err := instruction.NewICmp(instruction.ICondSLE, x, y)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
 		}
 		// Emit icmp instruction.
-		cond := f.emitLocal("", inst)
-		inst, err = instruction.NewZExt(cond, x.Type())
+		cond := f.emitInst(icmpInst)
+		zextInst, err := instruction.NewZExt(cond, x.Type())
 		if err != nil {
 			panic(fmt.Sprintf("unable to create zext instruction; %v", err))
 		}
 		// Emit zext instruction.
-		return f.emitLocal("", inst)
+		return f.emitInst(zextInst)
 
 	// >=
 	case token.Ge:
-		var inst instruction.ValueInst
-		inst, err := instruction.NewICmp(instruction.ICondSGE, x, y)
+		x, y := m.expr(f, n.X), m.expr(f, n.Y)
+		icmpInst, err := instruction.NewICmp(instruction.ICondSGE, x, y)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
 		}
 		// Emit icmp instruction.
-		cond := f.emitLocal("", inst)
-		inst, err = instruction.NewZExt(cond, x.Type())
+		cond := f.emitInst(icmpInst)
+		zextInst, err := instruction.NewZExt(cond, x.Type())
 		if err != nil {
 			panic(fmt.Sprintf("unable to create zext instruction; %v", err))
 		}
 		// Emit zext instruction.
-		return f.emitLocal("", inst)
+		return f.emitInst(zextInst)
 
 	// !=
 	case token.Ne:
-		var inst instruction.ValueInst
-		inst, err := instruction.NewICmp(instruction.ICondNE, x, y)
+		x, y := m.expr(f, n.X), m.expr(f, n.Y)
+		icmpInst, err := instruction.NewICmp(instruction.ICondNE, x, y)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
 		}
 		// Emit icmp instruction.
-		cond := f.emitLocal("", inst)
-		inst, err = instruction.NewZExt(cond, x.Type())
+		cond := f.emitInst(icmpInst)
+		zextInst, err := instruction.NewZExt(cond, x.Type())
 		if err != nil {
 			panic(fmt.Sprintf("unable to create zext instruction; %v", err))
 		}
 		// Emit zext instruction.
-		return f.emitLocal("", inst)
+		return f.emitInst(zextInst)
 
 	// ==
 	case token.Eq:
-		var inst instruction.ValueInst
-		inst, err := instruction.NewICmp(instruction.ICondEq, x, y)
+		x, y := m.expr(f, n.X), m.expr(f, n.Y)
+		icmpInst, err := instruction.NewICmp(instruction.ICondEq, x, y)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
 		}
 		// Emit icmp instruction.
-		cond := f.emitLocal("", inst)
-		inst, err = instruction.NewZExt(cond, x.Type())
+		cond := f.emitInst(icmpInst)
+		zextInst, err := instruction.NewZExt(cond, x.Type())
 		if err != nil {
 			panic(fmt.Sprintf("unable to create zext instruction; %v", err))
 		}
 		// Emit zext instruction.
-		return f.emitLocal("", inst)
+		return f.emitInst(zextInst)
 
 	// &&
 	case token.Land:
+		x := m.cond(f, n.X)
 
-	// TODO: Remove comment.
-	// // =
-	// case token.Assign:
+		start := f.curBlock
+		trueBranch := f.NewBasicBlock("")
+		end := f.NewBasicBlock("")
+		term, err := instruction.NewBr(x, trueBranch, end)
+		if err != nil {
+			panic(fmt.Sprintf("unable to create br terminator; %v", err))
+		}
+		f.curBlock.SetTerm(term)
+		f.curBlock = trueBranch
+
+		y := m.cond(f, n.Y)
+		trueBranch.emitJmp(end)
+		f.curBlock = end
+
+		var incs []*instruction.Incoming
+		zero := constZero(irtypes.I1)
+		inc, err := instruction.NewIncoming(zero, start)
+		if err != nil {
+			panic(fmt.Sprintf("unable to create incoming value; %v", err))
+		}
+		incs = append(incs, inc)
+		inc, err = instruction.NewIncoming(y, trueBranch)
+		if err != nil {
+			panic(fmt.Sprintf("unable to create incoming value; %v", err))
+		}
+		incs = append(incs, inc)
+		phiInst, err := instruction.NewPHI(irtypes.I1, incs)
+		if err != nil {
+			panic(fmt.Sprintf("unable to create br terminator; %v", err))
+		}
+		// Emit phi instruction.
+		result := f.emitInst(phiInst)
+		zextInst, err := instruction.NewZExt(result, m.typeOf(n))
+		if err != nil {
+			panic(fmt.Sprintf("unable to create zext instruction; %v", err))
+		}
+		// Emit zext instruction.
+		return f.emitInst(zextInst)
+
+	// =
+	case token.Assign:
+		panic(fmt.Sprintf("support for binary operator %v not yet implemented", n.Op))
 
 	default:
 		panic(fmt.Sprintf("support for binary operator %v not yet implemented", n.Op))
@@ -501,12 +540,12 @@ func (m *Module) ident(f *Function, ident *ast.Ident) value.Value {
 	//    %1 = load i32, i32* %x
 	typ := m.typeOf(ident)
 	addr := f.local(ident.String())
-	inst, err := instruction.NewLoad(typ, addr)
+	loadInst, err := instruction.NewLoad(typ, addr)
 	if err != nil {
 		panic(fmt.Sprintf("unable to create local instruction; %v", err))
 	}
 	// Emit load instruction.
-	return f.emitLocal("", inst)
+	return f.emitInst(loadInst)
 }
 
 // unaryExpr lowers the given unary expression to LLVM IR, emitting code to f.
@@ -523,12 +562,12 @@ func (m *Module) unaryExpr(f *Function, n *ast.UnaryExpr) value.Value {
 		//    %2 = sub i32 0, %1
 		expr := m.expr(f, n.X)
 		zero := constZero(expr.Type())
-		inst, err := instruction.NewSub(zero, expr)
+		subInst, err := instruction.NewSub(zero, expr)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create sub instruction; %v", err))
 		}
 		// Emit sub instruction.
-		return f.emitLocal("", inst)
+		return f.emitInst(subInst)
 	// !expr
 	case token.Not:
 		// TODO: Replace `(x != 0) ^ 1` with `x == 0`. Using the former for now to
@@ -544,19 +583,18 @@ func (m *Module) unaryExpr(f *Function, n *ast.UnaryExpr) value.Value {
 		//    %3 = xor i1 %2, true
 		cond := m.cond(f, n.X)
 		one := constOne(cond.Type())
-		var inst instruction.ValueInst
-		inst, err := instruction.NewXor(cond, one)
+		xorInst, err := instruction.NewXor(cond, one)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create xor instruction; %v", err))
 		}
 		// Emit xor instruction.
-		notCond := f.emitLocal("", inst)
-		inst, err = instruction.NewZExt(notCond, m.typeOf(n.X))
+		notCond := f.emitInst(xorInst)
+		zextInst, err := instruction.NewZExt(notCond, m.typeOf(n.X))
 		if err != nil {
 			panic(fmt.Sprintf("unable to create zext instruction; %v", err))
 		}
 		// Emit zext instruction.
-		return f.emitLocal("", inst)
+		return f.emitInst(zextInst)
 	default:
 		panic(fmt.Sprintf("support for unary operator %v not yet implemented", n.Op))
 	}
