@@ -3,7 +3,7 @@ define void @f() {
 	%x = alloca i32
 	br label %1
 1:
-	%2 = load i32* %x
+	%2 = load i32, i32* %x
 	%3 = icmp ne i32 %2, 0
 	br i1 %3, label %4, label %5
 4:
