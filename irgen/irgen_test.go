@@ -64,13 +64,61 @@ func TestGen(t *testing.T) {
 		},
 		// Unary expressions.
 		{
-			path: "../testdata/extra/irgen/unary_expr.c",
-			want: "../testdata/extra/irgen/unary_expr.ll",
+			path: "../testdata/extra/irgen/unary_expr_sub.c",
+			want: "../testdata/extra/irgen/unary_expr_sub.ll",
+		},
+		{
+			path: "../testdata/extra/irgen/unary_expr_not.c",
+			want: "../testdata/extra/irgen/unary_expr_not.ll",
 		},
 		// Binary expressions.
 		{
-			path: "../testdata/extra/irgen/binary_expr.c",
-			want: "../testdata/extra/irgen/binary_expr.ll",
+			path: "../testdata/extra/irgen/binary_expr_add.c",
+			want: "../testdata/extra/irgen/binary_expr_add.ll",
+		},
+		{
+			path: "../testdata/extra/irgen/binary_expr_sub.c",
+			want: "../testdata/extra/irgen/binary_expr_sub.ll",
+		},
+		{
+			path: "../testdata/extra/irgen/binary_expr_mul.c",
+			want: "../testdata/extra/irgen/binary_expr_mul.ll",
+		},
+		{
+			path: "../testdata/extra/irgen/binary_expr_div.c",
+			want: "../testdata/extra/irgen/binary_expr_div.ll",
+		},
+		{
+			path: "../testdata/extra/irgen/binary_expr_lt.c",
+			want: "../testdata/extra/irgen/binary_expr_lt.ll",
+		},
+		{
+			path: "../testdata/extra/irgen/binary_expr_gt.c",
+			want: "../testdata/extra/irgen/binary_expr_gt.ll",
+		},
+		{
+			path: "../testdata/extra/irgen/binary_expr_le.c",
+			want: "../testdata/extra/irgen/binary_expr_le.ll",
+		},
+		{
+			path: "../testdata/extra/irgen/binary_expr_ge.c",
+			want: "../testdata/extra/irgen/binary_expr_ge.ll",
+		},
+		{
+			path: "../testdata/extra/irgen/binary_expr_ne.c",
+			want: "../testdata/extra/irgen/binary_expr_ne.ll",
+		},
+		{
+			path: "../testdata/extra/irgen/binary_expr_eq.c",
+			want: "../testdata/extra/irgen/binary_expr_eq.ll",
+		},
+		{
+			path: "../testdata/extra/irgen/binary_expr_land.c",
+			want: "../testdata/extra/irgen/binary_expr_land.ll",
+		},
+		{
+			path: "../testdata/extra/irgen/binary_expr_assign.c",
+			want: "../testdata/extra/irgen/binary_expr_assign.ll",
 		},
 	}
 
