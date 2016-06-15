@@ -106,7 +106,7 @@ func (m *Module) globalVarDecl(n *ast.VarDecl) {
 	var val value.Value
 	switch {
 	case n.Val != nil:
-		val = m.constExpr(n.Val)
+		panic("support for global variable initializer not yet implemented")
 	case irtypes.IsInt(typ):
 		var err error
 		val, err = constant.NewInt(typ, "0")
@@ -268,10 +268,6 @@ func (m *Module) whileStmt(f *Function, stmt *ast.WhileStmt) {
 }
 
 // --- [ Expressions ] ----------------------------------------------------------
-
-// TODO: Consider merging expr and constExpr, and using type assertion on
-// constant.Constant to verify that the expression is constant where needed
-// (e.g. initializer of global variable definition).
 
 // cond lowers the given condition expression to LLVM IR, emitting code to f.
 func (m *Module) cond(f *Function, expr ast.Expr) value.Value {
@@ -563,43 +559,6 @@ func (m *Module) unaryExpr(f *Function, n *ast.UnaryExpr) value.Value {
 		return f.emitLocal("", inst)
 	default:
 		panic(fmt.Sprintf("support for unary operator %v not yet implemented", n.Op))
-	}
-	panic("unreachable")
-}
-
-// constExpr converts the given expression to an LLVM IR constant expression.
-func (m *Module) constExpr(expr ast.Expr) constant.Constant {
-	typ := m.typeOf(expr)
-	switch expr := expr.(type) {
-	case *ast.BasicLit:
-		switch expr.Kind {
-		case token.CharLit:
-			s, err := strconv.Unquote(expr.Val)
-			if err != nil {
-				panic(fmt.Sprintf("unable to unquote character literal; %v", err))
-			}
-			val, err := constant.NewInt(typ, strconv.Itoa(int(s[0])))
-			if err != nil {
-				panic(fmt.Sprintf("unable to create integer constant; %v", err))
-			}
-			return val
-		case token.IntLit:
-			val, err := constant.NewInt(typ, expr.Val)
-			if err != nil {
-				panic(fmt.Sprintf("unable to create integer constant; %v", err))
-			}
-			return val
-		default:
-			panic(fmt.Sprintf("support for basic literal kind %v not yet implemented", expr.Kind))
-		}
-	//case *ast.BinaryExpr:
-	//case *ast.CallExpr:
-	//case *ast.Ident:
-	//case *ast.IndexExpr:
-	//case *ast.ParenExpr:
-	//case *ast.UnaryExpr:
-	default:
-		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
 	}
 	panic("unreachable")
 }
