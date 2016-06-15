@@ -53,6 +53,10 @@ func TestGen(t *testing.T) {
 			path: "../testdata/extra/irgen/if_stmt.c",
 			want: "../testdata/extra/irgen/if_stmt.ll",
 		},
+		{
+			path: "../testdata/extra/irgen/if_else_stmt.c",
+			want: "../testdata/extra/irgen/if_else_stmt.ll",
+		},
 	}
 
 	for _, g := range golden {
