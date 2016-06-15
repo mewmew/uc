@@ -207,6 +207,7 @@ func (m *Module) blockStmt(f *Function, stmt *ast.BlockStmt) {
 // f.
 func (m *Module) exprStmt(f *Function, stmt *ast.ExprStmt) {
 	panic("not yet implemented")
+	//m.expr(f, stmt.X)
 }
 
 // ifStmt lowers the given if statement to LLVM IR, emitting code to f.
@@ -299,7 +300,7 @@ func (m *Module) expr(f *Function, expr ast.Expr) value.Value {
 	case *ast.IndexExpr:
 		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
 	case *ast.ParenExpr:
-		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
+		return m.expr(f, expr.X)
 	case *ast.UnaryExpr:
 		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
 	default:

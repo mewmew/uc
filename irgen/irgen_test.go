@@ -57,6 +57,11 @@ func TestGen(t *testing.T) {
 			path: "../testdata/extra/irgen/if_else_stmt.c",
 			want: "../testdata/extra/irgen/if_else_stmt.ll",
 		},
+		// Parenthesized expressions.
+		{
+			path: "../testdata/extra/irgen/paren_expr.c",
+			want: "../testdata/extra/irgen/paren_expr.ll",
+		},
 	}
 
 	for _, g := range golden {
