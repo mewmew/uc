@@ -264,7 +264,27 @@ func (m *Module) returnStmt(f *Function, stmt *ast.ReturnStmt) {
 
 // whileStmt lowers the given while statement to LLVM IR, emitting code to f.
 func (m *Module) whileStmt(f *Function, stmt *ast.WhileStmt) {
-	panic("not yet implemented")
+	condBranch := f.NewBasicBlock("")
+	condJmp, err := instruction.NewJmp(condBranch)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create jmp terminator; %v", err))
+	}
+	f.curBlock.SetTerm(condJmp)
+	f.curBlock = condBranch
+	cond := m.cond(f, stmt.Cond)
+	bodyBranch := f.NewBasicBlock("")
+	endBranch := f.NewBasicBlock("")
+	term, err := instruction.NewBr(cond, bodyBranch, endBranch)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create br terminator; %v", err))
+	}
+	f.curBlock.SetTerm(term)
+	f.curBlock = bodyBranch
+
+	m.stmt(f, stmt.Body)
+
+	f.curBlock.SetTerm(condJmp)
+	f.curBlock = endBranch
 }
 
 // --- [ Expressions ] ----------------------------------------------------------
