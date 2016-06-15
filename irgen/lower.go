@@ -234,15 +234,17 @@ func (m *Module) ifStmt(f *Function, stmt *ast.IfStmt) {
 	f.curBlock = trueBranch
 
 	m.stmt(f, stmt.Body)
-	trueBranch.emitJmp(falseBranch)
+	end := falseBranch
 	f.curBlock = falseBranch
 
 	if stmt.Else != nil {
 		m.stmt(f, stmt.Else)
-		end := f.NewBasicBlock("")
+		end = f.NewBasicBlock("")
 		falseBranch.emitJmp(end)
 		f.curBlock = end
 	}
+
+	trueBranch.emitJmp(end)
 }
 
 // returnStmt lowers the given return statement to LLVM IR, emitting code to f.
