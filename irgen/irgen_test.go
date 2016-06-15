@@ -48,7 +48,7 @@ func TestGen(t *testing.T) {
 			path: "../testdata/extra/irgen/local_def.c",
 			want: "../testdata/extra/irgen/local_def.ll",
 		},
-		// If statements.
+		// If and if-else statements.
 		{
 			path: "../testdata/extra/irgen/if_stmt.c",
 			want: "../testdata/extra/irgen/if_stmt.ll",
@@ -62,9 +62,15 @@ func TestGen(t *testing.T) {
 			path: "../testdata/extra/irgen/paren_expr.c",
 			want: "../testdata/extra/irgen/paren_expr.ll",
 		},
+		// Unary expressions.
 		{
 			path: "../testdata/extra/irgen/unary_expr.c",
 			want: "../testdata/extra/irgen/unary_expr.ll",
+		},
+		// Binary expressions.
+		{
+			path: "../testdata/extra/irgen/binary_expr.c",
+			want: "../testdata/extra/irgen/binary_expr.ll",
 		},
 	}
 
