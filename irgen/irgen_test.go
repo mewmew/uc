@@ -120,6 +120,10 @@ func TestGen(t *testing.T) {
 			path: "../testdata/extra/irgen/binary_expr_assign.c",
 			want: "../testdata/extra/irgen/binary_expr_assign.ll",
 		},
+		{
+			path: "../testdata/extra/irgen/while_stmt.c",
+			want: "../testdata/extra/irgen/while_stmt.ll",
+		},
 	}
 
 	for _, g := range golden {
