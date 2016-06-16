@@ -14,8 +14,10 @@ import (
 	"github.com/mewmew/uc/sem"
 )
 
+// TODO: Remove debug output.
+
 // dbg is a logger which prefixes debug messages with "irgen:".
-var dbg *log.Logger
+var dbg = log.New(os.Stderr, term.WhiteBold("irgen:"), log.Lshortfile)
 
 // A Module represents an LLVM IR module generator.
 type Module struct {
@@ -27,8 +29,6 @@ type Module struct {
 
 // NewModule returns a new module generator.
 func NewModule(info *sem.Info) *Module {
-	// TODO: Remove debug output.
-	dbg = log.New(os.Stderr, term.WhiteBold("irgen:"), log.Lshortfile)
 	m := ir.NewModule()
 	return &Module{Module: m, info: info}
 }
