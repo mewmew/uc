@@ -376,25 +376,9 @@ func (m *Module) expr(f *Function, expr ast.Expr) value.Value {
 	case *ast.CallExpr:
 		return m.callExpr(f, expr)
 	case *ast.Ident:
-		ptr := m.ident(f, expr)
-		elemType := m.typeOf(expr)
-		loadInst, err := instruction.NewLoad(elemType, ptr)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create local instruction; %v", err))
-		}
-		// Emit load instruction.
-		return f.emitInst(loadInst)
+		return m.identUse(f, expr)
 	case *ast.IndexExpr:
-		ptr := m.indexExpr(f, expr)
-		ptrType, ok := ptr.Type().(*irtypes.Pointer)
-		if !ok {
-			panic(fmt.Sprintf("invalid pointer type; expected *types.Pointer, got %T", ptr.Type()))
-		}
-		loadInst, err := instruction.NewLoad(ptrType.Elem(), ptr)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create load instruction; %v", err))
-		}
-		return f.emitInst(loadInst)
+		return m.indexExprUse(f, expr)
 	case *ast.ParenExpr:
 		return m.expr(f, expr.X)
 	case *ast.UnaryExpr:
@@ -617,20 +601,14 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 	// =
 	case token.Assign:
 		y := m.expr(f, n.Y)
-		var x value.Value
 		switch expr := n.X.(type) {
 		case *ast.Ident:
-			x = m.ident(f, expr)
+			m.identDef(f, expr)
 		case *ast.IndexExpr:
-			x = m.indexExpr(f, expr)
+			m.indexExprDef(f, expr)
 		default:
 			panic(fmt.Sprintf("support for assignment to type %T not yet implemented", expr))
 		}
-		storeInst, err := instruction.NewStore(y, x)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create store instruction; %v", err))
-		}
-		f.curBlock.AppendInst(storeInst)
 		return y
 
 	default:
@@ -646,6 +624,7 @@ func (m *Module) callExpr(f *Function, callExpr *ast.CallExpr) value.Value {
 	typ := toIrType(callExpr.Name.Decl.Type()).(*irtypes.Func)
 	var args []value.Value
 	for _, arg := range callExpr.Args {
+		fmt.Printf("arg: %T, %#v\n", arg, arg)
 		expr := m.expr(f, arg)
 		args = append(args, expr)
 		// TODO: Add cast
@@ -659,51 +638,49 @@ func (m *Module) callExpr(f *Function, callExpr *ast.CallExpr) value.Value {
 
 // ident lowers the given identifier to LLVM IR, emitting code to f.
 func (m *Module) ident(f *Function, ident *ast.Ident) value.Value {
-	// Input:
-	//    void f() {
-	//       int x;
-	//       x;               // <-- relevant line
-	//    }
-	// Output:
-	//    %1 = load i32, i32* %x
-	return m.valueFromIdent(f, ident)
+	panic("ident: not yet implemented")
+}
+
+// identUse lowers the given identifier usage to LLVM IR, emitting code to f.
+func (m *Module) identUse(f *Function, ident *ast.Ident) value.Value {
+	// Load.
+	switch typ := m.typeOf(ident).(type) {
+	case *irtypes.Array:
+	case *irtypes.Pointer:
+	default:
+		panic(fmt.Sprintf("support for type %T not yet implemented", typ))
+	}
+	panic("unreachable")
+}
+
+// identDef lowers the given identifier definition to LLVM IR, emitting code to
+// f.
+func (m *Module) identDef(f *Function, ident *ast.Ident) value.Value {
+	// Store.
+	switch typ := m.typeOf(ident).(type) {
+	case *irtypes.Array:
+	case *irtypes.Pointer:
+	default:
+		panic(fmt.Sprintf("support for type %T not yet implemented", typ))
+	}
+	panic("unreachable")
 }
 
 // indexExpr lowers the given index expression to LLVM IR, emitting code to f.
 func (m *Module) indexExpr(f *Function, n *ast.IndexExpr) value.Value {
-	// Input:
-	//    void f() {
-	//       int a[5];
-	//       a[0] = 1;        // <-- relevant line
-	//    }
-	// Output:
-	//    %1 = getelementptr [5 x i32], [5 x i32]* %a, i64 0, i64 0
-	//    store i32 1, i32* %1
-	index := m.expr(f, n.Index)
-	if c, ok := index.(constant.Constant); ok {
-		// The index is guaranteed to be of integer type.
-		var err error
-		index, err = constant.NewInt(irtypes.I64, c.ValueString())
-		if err != nil {
-			panic(fmt.Sprintf("unable to create integer constant; %v", err))
-		}
-	} else {
-		// TODO: Use zext for unsigned values and sext for signed values.
-		sextInst, err := instruction.NewSExt(index, irtypes.I64)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create sext instruction; %v", err))
-		}
-		index = f.emitInst(sextInst)
-	}
-	typ := m.typeOf(n.Name)
-	array := m.valueFromIdent(f, n.Name)
-	zero := constZero(irtypes.I64)
-	indices := []value.Value{zero, index}
-	gepInst, err := instruction.NewGetElementPtr(typ, array, indices)
-	if err != nil {
-		panic(fmt.Sprintf("unable to create getelementptr instruction; %v", err))
-	}
-	return f.emitInst(gepInst)
+	panic("indexExpr: not yet implemented")
+}
+
+// indexExprUse lowers the given index expression usage to LLVM IR, emitting
+// code to f.
+func (m *Module) indexExprUse(f *Function, n *ast.IndexExpr) value.Value {
+	panic("indexExprUse: not yet implemented")
+}
+
+// indexExprDef lowers the given identifier expression definition to LLVM IR,
+// emitting code to f.
+func (m *Module) indexExprDef(f *Function, n *ast.IndexExpr) value.Value {
+	panic("indexExprDef: not yet implemented")
 }
 
 // unaryExpr lowers the given unary expression to LLVM IR, emitting code to f.

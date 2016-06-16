@@ -113,7 +113,11 @@ func toIrType(n uctypes.Type) irtypes.Type {
 		}
 	case *uctypes.Array:
 		elem := toIrType(ucType.Elem)
-		t, err = irtypes.NewArray(elem, ucType.Len)
+		if ucType.Len == 0 {
+			t, err = irtypes.NewPointer(elem)
+		} else {
+			t, err = irtypes.NewArray(elem, ucType.Len)
+		}
 	case *uctypes.Func:
 		var params []*irtypes.Param
 		variadic := false
