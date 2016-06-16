@@ -741,7 +741,12 @@ func (m *Module) indexExprUse(f *Function, n *ast.IndexExpr) value.Value {
 // indexExprDef lowers the given identifier expression definition to LLVM IR,
 // emitting code to f.
 func (m *Module) indexExprDef(f *Function, n *ast.IndexExpr, v value.Value) {
-	panic("indexExprDef: not yet implemented")
+	addr := m.indexExpr(f, n)
+	storeInst, err := instruction.NewStore(v, addr)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create store instruction; %v", err))
+	}
+	f.curBlock.AppendInst(storeInst)
 }
 
 // unaryExpr lowers the given unary expression to LLVM IR, emitting code to f.
