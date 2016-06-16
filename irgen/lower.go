@@ -694,13 +694,48 @@ func (m *Module) identDef(f *Function, ident *ast.Ident, v value.Value) {
 
 // indexExpr lowers the given index expression to LLVM IR, emitting code to f.
 func (m *Module) indexExpr(f *Function, n *ast.IndexExpr) value.Value {
-	panic("indexExpr: not yet implemented")
+	index := m.expr(f, n.Index)
+	// Extend the index to a 64-bit integer.
+	if c, ok := index.(constant.Constant); ok {
+		// The index is guaranteed to be of integer type.
+		var err error
+		index, err = constant.NewInt(irtypes.I64, c.ValueString())
+		if err != nil {
+			panic(fmt.Sprintf("unable to create integer constant; %v", err))
+		}
+	} else {
+		// TODO: Use zext for unsigned values and sext for signed values.
+		sextInst, err := instruction.NewSExt(index, irtypes.I64)
+		if err != nil {
+			panic(fmt.Sprintf("unable to create sext instruction; %v", err))
+		}
+		index = f.emitInst(sextInst)
+	}
+	typ := m.typeOf(n.Name)
+	array := m.valueFromIdent(f, n.Name)
+	zero := constZero(irtypes.I64)
+	indices := []value.Value{zero, index}
+	gepInst, err := instruction.NewGetElementPtr(typ, array, indices)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create getelementptr instruction; %v", err))
+	}
+	return f.emitInst(gepInst)
 }
 
 // indexExprUse lowers the given index expression usage to LLVM IR, emitting
 // code to f.
 func (m *Module) indexExprUse(f *Function, n *ast.IndexExpr) value.Value {
-	panic("indexExprUse: not yet implemented")
+	v := m.indexExpr(f, n)
+	typ := m.typeOf(n)
+	if isRef(typ) {
+		return v
+	}
+	loadInst, err := instruction.NewLoad(typ, v)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create load instruction; %v", err))
+	}
+	// Emit load instruction.
+	return f.emitInst(loadInst)
 }
 
 // indexExprDef lowers the given identifier expression definition to LLVM IR,
