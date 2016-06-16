@@ -1,5 +1,5 @@
 int g(int a) {
-	return a;
+	return 42;
 }
 
 int f() {
