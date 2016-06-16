@@ -1,5 +1,4 @@
 #!/bin/bash
-#for f in "foo.ll"; do
-#	sar -i "\t%1 = alloca i32\n" "" "${f}"
-#	sar -i "\tstore i32 0, i32[*] %1\n" "" "${f}"
-#done
+for f in "array_ident_use.ll"; do
+	sar -i "getelementptr ([^,]+), ([^,]+), i32 0, i32 0" "getelementptr \$1, \$2, i64 0, i64 0" "${f}"
+done

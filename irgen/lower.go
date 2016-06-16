@@ -638,19 +638,47 @@ func (m *Module) callExpr(f *Function, callExpr *ast.CallExpr) value.Value {
 
 // ident lowers the given identifier to LLVM IR, emitting code to f.
 func (m *Module) ident(f *Function, ident *ast.Ident) value.Value {
-	panic("ident: not yet implemented")
+	switch typ := m.typeOf(ident).(type) {
+	case *irtypes.Array:
+		array := m.valueFromIdent(f, ident)
+		zero := constZero(irtypes.I64)
+		indices := []value.Value{zero, zero}
+		gepInst, err := instruction.NewGetElementPtr(typ, array, indices)
+		if err != nil {
+			panic(fmt.Sprintf("unable to create getelementptr instruction; %v", err))
+		}
+		return f.emitInst(gepInst)
+	default:
+		return m.valueFromIdent(f, ident)
+	}
 }
 
 // identUse lowers the given identifier usage to LLVM IR, emitting code to f.
 func (m *Module) identUse(f *Function, ident *ast.Ident) value.Value {
-	// Load.
-	switch typ := m.typeOf(ident).(type) {
-	case *irtypes.Array:
-	case *irtypes.Pointer:
-	default:
-		panic(fmt.Sprintf("support for type %T not yet implemented", typ))
+	v := m.ident(f, ident)
+	typ := m.typeOf(ident)
+	if isRef(typ) {
+		return v
 	}
-	panic("unreachable")
+	loadInst, err := instruction.NewLoad(typ, v)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create load instruction; %v", err))
+	}
+	// Emit load instruction.
+	return f.emitInst(loadInst)
+}
+
+// isRef reports whether the given type is a reference type; e.g. pointer or
+// array.
+func isRef(typ irtypes.Type) bool {
+	switch typ.(type) {
+	case *irtypes.Array:
+		return true
+	case *irtypes.Pointer:
+		return true
+	default:
+		return false
+	}
 }
 
 // identDef lowers the given identifier definition to LLVM IR, emitting code to
