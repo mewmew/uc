@@ -165,6 +165,11 @@ func TestGen(t *testing.T) {
 			path: "../testdata/extra/irgen/index_expr.c",
 			want: "../testdata/extra/irgen/index_expr.ll",
 		},
+		// Array arguments.
+		{
+			path: "../testdata/extra/irgen/array_arg.c",
+			want: "../testdata/extra/irgen/array_arg.ll",
+		},
 	}
 
 	for _, g := range golden {
