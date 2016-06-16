@@ -138,6 +138,11 @@ func TestGen(t *testing.T) {
 			path: "../testdata/extra/irgen/nested_var_decl.c",
 			want: "../testdata/extra/irgen/nested_var_decl.ll",
 		},
+		// Call expressions.
+		{
+			path: "../testdata/extra/irgen/call_expr.c",
+			want: "../testdata/extra/irgen/call_expr.ll",
+		},
 	}
 
 	for _, g := range golden {
