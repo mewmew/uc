@@ -143,7 +143,7 @@ func TestGen(t *testing.T) {
 			path: "../testdata/extra/irgen/call_expr.c",
 			want: "../testdata/extra/irgen/call_expr.ll",
 		},
-		/*{
+		{
 			path: "../testdata/extra/irgen/call_expr_cast.c",
 			want: "../testdata/extra/irgen/call_expr_cast.ll",
 		},
@@ -154,7 +154,7 @@ func TestGen(t *testing.T) {
 		{
 			path: "../testdata/extra/irgen/call_expr_multi_args_cast.c",
 			want: "../testdata/extra/irgen/call_expr_multi_args_cast.ll",
-		},*/
+		},
 		// Expression statements.
 		{
 			path: "../testdata/extra/irgen/expr_stmt.c",
@@ -164,6 +164,11 @@ func TestGen(t *testing.T) {
 		{
 			path: "../testdata/extra/irgen/index_expr.c",
 			want: "../testdata/extra/irgen/index_expr.ll",
+		},
+		// Array arguments.
+		{
+			path: "../testdata/extra/irgen/array_arg.c",
+			want: "../testdata/extra/irgen/array_arg.ll",
 		},
 	}
 
