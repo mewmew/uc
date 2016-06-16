@@ -398,7 +398,6 @@ func (m *Module) basicLit(f *Function, n *ast.BasicLit) value.Value {
 		if err != nil {
 			panic(fmt.Sprintf("unable to unquote character literal; %v", err))
 		}
-		fmt.Println("unquoted:", s)
 		val, err := constant.NewInt(typ, strconv.Itoa(int(s[0])))
 		if err != nil {
 			panic(fmt.Sprintf("unable to create integer constant; %v", err))

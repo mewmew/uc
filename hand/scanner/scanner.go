@@ -50,8 +50,7 @@ func (s *scanner) Scan() *token.Token {
 	case uctoken.IntLit:
 		typ = token.TokMap.Type("int_lit")
 	case uctoken.CharLit:
-		// TODO: Change back to "char_lit" once dedicated support for character literals has been added.
-		typ = token.TokMap.Type("int_lit")
+		typ = token.TokMap.Type("char_lit")
 	default:
 		typ = token.TokMap.Type(tok.Val)
 	}

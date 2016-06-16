@@ -76,16 +76,34 @@ func (f *Function) startBody() {
 // endBody finalizes the generation of the function body.
 func (f *Function) endBody() error {
 	if block := f.curBlock; block != nil && block.Term() == nil {
-		// Add void return terminator to the current basic block, if a terminator
-		// is missing.
-		if result := f.Sig().Result(); !irtypes.IsVoid(result) {
-			panic(fmt.Sprintf("unable to finalize current basic block of function body; expected void return since terminator was missing, got %v", result))
+		switch {
+		case f.Function.Name() == "main":
+			// From C11 spec $5.1.2.2.3.
+			//
+			// "If the return type of the main function is a type compatible with
+			// int, a return from the initial call to the main function is
+			// equivalent to calling the exit function with the value returned by
+			// the main function as its argument; reaching the } that terminates
+			// the main function returns a value of 0."
+			result := f.Sig().Result()
+			zero := constZero(result)
+			term, err := instruction.NewRet(result, zero)
+			if err != nil {
+				panic(fmt.Sprintf("unable to create ret terminator; %v", err))
+			}
+			block.SetTerm(term)
+		default:
+			// Add void return terminator to the current basic block, if a
+			// terminator is missing.
+			if result := f.Sig().Result(); !irtypes.IsVoid(result) {
+				panic(fmt.Sprintf("unable to finalize current basic block of function body; expected void return since terminator was missing, got %v", result))
+			}
+			term, err := instruction.NewRet(irtypes.NewVoid(), nil)
+			if err != nil {
+				panic(fmt.Sprintf("unable to create ret instruction; %v", err))
+			}
+			block.SetTerm(term)
 		}
-		term, err := instruction.NewRet(irtypes.NewVoid(), nil)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create ret instruction; %v", err))
-		}
-		block.SetTerm(term)
 	}
 	f.curBlock = nil
 	if err := f.AssignIDs(); err != nil {
