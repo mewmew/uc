@@ -680,12 +680,21 @@ func (m *Module) indexExpr(f *Function, n *ast.IndexExpr) value.Value {
 	//    %1 = getelementptr [5 x i32], [5 x i32]* %a, i64 0, i64 0
 	//    store i32 1, i32* %1
 	index := m.expr(f, n.Index)
-	// TODO: Use zext for unsigned values and sext for signed values.
-	sextInst, err := instruction.NewSExt(index, irtypes.I64)
-	if err != nil {
-		panic(fmt.Sprintf("unable to create sext instruction; %v", err))
+	if c, ok := index.(constant.Constant); ok {
+		// The index is guaranteed to be of integer type.
+		var err error
+		index, err = constant.NewInt(irtypes.I64, c.ValueString())
+		if err != nil {
+			panic(fmt.Sprintf("unable to create integer constant; %v", err))
+		}
+	} else {
+		// TODO: Use zext for unsigned values and sext for signed values.
+		sextInst, err := instruction.NewSExt(index, irtypes.I64)
+		if err != nil {
+			panic(fmt.Sprintf("unable to create sext instruction; %v", err))
+		}
+		index = f.emitInst(sextInst)
 	}
-	index = f.emitInst(sextInst)
 	typ := m.typeOf(n.Name)
 	array := m.valueFromIdent(f, n.Name)
 	zero := constZero(irtypes.I64)
