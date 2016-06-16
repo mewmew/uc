@@ -110,7 +110,7 @@ func typeOf(n ast.Expr) (types.Type, error) {
 // tried and failed).
 
 // isAssignable reports whether the given expression is assignable (i.e. a valid
-// lvalue).
+// lvalue). See [C99 draft 6.3.2.1 Lvalues, arrays, and function designators]
 func isAssignable(x ast.Expr) bool {
 	switch x := x.(type) {
 	case *ast.BasicLit:
