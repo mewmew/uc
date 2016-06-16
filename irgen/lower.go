@@ -70,14 +70,44 @@ func (m *Module) funcDecl(n *ast.FuncDecl) {
 
 	// Generate function body.
 	dbg.Printf("create function definition: %v", n)
-	m.funcBody(f, n.Body)
+	m.funcBody(f, n.FuncType.Params, n.Body)
 }
 
 // funcBody lowers the given function declaration to LLVM IR, emitting code to
 // m.
-func (m *Module) funcBody(f *Function, body *ast.BlockStmt) {
+func (m *Module) funcBody(f *Function, params []*ast.VarDecl, body *ast.BlockStmt) {
 	// Initialize function body.
 	f.startBody()
+
+	// TODO: Figure out a cleaner way to handle function parameters. The current
+	// implementation makes use of and cross-references information from both
+	// ast.FuncType.Params (for ast.Poc to be used in locals map) and
+	// irtypes.Func.Params (value.Value). It should be possible to find a better
+	// approach which only needs one of these two.
+
+	// Emit local variable declarations for function parameters.
+	for i, param := range f.Sig().Params() {
+		p := m.funcParam(f, param)
+		// Add mapping from parameter name to the corresponding allocated local
+		// variable; i.e.
+		//
+		// For the following C code
+		//
+		//    void f(int a) {}
+		//
+		// with the following LLVM IR code
+		//
+		//    define void @f(i32 %a) {
+		//    0:
+		//       %1 = alloca i32
+		//       store i32 %a, i32* %1
+		//    }
+		//
+		// map from the parameter "a" to the allocated local variable "%1".
+		dbg.Printf("create function parameter: %v", params[i])
+		ident := params[i].Name()
+		f.locals[ident.Name] = p
+	}
 
 	// Generate function body.
 	m.stmt(f, body)
@@ -89,6 +119,28 @@ func (m *Module) funcBody(f *Function, body *ast.BlockStmt) {
 
 	// Emit function definition.
 	m.emitFunc(f)
+}
+
+// funcParam lowers the given function parameter to LLVM IR, emitting code to f.
+func (m *Module) funcParam(f *Function, param *irtypes.Param) value.Value {
+	// Input:
+	//    void f(int a) {
+	//    }
+	// Output:
+	//    %1 = alloca i32
+	//    store i32 %a, i32* %1
+	allocaInst, err := instruction.NewAlloca(param.Type(), 1)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create alloca instruction; %v", err))
+	}
+	// Emit local variable definition for the given function parameter.
+	p := f.emitInst(allocaInst)
+	storeInst, err := instruction.NewStore(param, p)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create store instruction; %v", err))
+	}
+	f.curBlock.AppendInst(storeInst)
+	return p
 }
 
 // --- [ Global variable declaration ] -----------------------------------------
@@ -141,7 +193,7 @@ func (m *Module) localVarDef(f *Function, n *ast.VarDecl) {
 	//    }
 	// Output:
 	//    %a = alloca i32
-	name := n.Name().Name
+	ident := n.Name()
 	dbg.Printf("create local variable: %v", n)
 	typ := toIrType(n.Type())
 	allocaInst, err := instruction.NewAlloca(typ, 1)
@@ -149,7 +201,7 @@ func (m *Module) localVarDef(f *Function, n *ast.VarDecl) {
 		panic(fmt.Sprintf("unable to create alloca instruction; %v", err))
 	}
 	// Emit local variable definition.
-	f.emitLocal(name, allocaInst)
+	f.emitLocal(ident.Name, allocaInst)
 	if n.Val != nil {
 		panic("support for local variable definition initializer not yet implemented")
 	}
@@ -546,7 +598,7 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 		if !ok {
 			panic(fmt.Sprintf("support for assignment to type %T not yet implemented", n.X))
 		}
-		x := f.local(ident.String())
+		x := f.local(ident.Name)
 		storeInst, err := instruction.NewStore(y, x)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create store instruction; %v", err))
@@ -570,7 +622,7 @@ func (m *Module) ident(f *Function, ident *ast.Ident) value.Value {
 	// Output:
 	//    %1 = load i32, i32* %x
 	typ := m.typeOf(ident)
-	addr := f.local(ident.String())
+	addr := f.local(ident.Name)
 	loadInst, err := instruction.NewLoad(typ, addr)
 	if err != nil {
 		panic(fmt.Sprintf("unable to create local instruction; %v", err))

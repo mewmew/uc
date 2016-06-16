@@ -83,7 +83,7 @@ func toIrType(n uctypes.Type) irtypes.Type {
 			}
 			pt := toIrType(p.Type)
 			dbg.Printf("converting type %#v to %#v", p.Type, pt)
-			params = append(params, irtypes.NewParam(pt, ""))
+			params = append(params, irtypes.NewParam(pt, p.Name))
 		}
 		result := toIrType(ucType.Result)
 		t, err = irtypes.NewFunc(result, params, variadic)

@@ -124,6 +124,16 @@ func TestGen(t *testing.T) {
 			path: "../testdata/extra/irgen/while_stmt.c",
 			want: "../testdata/extra/irgen/while_stmt.ll",
 		},
+		// Function parameters.
+		{
+			path: "../testdata/extra/irgen/func_param.c",
+			want: "../testdata/extra/irgen/func_param.ll",
+		},
+		// Nested variable declarations.
+		//{
+		//	path: "../testdata/extra/irgen/nested_var_decl.c",
+		//	want: "../testdata/extra/irgen/nested_var_decl.ll",
+		//},
 	}
 
 	for _, g := range golden {
