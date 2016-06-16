@@ -266,8 +266,7 @@ func (m *Module) blockStmt(f *Function, stmt *ast.BlockStmt) {
 // exprStmt lowers the given expression statement to LLVM IR, emitting code to
 // f.
 func (m *Module) exprStmt(f *Function, stmt *ast.ExprStmt) {
-	panic("not yet implemented")
-	//m.expr(f, stmt.X)
+	m.expr(f, stmt.X)
 }
 
 // ifStmt lowers the given if statement to LLVM IR, emitting code to f.
