@@ -1,8 +1,6 @@
 package astx
 
 import (
-	"strconv"
-
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
 	gocctoken "github.com/mewmew/uc/gocc/token"
@@ -19,17 +17,8 @@ func NewType(typ interface{}) (ast.Type, error) {
 // NewArrayType returns a new array type based on the given element type and
 // length.
 func NewArrayType(elem, lbracket, length, rbracket interface{}) (*ast.ArrayType, error) {
-	var len int
-	switch length := length.(type) {
-	case *gocctoken.Token:
-		var err error
-		len, err = strconv.Atoi(string(length.Lit))
-		if err != nil {
-			return nil, errutil.Newf("invalid array length; %v", err)
-		}
-	case int:
-		len = length
-	default:
+	len, ok := length.(int)
+	if !ok {
 		return nil, errutil.Newf("invalid array length type; %T", length)
 	}
 

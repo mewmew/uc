@@ -65,13 +65,13 @@ ident : _letter { _letter | _decimal_digit } ;
 // ## Integer literals
 //
 
-int_lit : _decimals | _char_lit ;
+int_lit : _decimals ;
 
 // ## Character literals
 //
 
 _escaped_char : '\\' 'n' ;
-_char_lit     : '\'' ( _ascii_char | '"' | _escaped_char ) '\'' ;
+char_lit      : '\'' ( _ascii_char | '"' | _escaped_char ) '\'' ;
 
 // # Syntaxic production rules
 //
@@ -128,8 +128,13 @@ ScalarDecl
 
 ArrayDecl
 	// BasicType : "char" | "int" ;
-	: BasicType ident "[" int_lit "]"   << astx.NewArrayDecl($0, $1, $2, $3, $4) >>
+	: BasicType ident "[" IntLit "]"    << astx.NewArrayDecl($0, $1, $2, $3, $4) >>
 	| BasicType ident "[" "]"           << astx.NewArrayDecl($0, $1, $2, 0, $3) >>
+;
+
+IntLit
+	: int_lit                           << astx.NewIntLit($0, token.IntLit) >>
+	| char_lit                          << astx.NewIntLit($0, token.CharLit) >>
 ;
 
 TypeDef
@@ -268,8 +273,6 @@ Expr14
 	| "!" Expr14                        << astx.NewUnaryExpr($0, $1) >>
 ;
 
-// TODO: Handle char_lit explicitly?
-
 // TODO: Replace function name with expression in call expression. Do the same
 // for array names.
 
@@ -286,6 +289,7 @@ Expr15
 // Primary expressions with the highest precedence (§A.2.1).
 PrimaryExpr
 	: int_lit                           << astx.NewBasicLit($0, token.IntLit) >>
+	| char_lit                          << astx.NewBasicLit($0, token.CharLit) >>
 	| ident                             << astx.NewIdent($0) >>
 	| ParenExpr
 ;

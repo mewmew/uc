@@ -3,6 +3,8 @@
 package astx
 
 import (
+	"strconv"
+
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
 	gocctoken "github.com/mewmew/uc/gocc/token"
@@ -145,6 +147,35 @@ func NewArrayDecl(elem, name, lbracket, length, rbracket interface{}) (*ast.VarD
 		return nil, errutil.Newf("invalid array declaration identifier; %v", err)
 	}
 	return &ast.VarDecl{VarType: typ, VarName: ident}, nil
+}
+
+// NewIntLit returns a new integer, based on the following production rule.
+//
+//    IntLit
+//       : int_lit
+//       | char_lit
+func NewIntLit(nToken interface{}, kind token.Kind) (int, error) {
+	nTok, ok := nToken.(*gocctoken.Token)
+	if !ok {
+		return 0, errutil.Newf("invalid integer literal type; expectd *gocctoken.Token, got %T", nToken)
+	}
+	s := string(nTok.Lit)
+	switch kind {
+	case token.IntLit:
+		n, err := strconv.Atoi(s)
+		if err != nil {
+			return 0, errutil.Err(err)
+		}
+		return n, nil
+	case token.CharLit:
+		s, err := strconv.Unquote(s)
+		if err != nil {
+			return 0, errutil.Newf("unable to unquote character literal; %v", err)
+		}
+		return int(s[0]), nil
+	default:
+		return 0, errutil.Newf(`invalid integer literal kind; expected "IntLit" or "CharLit", got %q`, kind)
+	}
 }
 
 // NewTypeDef returns a new type definition node, based on the following
@@ -474,14 +505,12 @@ func NewUnaryExpr(opToken, x interface{}) (*ast.UnaryExpr, error) {
 	return nil, errutil.Newf("invalid unary operand type; expected ast.Expr, got %T", x)
 }
 
-// TODO: Add char_lit production rule to NewBasicLit doc comment once handled
-// explicitly in uc.bnf.
-
 // NewBasicLit returns a new basic literal experssion node of the given kind,
 // based on the following production rule.
 //
 //    Expr15
 //       : int_lit
+//       | char_lit
 //    ;
 func NewBasicLit(valToken interface{}, kind token.Kind) (*ast.BasicLit, error) {
 	valTok, ok := valToken.(*gocctoken.Token)

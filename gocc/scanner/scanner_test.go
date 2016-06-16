@@ -534,7 +534,7 @@ func TestLexer(t *testing.T) {
 					Pos:  token.Pos{Offset: 31},
 				},
 				{
-					Type: token.TokMap.Type("int_lit"), // TODO: Figure out if char_lit and int_lit should be separate tokens.
+					Type: token.TokMap.Type("char_lit"),
 					Lit:  []byte("'c'"),
 					Pos:  token.Pos{Offset: 33},
 				},
@@ -2371,7 +2371,7 @@ func TestLexer(t *testing.T) {
 					Pos:  token.Pos{Offset: 73},
 				},
 				{
-					Type: token.TokMap.Type("int_lit"), // TODO: Figure out if char_lit and int_lit should be separate tokens.
+					Type: token.TokMap.Type("char_lit"),
 					Lit:  []byte("'0'"),
 					Pos:  token.Pos{Offset: 75},
 				},
@@ -2391,7 +2391,7 @@ func TestLexer(t *testing.T) {
 					Pos:  token.Pos{Offset: 84},
 				},
 				{
-					Type: token.TokMap.Type("int_lit"), // TODO: Figure out if char_lit and int_lit should be separate tokens.
+					Type: token.TokMap.Type("char_lit"),
 					Lit:  []byte("'a'"),
 					Pos:  token.Pos{Offset: 86},
 				},
@@ -2411,7 +2411,7 @@ func TestLexer(t *testing.T) {
 					Pos:  token.Pos{Offset: 95},
 				},
 				{
-					Type: token.TokMap.Type("int_lit"), // TODO: Figure out if char_lit and int_lit should be separate tokens.
+					Type: token.TokMap.Type("char_lit"),
 					Lit:  []byte("' '"),
 					Pos:  token.Pos{Offset: 97},
 				},
@@ -2431,7 +2431,7 @@ func TestLexer(t *testing.T) {
 					Pos:  token.Pos{Offset: 106},
 				},
 				{
-					Type: token.TokMap.Type("int_lit"), // TODO: Figure out if char_lit and int_lit should be separate tokens.
+					Type: token.TokMap.Type("char_lit"),
 					Lit:  []byte(`'\n'`),
 					Pos:  token.Pos{Offset: 108},
 				},

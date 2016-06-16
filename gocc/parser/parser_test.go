@@ -1207,7 +1207,7 @@ func TestParserError(t *testing.T) {
 	}{
 		{
 			path: "../../testdata/incorrect/parser/pe01.c",
-			want: `102: unexpected ")", expected ["!" "(" "-" "ident" "int_lit"]`,
+			want: `102: unexpected ")", expected ["!" "(" "-" "char_lit" "ident" "int_lit"]`,
 		},
 		{
 			path: "../../testdata/incorrect/parser/pe02.c",
@@ -1215,7 +1215,7 @@ func TestParserError(t *testing.T) {
 		},
 		{
 			path: "../../testdata/incorrect/parser/pe03.c",
-			want: `129: unexpected "}", expected ["!" "(" "-" ";" "ident" "if" "int_lit" "return" "while" "{"]`,
+			want: `129: unexpected "}", expected ["!" "(" "-" ";" "char_lit" "ident" "if" "int_lit" "return" "while" "{"]`,
 		},
 		{
 			path: "../../testdata/incorrect/parser/pe04.c",
@@ -1247,7 +1247,7 @@ func TestParserError(t *testing.T) {
 		},
 		{
 			path: "../../testdata/incorrect/parser/pe10.c",
-			want: `135: unexpected ")", expected ["!" "(" "-" "ident" "int_lit"]`,
+			want: `135: unexpected ")", expected ["!" "(" "-" "char_lit" "ident" "int_lit"]`,
 		},
 		{
 			path: "../../testdata/incorrect/parser/pe11.c",
