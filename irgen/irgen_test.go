@@ -143,6 +143,11 @@ func TestGen(t *testing.T) {
 			path: "../testdata/extra/irgen/call_expr.c",
 			want: "../testdata/extra/irgen/call_expr.ll",
 		},
+		// Expression statements.
+		{
+			path: "../testdata/extra/irgen/expr_stmt.c",
+			want: "../testdata/extra/irgen/expr_stmt.ll",
+		},
 	}
 
 	for _, g := range golden {
