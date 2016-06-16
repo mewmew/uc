@@ -3,6 +3,7 @@ int g(char a, char b) {
 }
 
 int f() {
-	int x, y;
+	int x;
+	int y;
 	return g(y, x);
 }

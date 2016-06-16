@@ -154,6 +154,7 @@ func TestGen(t *testing.T) {
 		{
 			path: "../testdata/extra/irgen/call_expr_multi_args_cast.c",
 			want: "../testdata/extra/irgen/call_expr_multi_args_cast.ll",
+		},
 		// Expression statements.
 		{
 			path: "../testdata/extra/irgen/expr_stmt.c",

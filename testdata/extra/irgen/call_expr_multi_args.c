@@ -3,6 +3,7 @@ int g(int a, int b) {
 }
 
 int f() {
-	int x, y;
+	int x;
+	int y;
 	return g(y, x);
 }
