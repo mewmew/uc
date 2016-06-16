@@ -37,6 +37,24 @@ func isTentativeDef(n ast.Decl) bool {
 	return ident.Start() != def.Start()
 }
 
+// genUnique generates a unique local variable name based on the given
+// identifier.
+func (f *Function) genUnique(ident *ast.Ident) string {
+	name := ident.Name
+	if !f.exists[name] {
+		f.exists[name] = true
+		return name
+	}
+	for i := 1; ; i++ {
+		name := fmt.Sprintf("%s%d", ident.Name, i)
+		if !f.exists[name] {
+			f.exists[name] = true
+			return name
+		}
+	}
+	panic("unreachable")
+}
+
 // valueFromIdent returns the LLVM IR value associated with the given
 // identifier. Only search for global values if f is nil.
 func (m *Module) valueFromIdent(f *Function, ident *ast.Ident) value.Value {

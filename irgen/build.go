@@ -54,6 +54,8 @@ type Function struct {
 	curBlock *BasicBlock
 	// Maps from identifier source code position to the associated value.
 	idents map[int]value.Value
+	// Map of existing local variable names.
+	exists map[string]bool
 }
 
 // NewFunction returns a new function generator based on the given function name
@@ -62,7 +64,7 @@ type Function struct {
 // The caller is responsible for initializing basic blocks.
 func NewFunction(name string, sig *irtypes.Func) *Function {
 	f := ir.NewFunction(name, sig)
-	return &Function{Function: f, idents: make(map[int]value.Value)}
+	return &Function{Function: f, idents: make(map[int]value.Value), exists: make(map[string]bool)}
 }
 
 // startBody initializes the generation of the function body.
@@ -127,9 +129,8 @@ func (b *BasicBlock) emitInst(inst instruction.ValueInst) value.Value {
 
 // emitLocal emits to b the given named value instruction.
 func (b *BasicBlock) emitLocal(ident *ast.Ident, inst instruction.ValueInst) value.Value {
-	// TODO: Create a unique name allocator for identifiers; and make use
-	// throughout irgen.
-	v := instruction.NewLocalVarDef(ident.Name, inst)
+	name := b.parent.genUnique(ident)
+	v := instruction.NewLocalVarDef(name, inst)
 	b.AppendInst(v)
 	b.parent.setIdentValue(ident, v)
 	return v

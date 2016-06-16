@@ -106,6 +106,10 @@ func (m *Module) funcBody(f *Function, params []*ast.VarDecl, body *ast.BlockStm
 		// map from the parameter "a" to the allocated local variable "%1".
 		dbg.Printf("create function parameter: %v", params[i])
 		ident := params[i].Name()
+		got := f.genUnique(ident)
+		if ident.Name != got {
+			panic(fmt.Sprintf("unable to generate identical function parameter name; expected %q, got %q", ident, got))
+		}
 		f.setIdentValue(ident, p)
 	}
 
