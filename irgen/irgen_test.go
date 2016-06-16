@@ -22,10 +22,10 @@ func TestGen(t *testing.T) {
 			path: "../testdata/extra/irgen/int_ident_use.c",
 			want: "../testdata/extra/irgen/int_ident_use.ll",
 		},
-		//{
-		//	path: "../testdata/extra/irgen/int_ident_def.c",
-		//	want: "../testdata/extra/irgen/int_ident_def.ll",
-		//},
+		{
+			path: "../testdata/extra/irgen/int_ident_def.c",
+			want: "../testdata/extra/irgen/int_ident_def.ll",
+		},
 		{
 			path: "../testdata/extra/irgen/array_ident_use.c",
 			want: "../testdata/extra/irgen/array_ident_use.ll",

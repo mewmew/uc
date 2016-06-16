@@ -603,9 +603,9 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 		y := m.expr(f, n.Y)
 		switch expr := n.X.(type) {
 		case *ast.Ident:
-			m.identDef(f, expr)
+			m.identDef(f, expr, y)
 		case *ast.IndexExpr:
-			m.indexExprDef(f, expr)
+			m.indexExprDef(f, expr, y)
 		default:
 			panic(fmt.Sprintf("support for assignment to type %T not yet implemented", expr))
 		}
@@ -683,15 +683,13 @@ func isRef(typ irtypes.Type) bool {
 
 // identDef lowers the given identifier definition to LLVM IR, emitting code to
 // f.
-func (m *Module) identDef(f *Function, ident *ast.Ident) value.Value {
-	// Store.
-	switch typ := m.typeOf(ident).(type) {
-	case *irtypes.Array:
-	case *irtypes.Pointer:
-	default:
-		panic(fmt.Sprintf("support for type %T not yet implemented", typ))
+func (m *Module) identDef(f *Function, ident *ast.Ident, v value.Value) {
+	addr := m.ident(f, ident)
+	storeInst, err := instruction.NewStore(v, addr)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create store instruction; %v", err))
 	}
-	panic("unreachable")
+	f.curBlock.AppendInst(storeInst)
 }
 
 // indexExpr lowers the given index expression to LLVM IR, emitting code to f.
@@ -707,7 +705,7 @@ func (m *Module) indexExprUse(f *Function, n *ast.IndexExpr) value.Value {
 
 // indexExprDef lowers the given identifier expression definition to LLVM IR,
 // emitting code to f.
-func (m *Module) indexExprDef(f *Function, n *ast.IndexExpr) value.Value {
+func (m *Module) indexExprDef(f *Function, n *ast.IndexExpr, v value.Value) {
 	panic("indexExprDef: not yet implemented")
 }
 
