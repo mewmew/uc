@@ -38,15 +38,19 @@ func deduce(file *ast.File, exprTypes map[ast.Expr]types.Type) error {
 func typeOf(n ast.Expr) (types.Type, error) {
 	switch n := n.(type) {
 	case *ast.BasicLit:
+		// "The type of an integer constant is the first of the corresponding
+		// list in which its value can be represented." [C99 draft 6.4.4.1.5]
 		switch n.Kind {
 		case token.CharLit:
-			return &types.Basic{Kind: types.Char}, nil
+			// "An integer character constant has type int." [C99 draft 6.4.4.4.10]
+			return &types.Basic{Kind: types.Int}, nil
 		case token.IntLit:
 			return &types.Basic{Kind: types.Int}, nil
 		default:
 			panic(fmt.Sprintf("support for basic literal type %v not yet implemented", n.Kind))
 		}
 	case *ast.BinaryExpr:
+		// See [C99 draft 6.3.1.8 Usual arithmetic conversions]
 		xType, err := typeOf(n.X)
 		if err != nil {
 			return nil, errutil.Err(err)
@@ -76,6 +80,7 @@ func typeOf(n ast.Expr) (types.Type, error) {
 		// promote types early when implementing signed/unsigned types and
 		// types need to be promoted anyway later. Be careful of bug:
 		// https://youtu.be/Ux0YnVEaI6A?t=279
+		// Implement according to [C99 draft 6.3.1.8 Usual arithmetic conversions]
 		return higherPrecision(xType, yType), nil
 	case *ast.CallExpr:
 		typ := n.Name.Decl.Type()
@@ -105,7 +110,7 @@ func typeOf(n ast.Expr) (types.Type, error) {
 // tried and failed).
 
 // isAssignable reports whether the given expression is assignable (i.e. a valid
-// lvalue).
+// lvalue). See [C99 draft 6.3.2.1 Lvalues, arrays, and function designators]
 func isAssignable(x ast.Expr) bool {
 	switch x := x.(type) {
 	case *ast.BasicLit:
@@ -139,8 +144,9 @@ func isAssignable(x ast.Expr) bool {
 
 // higherPrecision returns the type of higher precision.
 func higherPrecision(t, u types.Type) types.Type {
-	// TODO: Implement with a list of types sorted by precision when support for
-	// more types are added.
+	// TODO: Implement with a list of types sorted by precision when support
+	// for more types are added.
+	// Implement according to [C99 draft 6.3.1.8 Usual arithmetic conversions]
 	if t, ok := t.(*types.Basic); ok {
 		if u, ok := u.(*types.Basic); ok {
 			if t.Kind == types.Void || u.Kind == types.Void {
