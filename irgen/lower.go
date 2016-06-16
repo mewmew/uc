@@ -376,9 +376,25 @@ func (m *Module) expr(f *Function, expr ast.Expr) value.Value {
 	case *ast.CallExpr:
 		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
 	case *ast.Ident:
-		return m.ident(f, expr)
+		ptr := m.ident(f, expr)
+		elemType := m.typeOf(expr)
+		loadInst, err := instruction.NewLoad(elemType, ptr)
+		if err != nil {
+			panic(fmt.Sprintf("unable to create local instruction; %v", err))
+		}
+		// Emit load instruction.
+		return f.emitInst(loadInst)
 	case *ast.IndexExpr:
-		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
+		ptr := m.indexExpr(f, expr)
+		ptrType, ok := ptr.Type().(*irtypes.Pointer)
+		if !ok {
+			panic(fmt.Sprintf("invalid pointer type; expected *types.Pointer, got %T", ptr.Type()))
+		}
+		loadInst, err := instruction.NewLoad(ptrType.Elem(), ptr)
+		if err != nil {
+			panic(fmt.Sprintf("unable to create load instruction; %v", err))
+		}
+		return f.emitInst(loadInst)
 	case *ast.ParenExpr:
 		return m.expr(f, expr.X)
 	case *ast.UnaryExpr:
@@ -601,11 +617,15 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 	// =
 	case token.Assign:
 		y := m.expr(f, n.Y)
-		ident, ok := n.X.(*ast.Ident)
-		if !ok {
-			panic(fmt.Sprintf("support for assignment to type %T not yet implemented", n.X))
+		var x value.Value
+		switch expr := n.X.(type) {
+		case *ast.Ident:
+			x = m.ident(f, expr)
+		case *ast.IndexExpr:
+			x = m.indexExpr(f, expr)
+		default:
+			panic(fmt.Sprintf("support for assignment to type %T not yet implemented", expr))
 		}
-		x := m.valueFromIdent(f, ident)
 		storeInst, err := instruction.NewStore(y, x)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create store instruction; %v", err))
@@ -628,14 +648,35 @@ func (m *Module) ident(f *Function, ident *ast.Ident) value.Value {
 	//    }
 	// Output:
 	//    %1 = load i32, i32* %x
-	typ := m.typeOf(ident)
-	addr := m.valueFromIdent(f, ident)
-	loadInst, err := instruction.NewLoad(typ, addr)
+	return m.valueFromIdent(f, ident)
+}
+
+// indexExpr lowers the given index expression to LLVM IR, emitting code to f.
+func (m *Module) indexExpr(f *Function, n *ast.IndexExpr) value.Value {
+	// Input:
+	//    void f() {
+	//       int a[5];
+	//       a[0] = 1;        // <-- relevant line
+	//    }
+	// Output:
+	//    %1 = getelementptr [5 x i32], [5 x i32]* %a, i64 0, i64 0
+	//    store i32 1, i32* %1
+	index := m.expr(f, n.Index)
+	// TODO: Use zext for unsigned values and sext for signed values.
+	sextInst, err := instruction.NewSExt(index, irtypes.I64)
 	if err != nil {
-		panic(fmt.Sprintf("unable to create local instruction; %v", err))
+		panic(fmt.Sprintf("unable to create sext instruction; %v", err))
 	}
-	// Emit load instruction.
-	return f.emitInst(loadInst)
+	index = f.emitInst(sextInst)
+	typ := m.typeOf(n.Name)
+	array := m.valueFromIdent(f, n.Name)
+	zero := constZero(irtypes.I64)
+	indices := []value.Value{zero, index}
+	gepInst, err := instruction.NewGetElementPtr(typ, array, indices)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create getelementptr instruction; %v", err))
+	}
+	return f.emitInst(gepInst)
 }
 
 // unaryExpr lowers the given unary expression to LLVM IR, emitting code to f.
