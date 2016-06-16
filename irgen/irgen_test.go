@@ -43,6 +43,10 @@ func TestGen(t *testing.T) {
 			path: "../testdata/extra/irgen/expr_ret.c",
 			want: "../testdata/extra/irgen/expr_ret.ll",
 		},
+		{
+			path: "../testdata/extra/irgen/global_ret.c",
+			want: "../testdata/extra/irgen/global_ret.ll",
+		},
 		// Local variable declarations.
 		{
 			path: "../testdata/extra/irgen/local_def.c",

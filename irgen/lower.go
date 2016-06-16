@@ -106,7 +106,7 @@ func (m *Module) funcBody(f *Function, params []*ast.VarDecl, body *ast.BlockStm
 		// map from the parameter "a" to the allocated local variable "%1".
 		dbg.Printf("create function parameter: %v", params[i])
 		ident := params[i].Name()
-		f.locals[ident.Name] = p
+		f.setIdentValue(ident, p)
 	}
 
 	// Generate function body.
@@ -152,7 +152,7 @@ func (m *Module) globalVarDecl(n *ast.VarDecl) {
 	//    int x;
 	// Output:
 	//    @x = global i32 0
-	name := n.Name().Name
+	ident := n.Name()
 	dbg.Printf("create global variable: %v", n)
 	typ := toIrType(n.Type())
 	var val value.Value
@@ -168,7 +168,11 @@ func (m *Module) globalVarDecl(n *ast.VarDecl) {
 	default:
 		val = constant.NewZeroInitializer(typ)
 	}
-	global := ir.NewGlobalDef(name, val, false)
+	global, err := ir.NewGlobalDef(ident.Name, val, false)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create global variable definition %q", ident))
+	}
+	m.setIdentValue(ident, global)
 	// Emit global variable definition.
 	m.emitGlobal(global)
 }
@@ -201,7 +205,7 @@ func (m *Module) localVarDef(f *Function, n *ast.VarDecl) {
 		panic(fmt.Sprintf("unable to create alloca instruction; %v", err))
 	}
 	// Emit local variable definition.
-	f.emitLocal(ident.Name, allocaInst)
+	f.emitLocal(ident, allocaInst)
 	if n.Val != nil {
 		panic("support for local variable definition initializer not yet implemented")
 	}
@@ -598,7 +602,7 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 		if !ok {
 			panic(fmt.Sprintf("support for assignment to type %T not yet implemented", n.X))
 		}
-		x := f.local(ident.Name)
+		x := m.valueFromIdent(f, ident)
 		storeInst, err := instruction.NewStore(y, x)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create store instruction; %v", err))
@@ -622,7 +626,7 @@ func (m *Module) ident(f *Function, ident *ast.Ident) value.Value {
 	// Output:
 	//    %1 = load i32, i32* %x
 	typ := m.typeOf(ident)
-	addr := f.local(ident.Name)
+	addr := m.valueFromIdent(f, ident)
 	loadInst, err := instruction.NewLoad(typ, addr)
 	if err != nil {
 		panic(fmt.Sprintf("unable to create local instruction; %v", err))

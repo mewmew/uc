@@ -11,6 +11,7 @@ import (
 	"github.com/llir/llvm/ir/value"
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewkiz/pkg/term"
+	"github.com/mewmew/uc/ast"
 	"github.com/mewmew/uc/sem"
 )
 
@@ -25,12 +26,14 @@ type Module struct {
 	*ir.Module
 	// info holds semantic information about the program from the type-checker.
 	info *sem.Info
+	// Maps from identifier source code position to the associated value.
+	idents map[int]value.Value
 }
 
 // NewModule returns a new module generator.
 func NewModule(info *sem.Info) *Module {
 	m := ir.NewModule()
-	return &Module{Module: m, info: info}
+	return &Module{Module: m, info: info, idents: make(map[int]value.Value)}
 }
 
 // emitFunc emits to m the given function.
@@ -49,12 +52,8 @@ type Function struct {
 	*ir.Function
 	// Current basic block being generated.
 	curBlock *BasicBlock
-
-	// TODO: Refine locals to map from *ast.Ident or ast.Pos to value.Value, thus
-	// supporting nested variables of the same name.
-
-	// Local variables.
-	locals map[string]value.Value
+	// Maps from identifier source code position to the associated value.
+	idents map[int]value.Value
 }
 
 // NewFunction returns a new function generator based on the given function name
@@ -63,7 +62,7 @@ type Function struct {
 // The caller is responsible for initializing basic blocks.
 func NewFunction(name string, sig *irtypes.Func) *Function {
 	f := ir.NewFunction(name, sig)
-	return &Function{Function: f, locals: make(map[string]value.Value)}
+	return &Function{Function: f, idents: make(map[int]value.Value)}
 }
 
 // startBody initializes the generation of the function body.
@@ -99,8 +98,8 @@ func (f *Function) emitInst(inst instruction.ValueInst) value.Value {
 }
 
 // emitLocal emits to f the given named value instruction.
-func (f *Function) emitLocal(name string, inst instruction.ValueInst) value.Value {
-	return f.curBlock.emitLocal(name, inst)
+func (f *Function) emitLocal(ident *ast.Ident, inst instruction.ValueInst) value.Value {
+	return f.curBlock.emitLocal(ident, inst)
 }
 
 // A BasicBlock represents an LLVM IR basic block generator.
@@ -121,15 +120,19 @@ func (f *Function) NewBasicBlock(name string) *BasicBlock {
 
 // emitInst emits to b the given unnamed value instruction.
 func (b *BasicBlock) emitInst(inst instruction.ValueInst) value.Value {
-	return b.emitLocal("", inst)
+	v := instruction.NewLocalVarDef("", inst)
+	b.AppendInst(v)
+	return v
 }
 
 // emitLocal emits to b the given named value instruction.
-func (b *BasicBlock) emitLocal(name string, inst instruction.ValueInst) value.Value {
-	def := instruction.NewLocalVarDef(name, inst)
-	b.AppendInst(def)
-	b.parent.locals[name] = def
-	return def
+func (b *BasicBlock) emitLocal(ident *ast.Ident, inst instruction.ValueInst) value.Value {
+	// TODO: Create a unique name allocator for identifiers; and make use
+	// throughout irgen.
+	v := instruction.NewLocalVarDef(ident.Name, inst)
+	b.AppendInst(v)
+	b.parent.setIdentValue(ident, v)
+	return v
 }
 
 // TODO: Consider changing the type of target from value.NamedValue to

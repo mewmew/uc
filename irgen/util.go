@@ -37,14 +37,37 @@ func isTentativeDef(n ast.Decl) bool {
 	return ident.Start() != def.Start()
 }
 
-// TODO: Change type of name from string to *ast.Ident or ast.Pos.
-
-// getLocal returns the LLVM IR value of the given local variable name.
-func (f *Function) local(name string) value.Value {
-	if v, ok := f.locals[name]; ok {
+// valueFromIdent returns the LLVM IR value associated with the given
+// identifier. Only search for global values if f is nil.
+func (m *Module) valueFromIdent(f *Function, ident *ast.Ident) value.Value {
+	pos := ident.Decl.Name().Start()
+	if v, ok := m.idents[pos]; ok {
 		return v
 	}
-	panic(fmt.Sprintf("unable to locate local variable %q", name))
+	if f != nil {
+		if v, ok := f.idents[pos]; ok {
+			return v
+		}
+	}
+	panic(fmt.Sprintf("unable to locate value associated with identifier %q (declared at source code position %d)", ident, pos))
+}
+
+// setIdentValue maps the given global identifier to the associated value.
+func (m *Module) setIdentValue(ident *ast.Ident, v value.Value) {
+	pos := ident.Decl.Name().Start()
+	if old, ok := m.idents[pos]; ok {
+		panic(fmt.Sprintf("unable to map identifier %q to value %v; already mapped to value %v", ident, v, old))
+	}
+	m.idents[pos] = v
+}
+
+// setIdentValue maps the given local identifier to the associated value.
+func (f *Function) setIdentValue(ident *ast.Ident, v value.Value) {
+	pos := ident.Decl.Name().Start()
+	if old, ok := f.idents[pos]; ok {
+		panic(fmt.Sprintf("unable to map identifier %q to value %v; already mapped to value %v", ident, v, old))
+	}
+	f.idents[pos] = v
 }
 
 // typeOf returns the LLVM IR type of the given expression.
