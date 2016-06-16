@@ -374,7 +374,7 @@ func (m *Module) expr(f *Function, expr ast.Expr) value.Value {
 	case *ast.BinaryExpr:
 		return m.binaryExpr(f, expr)
 	case *ast.CallExpr:
-		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
+		return m.callExpr(f, expr)
 	case *ast.Ident:
 		ptr := m.ident(f, expr)
 		elemType := m.typeOf(expr)
@@ -637,6 +637,24 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 		panic(fmt.Sprintf("support for binary operator %v not yet implemented", n.Op))
 	}
 	panic("unreachable")
+}
+
+// callExpr lowers the given identifier to LLVM IR, emitting code to f.
+func (m *Module) callExpr(f *Function, callExpr *ast.CallExpr) value.Value {
+	// val := m.valueFromIdent(f, callExpr.Name.Decl.Name())
+	// typ := val.Type().(*irtypes.Func)
+	typ := toIrType(callExpr.Name.Decl.Type()).(*irtypes.Func)
+	var args []value.Value
+	for _, arg := range callExpr.Args {
+		expr := m.expr(f, arg)
+		args = append(args, expr)
+		// TODO: Add cast
+	}
+	inst, err := instruction.NewCall(typ.Result(), callExpr.Name.String(), args)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create call instruction; %v", err))
+	}
+	return f.emitInst(inst)
 }
 
 // ident lowers the given identifier to LLVM IR, emitting code to f.
