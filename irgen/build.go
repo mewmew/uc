@@ -166,3 +166,11 @@ func (b *BasicBlock) emitJmp(target value.NamedValue) {
 	}
 	b.SetTerm(term)
 }
+
+// SetTerm sets the terminator of the basic block.
+func (b *BasicBlock) SetTerm(term instruction.Terminator) {
+	if b.Term() != nil {
+		panic(fmt.Sprintf("terminator instruction already set for basic block; old term (%v), new term (%v), basic block (%v)", term, b.Term(), b))
+	}
+	b.BasicBlock.SetTerm(term)
+}
