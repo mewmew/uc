@@ -198,9 +198,15 @@ func TestGen(t *testing.T) {
 			want: "../testdata/extra/irgen/array_arg.ll",
 		},
 		// Array parameters.
+		// TODO: Re-enable.
+		//{
+		//	path: "../testdata/extra/irgen/array_param.c",
+		//	want: "../testdata/extra/irgen/array_param.ll",
+		//},
+		// Bug fixes.
 		{
-			path: "../testdata/extra/irgen/array_param.c",
-			want: "../testdata/extra/irgen/array_param.ll",
+			path: "../testdata/extra/irgen/issue_68.c",
+			want: "../testdata/extra/irgen/issue_68.ll",
 		},
 	}
 
