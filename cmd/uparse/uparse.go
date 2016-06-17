@@ -38,11 +38,11 @@ If FILE is -, read standard input.
 
 func main() {
 	var (
-		// hand specifies whether to use the hand-written lexer, instead of the
-		// Gocc generated.
-		hand bool
+		// gocc specifies whether to use the gocc generated lexer, instead of the
+		// hand-written lexer.
+		gocc bool
 	)
-	flag.BoolVar(&hand, "hand", true, "use hand-written lexer")
+	flag.BoolVar(&gocc, "gocc", false, "use gocc lexer")
 	flag.Usage = usage
 	flag.Parse()
 	if flag.NArg() == 0 {
@@ -52,7 +52,7 @@ func main() {
 
 	// Parse input.
 	for _, path := range flag.Args() {
-		err := parseFile(path, hand)
+		err := parseFile(path, !gocc)
 		if err != nil {
 			log.Print(err)
 		}
