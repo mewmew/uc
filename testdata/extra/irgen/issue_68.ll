@@ -1,21 +1,18 @@
-define i32 @main() {
+define void @f() {
 0:
-	%1 = alloca i32
 	%a = alloca i32
-	store i32 0, i32* %1
-	%2 = load i32, i32* %a
-	%3 = icmp ne i32 %2, 0
-	br i1 %3, label %4, label %9
-4:
-	%5 = load i32, i32* %a
-	%6 = icmp ne i32 %5, 0
-	br i1 %6, label %7, label %8
-7:
+	%1 = load i32, i32* %a
+	%2 = icmp ne i32 %1, 0
+	br i1 %2, label %3, label %8
+3:
+	%4 = load i32, i32* %a
+	%5 = icmp ne i32 %4, 0
+	br i1 %5, label %6, label %7
+6:
 	store i32 42, i32* %a
+	br label %7
+7:
 	br label %8
 8:
-	br label %9
-9:
-	%10 = load i32, i32* %1
-	ret i32 %10
+	ret void
 }
