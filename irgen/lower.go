@@ -273,26 +273,25 @@ func (m *Module) exprStmt(f *Function, stmt *ast.ExprStmt) {
 func (m *Module) ifStmt(f *Function, stmt *ast.IfStmt) {
 	cond := m.cond(f, stmt.Cond)
 	trueBranch := f.NewBasicBlock("")
-	falseBranch := f.NewBasicBlock("")
+	end := f.NewBasicBlock("")
+	falseBranch := end
+	if stmt.Else != nil {
+		falseBranch = f.NewBasicBlock("")
+	}
 	term, err := instruction.NewBr(cond, trueBranch, falseBranch)
 	if err != nil {
 		panic(fmt.Sprintf("unable to create br terminator; %v", err))
 	}
 	f.curBlock.SetTerm(term)
 	f.curBlock = trueBranch
-
 	m.stmt(f, stmt.Body)
-	end := falseBranch
-	f.curBlock = falseBranch
-
+	f.curBlock.emitJmp(end)
 	if stmt.Else != nil {
+		f.curBlock = falseBranch
 		m.stmt(f, stmt.Else)
-		end = f.NewBasicBlock("")
-		falseBranch.emitJmp(end)
-		f.curBlock = end
+		f.curBlock.emitJmp(end)
 	}
-
-	trueBranch.emitJmp(end)
+	f.curBlock = end
 }
 
 // returnStmt lowers the given return statement to LLVM IR, emitting code to f.

@@ -134,7 +134,6 @@ type BasicBlock struct {
 // parent function.
 func (f *Function) NewBasicBlock(name string) *BasicBlock {
 	block := ir.NewBasicBlock(name)
-	f.AppendBlock(block)
 	return &BasicBlock{BasicBlock: block, parent: f}
 }
 
@@ -173,4 +172,5 @@ func (b *BasicBlock) SetTerm(term instruction.Terminator) {
 		panic(fmt.Sprintf("terminator instruction already set for basic block; old term (%v), new term (%v), basic block (%v)", term, b.Term(), b))
 	}
 	b.BasicBlock.SetTerm(term)
+	b.parent.AppendBlock(b.BasicBlock)
 }

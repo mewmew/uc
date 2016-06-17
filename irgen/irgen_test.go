@@ -205,8 +205,12 @@ func TestGen(t *testing.T) {
 		//},
 		// Bug fixes.
 		{
-			path: "../testdata/extra/irgen/issue_68.c",
-			want: "../testdata/extra/irgen/issue_68.ll",
+			path: "../testdata/extra/irgen/issue_68_nested_if.c",
+			want: "../testdata/extra/irgen/issue_68_nested_if.ll",
+		},
+		{
+			path: "../testdata/extra/irgen/issue_68_nested_if_while.c",
+			want: "../testdata/extra/irgen/issue_68_nested_if_while.ll",
 		},
 	}
 
