@@ -331,11 +331,7 @@ func (m *Module) returnStmt(f *Function, stmt *ast.ReturnStmt) {
 // whileStmt lowers the given while statement to LLVM IR, emitting code to f.
 func (m *Module) whileStmt(f *Function, stmt *ast.WhileStmt) {
 	condBranch := f.NewBasicBlock("")
-	condJmp, err := instruction.NewJmp(condBranch)
-	if err != nil {
-		panic(fmt.Sprintf("unable to create jmp terminator; %v", err))
-	}
-	f.curBlock.SetTerm(condJmp)
+	f.curBlock.emitJmp(condBranch)
 	f.curBlock = condBranch
 	cond := m.cond(f, stmt.Cond)
 	bodyBranch := f.NewBasicBlock("")
@@ -346,10 +342,12 @@ func (m *Module) whileStmt(f *Function, stmt *ast.WhileStmt) {
 	}
 	f.curBlock.SetTerm(term)
 	f.curBlock = bodyBranch
-
 	m.stmt(f, stmt.Body)
-
-	f.curBlock.SetTerm(condJmp)
+	// Emit jump if body doesn't end with return statement (i.e. the current
+	// basic block is none nil).
+	if f.curBlock != nil {
+		f.curBlock.emitJmp(condBranch)
+	}
 	f.curBlock = endBranch
 }
 
