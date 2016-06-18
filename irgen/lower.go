@@ -591,20 +591,25 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 
 // callExpr lowers the given identifier to LLVM IR, emitting code to f.
 func (m *Module) callExpr(f *Function, callExpr *ast.CallExpr) value.Value {
-	// val := m.valueFromIdent(f, callExpr.Name.Decl.Name())
-	// typ := val.Type().(*irtypes.Func)
-	typ := toIrType(callExpr.Name.Decl.Type()).(*irtypes.Func)
-	var args []value.Value
-	for _, arg := range callExpr.Args {
-		expr := m.expr(f, arg)
-		args = append(args, expr)
-		// TODO: Add cast
+	typ := toIrType(callExpr.Name.Decl.Type())
+	sig, ok := typ.(*irtypes.Func)
+	if !ok {
+		panic(fmt.Sprintf("invalid function type; expected *types.Func, got %T", typ))
 	}
-	inst, err := instruction.NewCall(typ.Result(), callExpr.Name.String(), args)
+	params := sig.Params()
+	result := sig.Result()
+	var args []value.Value
+	// TODO: Add support for variadic arguments.
+	for i, arg := range callExpr.Args {
+		expr := m.expr(f, arg)
+		expr = m.convert(f, expr, params[i].Type())
+		args = append(args, expr)
+	}
+	callInst, err := instruction.NewCall(result, callExpr.Name.String(), args)
 	if err != nil {
 		panic(fmt.Sprintf("unable to create call instruction; %v", err))
 	}
-	return f.emitInst(inst)
+	return f.emitInst(callInst)
 }
 
 // ident lowers the given identifier to LLVM IR, emitting code to f.
