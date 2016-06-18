@@ -285,11 +285,19 @@ func (m *Module) ifStmt(f *Function, stmt *ast.IfStmt) {
 	f.curBlock.SetTerm(term)
 	f.curBlock = trueBranch
 	m.stmt(f, stmt.Body)
-	f.curBlock.emitJmp(end)
+	// Emit jump if body doesn't end with return statement (i.e. the current
+	// basic block is none nil).
+	if f.curBlock != nil {
+		f.curBlock.emitJmp(end)
+	}
 	if stmt.Else != nil {
 		f.curBlock = falseBranch
 		m.stmt(f, stmt.Else)
-		f.curBlock.emitJmp(end)
+		// Emit jump if body doesn't end with return statement (i.e. the current
+		// basic block is none nil).
+		if f.curBlock != nil {
+			f.curBlock.emitJmp(end)
+		}
 	}
 	f.curBlock = end
 }
