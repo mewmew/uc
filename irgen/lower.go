@@ -629,7 +629,6 @@ func (m *Module) callExpr(f *Function, callExpr *ast.CallExpr) value.Value {
 	typ := toIrType(callExpr.Name.Decl.Type()).(*irtypes.Func)
 	var args []value.Value
 	for _, arg := range callExpr.Args {
-		fmt.Printf("arg: %T, %#v\n", arg, arg)
 		expr := m.expr(f, arg)
 		args = append(args, expr)
 		// TODO: Add cast

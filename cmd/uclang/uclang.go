@@ -19,7 +19,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/kr/pretty"
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewkiz/pkg/ioutilx"
 	"github.com/mewmew/uc/ast"
@@ -128,9 +127,8 @@ func compileFile(path string, goccLexer bool) error {
 		return errutil.Err(err)
 	}
 
+	// Generate LLVM IR module based on the syntax tree of the given file.
 	module := irgen.Gen(file, info)
-	log.Println("=== [ Pretty module ] ===\n")
-	pretty.Println(module)
 	log.Println("=== [ LLVM IR module ] ===\n")
 	fmt.Println(module)
 
