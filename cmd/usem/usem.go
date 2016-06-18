@@ -5,8 +5,12 @@
 //
 // If FILE is -, read standard input.
 //
-//   -hand
-//        use hand-written lexer (default true)
+//   -gocc-lexer
+//        use Gocc generated lexer
+//   -no-colors
+//        disable colors in output
+//   -no-nested-functions
+//        disable support for nested functions
 package main
 
 import (
@@ -39,15 +43,18 @@ If FILE is -, read standard input.
 
 func main() {
 	var (
-		// hand specifies whether to use the hand-written lexer, instead of the
-		// Gocc generated.
-		hand bool
+		// goccLexer specifies whether to use the Gocc generated lexer, instead of
+		// the hand-written lexer.
+		goccLexer bool
+		// noColors specifies whether to disable colors in output.
+		noColors bool
 	)
-	flag.BoolVar(&hand, "hand", true, "use hand-written lexer")
-	flag.BoolVar(&semerrors.UseColor, "colors", true, "use colors in output")
-	flag.BoolVar(&semcheck.NoNestedFunctions, "no-nested-functions", false, "use colors in output")
+	flag.BoolVar(&goccLexer, "gocc-lexer", false, "use Gocc generated lexer")
+	flag.BoolVar(&noColors, "no-colors", false, "disable colors in output")
+	flag.BoolVar(&semcheck.NoNestedFunctions, "no-nested-functions", false, "disable support for nested functions")
 	flag.Usage = usage
 	flag.Parse()
+	semerrors.UseColor = !noColors
 	if flag.NArg() == 0 {
 		flag.Usage()
 		os.Exit(1)
@@ -55,7 +62,7 @@ func main() {
 
 	// Parse input.
 	for _, path := range flag.Args() {
-		err := checkFile(path, hand)
+		err := checkFile(path, goccLexer)
 		if err != nil {
 			if _, ok := err.(*semerrors.Error); ok {
 				elog.Print(err)
@@ -67,7 +74,7 @@ func main() {
 }
 
 // checkFile performs a static semantic analysis check on the given file.
-func checkFile(path string, hand bool) error {
+func checkFile(path string, goccLexer bool) error {
 	// Lexical analysis
 	// Syntactic analysis (skip function bodies)
 	// Top-level declarations; used for forward-declarations.
@@ -90,10 +97,10 @@ func checkFile(path string, hand bool) error {
 	}
 	fmt.Fprintf(os.Stderr, "Checking %q\n", path)
 	var s parser.Scanner
-	if hand {
-		s = handscanner.NewFromBytes(buf)
-	} else {
+	if goccLexer {
 		s = goccscanner.NewFromBytes(buf)
+	} else {
+		s = handscanner.NewFromBytes(buf)
 	}
 
 	// Parse input.
