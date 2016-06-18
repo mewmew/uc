@@ -138,13 +138,13 @@ func (m *Module) funcParam(f *Function, param *irtypes.Param) value.Value {
 		panic(fmt.Sprintf("unable to create alloca instruction; %v", err))
 	}
 	// Emit local variable definition for the given function parameter.
-	p := f.emitInst(allocaInst)
-	storeInst, err := instruction.NewStore(param, p)
+	addr := f.emitInst(allocaInst)
+	storeInst, err := instruction.NewStore(param, addr)
 	if err != nil {
 		panic(fmt.Sprintf("unable to create store instruction; %v", err))
 	}
 	f.curBlock.AppendInst(storeInst)
-	return p
+	return addr
 }
 
 // --- [ Global variable declaration ] -----------------------------------------
@@ -320,6 +320,7 @@ func (m *Module) returnStmt(f *Function, stmt *ast.ReturnStmt) {
 		return
 	}
 	result := m.expr(f, stmt.Result)
+	// Implicit conversion.
 	resultType := f.Sig().Result()
 	result = m.convert(f, result, resultType)
 	term, err := instruction.NewRet(result.Type(), result)
@@ -428,6 +429,7 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 	// +
 	case token.Add:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
+		x, y = m.implicitConversion(f, x, y)
 		addInst, err := instruction.NewAdd(x, y)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create add instruction; %v", err))
@@ -438,6 +440,7 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 	// -
 	case token.Sub:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
+		x, y = m.implicitConversion(f, x, y)
 		subInst, err := instruction.NewSub(x, y)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create sub instruction; %v", err))
@@ -448,6 +451,7 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 	// *
 	case token.Mul:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
+		x, y = m.implicitConversion(f, x, y)
 		mulInst, err := instruction.NewMul(x, y)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create mul instruction; %v", err))
@@ -458,6 +462,7 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 	// /
 	case token.Div:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
+		x, y = m.implicitConversion(f, x, y)
 		// TODO: Add support for unsigned division.
 		sdivInst, err := instruction.NewSDiv(x, y)
 		if err != nil {
@@ -469,6 +474,7 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 	// <
 	case token.Lt:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
+		x, y = m.implicitConversion(f, x, y)
 		icmpInst, err := instruction.NewICmp(instruction.ICondSLT, x, y)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
@@ -479,6 +485,7 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 	// >
 	case token.Gt:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
+		x, y = m.implicitConversion(f, x, y)
 		icmpInst, err := instruction.NewICmp(instruction.ICondSGT, x, y)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
@@ -489,6 +496,7 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 	// <=
 	case token.Le:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
+		x, y = m.implicitConversion(f, x, y)
 		icmpInst, err := instruction.NewICmp(instruction.ICondSLE, x, y)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
@@ -499,6 +507,7 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 	// >=
 	case token.Ge:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
+		x, y = m.implicitConversion(f, x, y)
 		icmpInst, err := instruction.NewICmp(instruction.ICondSGE, x, y)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
@@ -509,6 +518,7 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 	// !=
 	case token.Ne:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
+		x, y = m.implicitConversion(f, x, y)
 		icmpInst, err := instruction.NewICmp(instruction.ICondNE, x, y)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
@@ -519,6 +529,7 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 	// ==
 	case token.Eq:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
+		x, y = m.implicitConversion(f, x, y)
 		icmpInst, err := instruction.NewICmp(instruction.ICondEq, x, y)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
@@ -636,6 +647,11 @@ func (m *Module) identUse(f *Function, ident *ast.Ident) value.Value {
 // f.
 func (m *Module) identDef(f *Function, ident *ast.Ident, v value.Value) {
 	addr := m.ident(f, ident)
+	addrType, ok := addr.Type().(*irtypes.Pointer)
+	if !ok {
+		panic(fmt.Sprintf("invalid pointer type; expected *types.Pointer, got %T", addr.Type()))
+	}
+	v = m.convert(f, v, addrType.Elem())
 	storeInst, err := instruction.NewStore(v, addr)
 	if err != nil {
 		panic(fmt.Sprintf("unable to create store instruction; %v", err))

@@ -12,6 +12,20 @@ import (
 	uctypes "github.com/mewmew/uc/types"
 )
 
+// implicitConversion implicitly converts the value of the smallest type to the
+// largest type of x and y, emitting code to f. The new values of x and y are
+// returned.
+func (m *Module) implicitConversion(f *Function, x, y value.Value) (value.Value, value.Value) {
+	// Implicit conversion.
+	switch {
+	case isLarger(x.Type(), y.Type()):
+		y = m.convert(f, y, x.Type())
+	case isLarger(y.Type(), x.Type()):
+		x = m.convert(f, x, y.Type())
+	}
+	return x, y
+}
+
 // convert converts the given value to the specified type, emitting code to f.
 // No conversion is made, if v is already of the correct type.
 func (m *Module) convert(f *Function, v value.Value, to irtypes.Type) value.Value {
@@ -63,6 +77,21 @@ func (m *Module) convert(f *Function, v value.Value, to irtypes.Type) value.Valu
 		panic(fmt.Sprintf("unable to create sext instruction; %v", err))
 	}
 	return f.emitInst(sextInst)
+}
+
+// isLarger reports whether t has higher precision than u.
+func isLarger(t, u irtypes.Type) bool {
+	// A Sizer is a type with a size in number of bits.
+	type Sizer interface {
+		// Size returns the size of t in number of bits.
+		Size() int
+	}
+	if t, ok := t.(Sizer); ok {
+		if u, ok := u.(Sizer); ok {
+			return t.Size() > u.Size()
+		}
+	}
+	return false
 }
 
 // isRef reports whether the given type is a reference type; e.g. pointer or
