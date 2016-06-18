@@ -591,18 +591,20 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 
 // callExpr lowers the given identifier to LLVM IR, emitting code to f.
 func (m *Module) callExpr(f *Function, callExpr *ast.CallExpr) value.Value {
-	result := f.Sig().Result()
+	// val := m.valueFromIdent(f, callExpr.Name.Decl.Name())
+	// typ := val.Type().(*irtypes.Func)
+	typ := toIrType(callExpr.Name.Decl.Type()).(*irtypes.Func)
 	var args []value.Value
 	for _, arg := range callExpr.Args {
 		expr := m.expr(f, arg)
-		// TODO: Add cast
 		args = append(args, expr)
+		// TODO: Add cast
 	}
-	callInst, err := instruction.NewCall(result, callExpr.Name.String(), args)
+	inst, err := instruction.NewCall(typ.Result(), callExpr.Name.String(), args)
 	if err != nil {
 		panic(fmt.Sprintf("unable to create call instruction; %v", err))
 	}
-	return f.emitInst(callInst)
+	return f.emitInst(inst)
 }
 
 // ident lowers the given identifier to LLVM IR, emitting code to f.
