@@ -3,8 +3,8 @@ package irgen
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
-	"os"
 
 	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/instruction"
@@ -19,7 +19,7 @@ import (
 // TODO: Remove debug output.
 
 // dbg is a logger which prefixes debug messages with "irgen:".
-var dbg = log.New(os.Stderr, term.WhiteBold("irgen:"), log.Lshortfile)
+var dbg = log.New(ioutil.Discard, term.WhiteBold("irgen:"), log.Lshortfile)
 
 // A Module represents an LLVM IR module generator.
 type Module struct {
