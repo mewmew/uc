@@ -320,6 +320,8 @@ func (m *Module) returnStmt(f *Function, stmt *ast.ReturnStmt) {
 		return
 	}
 	result := m.expr(f, stmt.Result)
+	resultType := f.Sig().Result()
+	result = m.convert(f, result, resultType)
 	term, err := instruction.NewRet(result.Type(), result)
 	if err != nil {
 		panic(fmt.Sprintf("unable to create ret terminator; %v", err))
@@ -472,13 +474,7 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
 		}
 		// Emit icmp instruction.
-		cond := f.emitInst(icmpInst)
-		zextInst, err := instruction.NewZExt(cond, x.Type())
-		if err != nil {
-			panic(fmt.Sprintf("unable to create zext instruction; %v", err))
-		}
-		// Emit zext instruction.
-		return f.emitInst(zextInst)
+		return f.emitInst(icmpInst)
 
 	// >
 	case token.Gt:
@@ -488,13 +484,7 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
 		}
 		// Emit icmp instruction.
-		cond := f.emitInst(icmpInst)
-		zextInst, err := instruction.NewZExt(cond, x.Type())
-		if err != nil {
-			panic(fmt.Sprintf("unable to create zext instruction; %v", err))
-		}
-		// Emit zext instruction.
-		return f.emitInst(zextInst)
+		return f.emitInst(icmpInst)
 
 	// <=
 	case token.Le:
@@ -504,13 +494,7 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
 		}
 		// Emit icmp instruction.
-		cond := f.emitInst(icmpInst)
-		zextInst, err := instruction.NewZExt(cond, x.Type())
-		if err != nil {
-			panic(fmt.Sprintf("unable to create zext instruction; %v", err))
-		}
-		// Emit zext instruction.
-		return f.emitInst(zextInst)
+		return f.emitInst(icmpInst)
 
 	// >=
 	case token.Ge:
@@ -520,13 +504,7 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
 		}
 		// Emit icmp instruction.
-		cond := f.emitInst(icmpInst)
-		zextInst, err := instruction.NewZExt(cond, x.Type())
-		if err != nil {
-			panic(fmt.Sprintf("unable to create zext instruction; %v", err))
-		}
-		// Emit zext instruction.
-		return f.emitInst(zextInst)
+		return f.emitInst(icmpInst)
 
 	// !=
 	case token.Ne:
@@ -536,13 +514,7 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
 		}
 		// Emit icmp instruction.
-		cond := f.emitInst(icmpInst)
-		zextInst, err := instruction.NewZExt(cond, x.Type())
-		if err != nil {
-			panic(fmt.Sprintf("unable to create zext instruction; %v", err))
-		}
-		// Emit zext instruction.
-		return f.emitInst(zextInst)
+		return f.emitInst(icmpInst)
 
 	// ==
 	case token.Eq:
@@ -552,13 +524,7 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
 		}
 		// Emit icmp instruction.
-		cond := f.emitInst(icmpInst)
-		zextInst, err := instruction.NewZExt(cond, x.Type())
-		if err != nil {
-			panic(fmt.Sprintf("unable to create zext instruction; %v", err))
-		}
-		// Emit zext instruction.
-		return f.emitInst(zextInst)
+		return f.emitInst(icmpInst)
 
 	// &&
 	case token.Land:
@@ -595,13 +561,7 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 			panic(fmt.Sprintf("unable to create br terminator; %v", err))
 		}
 		// Emit phi instruction.
-		result := f.emitInst(phiInst)
-		zextInst, err := instruction.NewZExt(result, m.typeOf(n))
-		if err != nil {
-			panic(fmt.Sprintf("unable to create zext instruction; %v", err))
-		}
-		// Emit zext instruction.
-		return f.emitInst(zextInst)
+		return f.emitInst(phiInst)
 
 	// =
 	case token.Assign:
@@ -672,19 +632,6 @@ func (m *Module) identUse(f *Function, ident *ast.Ident) value.Value {
 	return f.emitInst(loadInst)
 }
 
-// isRef reports whether the given type is a reference type; e.g. pointer or
-// array.
-func isRef(typ irtypes.Type) bool {
-	switch typ.(type) {
-	case *irtypes.Array:
-		return true
-	case *irtypes.Pointer:
-		return true
-	default:
-		return false
-	}
-}
-
 // identDef lowers the given identifier definition to LLVM IR, emitting code to
 // f.
 func (m *Module) identDef(f *Function, ident *ast.Ident, v value.Value) {
@@ -700,20 +647,8 @@ func (m *Module) identDef(f *Function, ident *ast.Ident, v value.Value) {
 func (m *Module) indexExpr(f *Function, n *ast.IndexExpr) value.Value {
 	index := m.expr(f, n.Index)
 	// Extend the index to a 64-bit integer.
-	if c, ok := index.(constant.Constant); ok {
-		// The index is guaranteed to be of integer type.
-		var err error
-		index, err = constant.NewInt(irtypes.I64, c.ValueString())
-		if err != nil {
-			panic(fmt.Sprintf("unable to create integer constant; %v", err))
-		}
-	} else {
-		// TODO: Use zext for unsigned values and sext for signed values.
-		sextInst, err := instruction.NewSExt(index, irtypes.I64)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create sext instruction; %v", err))
-		}
-		index = f.emitInst(sextInst)
+	if !irtypes.Equal(index.Type(), irtypes.I64) {
+		index = m.convert(f, index, irtypes.I64)
 	}
 	typ := m.typeOf(n.Name)
 	array := m.valueFromIdent(f, n.Name)

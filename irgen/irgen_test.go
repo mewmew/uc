@@ -281,6 +281,9 @@ func TestGen(t *testing.T) {
 		got, want := module.String(), string(buf)
 		if got != want {
 			t.Errorf("%q: module mismatch; expected `%v`, got `%v`", g.path, want, got)
+			fmt.Println("### FAIL:", g.path)
+			continue
 		}
+		fmt.Println("PASS:", g.path)
 	}
 }

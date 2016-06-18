@@ -4,12 +4,79 @@ import (
 	"fmt"
 
 	"github.com/llir/llvm/ir/constant"
+	"github.com/llir/llvm/ir/instruction"
 	irtypes "github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
 	uctypes "github.com/mewmew/uc/types"
 )
+
+// convert converts the given value to the specified type, emitting code to f.
+// No conversion is made, if v is already of the correct type.
+func (m *Module) convert(f *Function, v value.Value, to irtypes.Type) value.Value {
+	// Early return if v is already of the correct type.
+	from := v.Type()
+	if irtypes.Equal(from, to) {
+		return v
+	}
+	fromType, ok := from.(*irtypes.Int)
+	if !ok {
+		panic(fmt.Sprintf("support for converting from type %T not yet implemented", from))
+	}
+	toType, ok := to.(*irtypes.Int)
+	if !ok {
+		panic(fmt.Sprintf("support for converting to type %T not yet implemented", to))
+	}
+
+	// Convert constant values.
+	if v, ok := v.(constant.Constant); ok {
+		switch v := v.(type) {
+		case *constant.Int:
+			v, err := constant.NewInt(toType, v.ValueString())
+			if err != nil {
+				panic(fmt.Sprintf("unable to create integer constant; %v", err))
+			}
+			return v
+		default:
+			panic(fmt.Sprintf("support for converting type %T not yet implemented", v))
+		}
+		panic("unreachable")
+	}
+
+	// TODO: Add proper support for converting signed and unsigned values, using
+	// sext and zext, respectively.
+
+	// Convert unsigned values.
+	if irtypes.IsBool(fromType) {
+		// Zero extend boolean values.
+		zextInst, err := instruction.NewZExt(v, toType)
+		if err != nil {
+			panic(fmt.Sprintf("unable to create sext instruction; %v", err))
+		}
+		return f.emitInst(zextInst)
+	}
+
+	// Convert signed values.
+	sextInst, err := instruction.NewSExt(v, toType)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create sext instruction; %v", err))
+	}
+	return f.emitInst(sextInst)
+}
+
+// isRef reports whether the given type is a reference type; e.g. pointer or
+// array.
+func isRef(typ irtypes.Type) bool {
+	switch typ.(type) {
+	case *irtypes.Array:
+		return true
+	case *irtypes.Pointer:
+		return true
+	default:
+		return false
+	}
+}
 
 // constZero returns the integer constant zero of the given type.
 func constZero(typ irtypes.Type) constant.Constant {
