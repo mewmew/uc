@@ -239,6 +239,10 @@ func TestGen(t *testing.T) {
 		//	path: "../testdata/extra/irgen/issue_70_while_ret.c",
 		//	want: "../testdata/extra/irgen/issue_70_while_ret.ll",
 		//},
+		{
+			path: "../testdata/extra/irgen/issue_69_trunc_arg.c",
+			want: "../testdata/extra/irgen/issue_69_trunc_arg.ll",
+		},
 	}
 
 	for _, g := range golden {

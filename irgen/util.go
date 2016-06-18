@@ -71,11 +71,20 @@ func (m *Module) convert(f *Function, v value.Value, to irtypes.Type) value.Valu
 	}
 
 	// Convert signed values.
-	sextInst, err := instruction.NewSExt(v, toType)
-	if err != nil {
-		panic(fmt.Sprintf("unable to create sext instruction; %v", err))
+	if toType.Size() > fromType.Size() {
+		// Sign extend.
+		sextInst, err := instruction.NewSExt(v, toType)
+		if err != nil {
+			panic(fmt.Sprintf("unable to create sext instruction; %v", err))
+		}
+		return f.emitInst(sextInst)
 	}
-	return f.emitInst(sextInst)
+	// Truncate.
+	truncInst, err := instruction.NewTrunc(v, toType)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create trunc instruction; %v", err))
+	}
+	return f.emitInst(truncInst)
 }
 
 // isLarger reports whether t has higher precision than u.
