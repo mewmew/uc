@@ -1,3 +1,4 @@
+// Package irgen implements a µC to LLVM IR generator.
 package irgen
 
 import (
