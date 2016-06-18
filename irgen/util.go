@@ -192,6 +192,7 @@ func (m *Module) typeOf(expr ast.Expr) irtypes.Type {
 	panic(fmt.Sprintf("unable to locate type for expression %v", expr))
 }
 
+// toIrType converts the given uC type to the corresponding LLVM IR type.
 func toIrType(n uctypes.Type) irtypes.Type {
 	//TODO: implement, placeholder implementation
 	var t irtypes.Type
