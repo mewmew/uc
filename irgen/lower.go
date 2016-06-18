@@ -697,6 +697,11 @@ func (m *Module) indexExprUse(f *Function, n *ast.IndexExpr) value.Value {
 // emitting code to f.
 func (m *Module) indexExprDef(f *Function, n *ast.IndexExpr, v value.Value) {
 	addr := m.indexExpr(f, n)
+	addrType, ok := addr.Type().(*irtypes.Pointer)
+	if !ok {
+		panic(fmt.Sprintf("invalid pointer type; expected *types.Pointer, got %T", addr.Type()))
+	}
+	v = m.convert(f, v, addrType.Elem())
 	storeInst, err := instruction.NewStore(v, addr)
 	if err != nil {
 		panic(fmt.Sprintf("unable to create store instruction; %v", err))
