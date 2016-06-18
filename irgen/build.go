@@ -95,14 +95,24 @@ func (f *Function) endBody() error {
 		default:
 			// Add void return terminator to the current basic block, if a
 			// terminator is missing.
-			if result := f.Sig().Result(); !irtypes.IsVoid(result) {
-				panic(fmt.Sprintf("unable to finalize current basic block of function body; expected void return since terminator was missing, got %v", result))
+			switch result := f.Sig().Result(); {
+			case irtypes.IsVoid(result):
+				term, err := instruction.NewRet(irtypes.NewVoid(), nil)
+				if err != nil {
+					panic(fmt.Sprintf("unable to create ret instruction; %v", err))
+				}
+				block.SetTerm(term)
+			default:
+				// The semantic analysis checker guarantees that all branches of
+				// non-void functions end with return statements. Therefore, if we
+				// reach the current basic block doesn't have a terminator at the
+				// end of the function body, it must be unreachable.
+				term, err := instruction.NewUnreachable()
+				if err != nil {
+					panic(fmt.Sprintf("unable to create unreachable instruction; %v", err))
+				}
+				block.SetTerm(term)
 			}
-			term, err := instruction.NewRet(irtypes.NewVoid(), nil)
-			if err != nil {
-				panic(fmt.Sprintf("unable to create ret instruction; %v", err))
-			}
-			block.SetTerm(term)
 		}
 	}
 	f.curBlock = nil
