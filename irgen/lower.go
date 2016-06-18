@@ -241,7 +241,6 @@ func (m *Module) stmt(f *Function, stmt ast.Stmt) {
 	default:
 		panic(fmt.Sprintf("support for %T not yet implemented", stmt))
 	}
-	panic("unreachable")
 }
 
 // blockStmt lowers the given block statement to LLVM IR, emitting code to f.
@@ -394,7 +393,6 @@ func (m *Module) expr(f *Function, expr ast.Expr) value.Value {
 	default:
 		panic(fmt.Sprintf("support for type %T not yet implemented", expr))
 	}
-	panic("unreachable")
 }
 
 // basicLit lowers the given basic literal to LLVM IR, emitting code to f.
@@ -420,7 +418,6 @@ func (m *Module) basicLit(f *Function, n *ast.BasicLit) value.Value {
 	default:
 		panic(fmt.Sprintf("support for basic literal kind %v not yet implemented", n.Kind))
 	}
-	panic("unreachable")
 }
 
 // binaryExpr lowers the given binary expression to LLVM IR, emitting code to f.
@@ -590,7 +587,6 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 	default:
 		panic(fmt.Sprintf("support for binary operator %v not yet implemented", n.Op))
 	}
-	panic("unreachable")
 }
 
 // callExpr lowers the given identifier to LLVM IR, emitting code to f.
@@ -757,5 +753,4 @@ func (m *Module) unaryExpr(f *Function, n *ast.UnaryExpr) value.Value {
 	default:
 		panic(fmt.Sprintf("support for unary operator %v not yet implemented", n.Op))
 	}
-	panic("unreachable")
 }

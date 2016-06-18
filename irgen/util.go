@@ -55,7 +55,6 @@ func (m *Module) convert(f *Function, v value.Value, to irtypes.Type) value.Valu
 		default:
 			panic(fmt.Sprintf("support for converting type %T not yet implemented", v))
 		}
-		panic("unreachable")
 	}
 
 	// TODO: Add proper support for converting signed and unsigned values, using
@@ -148,7 +147,6 @@ func (f *Function) genUnique(ident *ast.Ident) string {
 			return name
 		}
 	}
-	panic("unreachable")
 }
 
 // valueFromIdent returns the LLVM IR value associated with the given

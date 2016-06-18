@@ -129,7 +129,7 @@ func compileFile(path string, goccLexer bool) error {
 
 	// Generate LLVM IR module based on the syntax tree of the given file.
 	module := irgen.Gen(file, info)
-	log.Println("=== [ LLVM IR module ] ===\n")
+	log.Printf("=== [ LLVM IR module ] ===\n\n")
 	fmt.Println(module)
 
 	return nil
