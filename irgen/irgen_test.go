@@ -212,6 +212,23 @@ func TestGen(t *testing.T) {
 			path: "../testdata/extra/irgen/issue_68_nested_if_while.c",
 			want: "../testdata/extra/irgen/issue_68_nested_if_while.ll",
 		},
+		// TODO: Re-enable.
+		//{
+		//	path: "../testdata/extra/irgen/issue_68_if_land.c",
+		//	want: "../testdata/extra/irgen/issue_68_if_land.ll",
+		//},
+		//{
+		//	path: "../testdata/extra/irgen/issue_68_while_land.c",
+		//	want: "../testdata/extra/irgen/issue_68_while_land.ll",
+		//},
+		{
+			path: "../testdata/extra/irgen/issue_70_if_ret.c",
+			want: "../testdata/extra/irgen/issue_70_if_ret.ll",
+		},
+		{
+			path: "../testdata/extra/irgen/issue_70_while_ret.c",
+			want: "../testdata/extra/irgen/issue_70_while_ret.ll",
+		},
 	}
 
 	for _, g := range golden {
