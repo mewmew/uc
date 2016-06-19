@@ -16,10 +16,9 @@ $ go get -u github.com/mewmew/uc
 $ cd ${GOPATH}/src/github.com/mewmew/uc/gocc
 $ make gen
 $ go get github.com/mewmew/uc/...
-$ go test github.com/mewmew/uc/hand/lexer
-$ go test github.com/mewmew/uc/gocc/lexer
 $ go install github.com/mewmew/uc/cmd/ulex
 $ go install github.com/mewmew/uc/cmd/uparse
+$ go install github.com/mewmew/uc/cmd/uclang
 ```
 
 ## Usage
