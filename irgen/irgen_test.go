@@ -170,14 +170,20 @@ func TestGen(t *testing.T) {
 			path: "../testdata/extra/irgen/call_expr.c",
 			want: "../testdata/extra/irgen/call_expr.ll",
 		},
-		//{
-		//	path: "../testdata/extra/irgen/call_expr_cast.c",
-		//	want: "../testdata/extra/irgen/call_expr_cast.ll",
-		//},
+		{
+			path: "../testdata/extra/irgen/call_expr_cast.c",
+			want: "../testdata/extra/irgen/call_expr_cast.ll",
+		},
+		// NOTE: Correct output. The only difference is that Clang emits all
+		// alloca instructions at the beginning of the entry block. Thus, disabled
+		// for now.
 		//{
 		//	path: "../testdata/extra/irgen/call_expr_multi_args.c",
 		//	want: "../testdata/extra/irgen/call_expr_multi_args.ll",
 		//},
+		// NOTE: Correct output. The only difference is that Clang emits all
+		// alloca instructions at the beginning of the entry block. Thus, disabled
+		// for now.
 		//{
 		//	path: "../testdata/extra/irgen/call_expr_multi_args_cast.c",
 		//	want: "../testdata/extra/irgen/call_expr_multi_args_cast.ll",
@@ -198,7 +204,7 @@ func TestGen(t *testing.T) {
 			want: "../testdata/extra/irgen/array_arg.ll",
 		},
 		// Array parameters.
-		// TODO: Re-enable.
+		// TODO: Re-enable; https://github.com/mewmew/uc/issues/73
 		//{
 		//	path: "../testdata/extra/irgen/array_param.c",
 		//	want: "../testdata/extra/irgen/array_param.ll",
@@ -212,15 +218,16 @@ func TestGen(t *testing.T) {
 			path: "../testdata/extra/irgen/issue_68_nested_if_while.c",
 			want: "../testdata/extra/irgen/issue_68_nested_if_while.ll",
 		},
-		// TODO: Re-enable.
+		// TODO: Re-enable when better support for logical AND expressions have
+		// been implemented.
 		//{
 		//	path: "../testdata/extra/irgen/issue_68_if_land.c",
 		//	want: "../testdata/extra/irgen/issue_68_if_land.ll",
 		//},
-		//{
-		//	path: "../testdata/extra/irgen/issue_68_while_land.c",
-		//	want: "../testdata/extra/irgen/issue_68_while_land.ll",
-		//},
+		{
+			path: "../testdata/extra/irgen/issue_68_while_land.c",
+			want: "../testdata/extra/irgen/issue_68_while_land.ll",
+		},
 		// NOTE: The test case "issue_70_if_ret.c" no longer panics on SetTerm
 		// with a nil basic block. The test case still doesn't pass, but this is
 		// simply because Clang allocates a dedicated variable for return values,
@@ -243,6 +250,11 @@ func TestGen(t *testing.T) {
 			path: "../testdata/extra/irgen/issue_69_trunc_arg.c",
 			want: "../testdata/extra/irgen/issue_69_trunc_arg.ll",
 		},
+		// TODO: Re-enable; https://github.com/mewmew/uc/issues/73
+		//{
+		//	path: "../testdata/extra/irgen/issue_73_pointer_pointer_use.c",
+		//	want: "../testdata/extra/irgen/issue_73_pointer_pointer_use.ll",
+		//},
 	}
 
 	for _, g := range golden {
