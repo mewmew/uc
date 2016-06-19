@@ -12,7 +12,7 @@ post_strip:
 	./post_strip.sh
 
 sar:
-	@if ! which $@ &> /dev/null ; then \
+	@if ! which $@ > /dev/null 2>&1 ; then \
 		echo "Please install the \"sar\" tool"; \
 		echo; \
 		echo "   go get github.com/mewkiz/cmd/sar"; \
