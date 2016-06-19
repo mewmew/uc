@@ -1,12 +1,12 @@
 // ulex is a lexer for the µC language which pretty-prints tokens to standard
 // output.
 //
-// Usage: ulex FILE...
+// Usage: ulex [OPTION]... FILE...
 //
 // If FILE is -, read standard input.
 //
-//   -hand
-//        use hand-written lexer (default true)
+//   -gocc-lexer
+//        use Gocc generated lexer
 //   -n int
 //        number of tokens to lex
 package main
@@ -27,7 +27,7 @@ import (
 
 func usage() {
 	const use = `
-Usage: ulex FILE...
+Usage: ulex [OPTION]... FILE...
 
 If FILE is -, read standard input.
 `
@@ -38,13 +38,13 @@ If FILE is -, read standard input.
 func main() {
 	// Command line flags.
 	var (
-		// hand specifies whether to use the hand-written lexer, instead of the
-		// Gocc generated.
-		hand bool
+		// goccLexer specifies whether to use the Gocc generated lexer, instead of
+		// the hand-written lexer.
+		goccLexer bool
 		// n specifies the number of tokens to lex.
 		n int
 	)
-	flag.BoolVar(&hand, "hand", true, "use hand-written lexer")
+	flag.BoolVar(&goccLexer, "gocc-lexer", false, "use Gocc generated lexer")
 	flag.IntVar(&n, "n", 0, "number of tokens to lex")
 	flag.Usage = usage
 	flag.Parse()
@@ -54,9 +54,9 @@ func main() {
 	}
 
 	// Lex input.
-	lexFile := lexFileGocc
-	if hand {
-		lexFile = lexFileHand
+	lexFile := lexFileHand
+	if goccLexer {
+		lexFile = lexFileGocc
 	}
 	for _, path := range flag.Args() {
 		if err := lexFile(path, n); err != nil {

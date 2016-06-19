@@ -4,12 +4,116 @@ import (
 	"fmt"
 
 	"github.com/llir/llvm/ir/constant"
+	"github.com/llir/llvm/ir/instruction"
 	irtypes "github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewmew/uc/ast"
 	uctypes "github.com/mewmew/uc/types"
 )
+
+// implicitConversion implicitly converts the value of the smallest type to the
+// largest type of x and y, emitting code to f. The new values of x and y are
+// returned.
+func (m *Module) implicitConversion(f *Function, x, y value.Value) (value.Value, value.Value) {
+	// Implicit conversion.
+	switch {
+	case isLarger(x.Type(), y.Type()):
+		y = m.convert(f, y, x.Type())
+	case isLarger(y.Type(), x.Type()):
+		x = m.convert(f, x, y.Type())
+	}
+	return x, y
+}
+
+// convert converts the given value to the specified type, emitting code to f.
+// No conversion is made, if v is already of the correct type.
+func (m *Module) convert(f *Function, v value.Value, to irtypes.Type) value.Value {
+	// Early return if v is already of the correct type.
+	from := v.Type()
+	if irtypes.Equal(from, to) {
+		return v
+	}
+	fromType, ok := from.(*irtypes.Int)
+	if !ok {
+		panic(fmt.Sprintf("support for converting from type %T not yet implemented", from))
+	}
+	toType, ok := to.(*irtypes.Int)
+	if !ok {
+		panic(fmt.Sprintf("support for converting to type %T not yet implemented", to))
+	}
+
+	// Convert constant values.
+	if v, ok := v.(constant.Constant); ok {
+		switch v := v.(type) {
+		case *constant.Int:
+			v, err := constant.NewInt(toType, v.ValueString())
+			if err != nil {
+				panic(fmt.Sprintf("unable to create integer constant; %v", err))
+			}
+			return v
+		default:
+			panic(fmt.Sprintf("support for converting type %T not yet implemented", v))
+		}
+	}
+
+	// TODO: Add proper support for converting signed and unsigned values, using
+	// sext and zext, respectively.
+
+	// Convert unsigned values.
+	if irtypes.IsBool(fromType) {
+		// Zero extend boolean values.
+		zextInst, err := instruction.NewZExt(v, toType)
+		if err != nil {
+			panic(fmt.Sprintf("unable to create sext instruction; %v", err))
+		}
+		return f.emitInst(zextInst)
+	}
+
+	// Convert signed values.
+	if toType.Size() > fromType.Size() {
+		// Sign extend.
+		sextInst, err := instruction.NewSExt(v, toType)
+		if err != nil {
+			panic(fmt.Sprintf("unable to create sext instruction; %v", err))
+		}
+		return f.emitInst(sextInst)
+	}
+	// Truncate.
+	truncInst, err := instruction.NewTrunc(v, toType)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create trunc instruction; %v", err))
+	}
+	return f.emitInst(truncInst)
+}
+
+// isLarger reports whether t has higher precision than u.
+func isLarger(t, u irtypes.Type) bool {
+	// A Sizer is a type with a size in number of bits.
+	type Sizer interface {
+		// Size returns the size of t in number of bits.
+		Size() int
+	}
+	if t, ok := t.(Sizer); ok {
+		if u, ok := u.(Sizer); ok {
+			return t.Size() > u.Size()
+		}
+	}
+	return false
+}
+
+// isRef reports whether the given type is a reference type; e.g. pointer or
+// array.
+func isRef(typ irtypes.Type) bool {
+	switch typ.(type) {
+	case *irtypes.Array:
+		return true
+	case *irtypes.Pointer:
+		return true
+	default:
+		return false
+	}
+}
 
 // constZero returns the integer constant zero of the given type.
 func constZero(typ irtypes.Type) constant.Constant {
@@ -52,7 +156,6 @@ func (f *Function) genUnique(ident *ast.Ident) string {
 			return name
 		}
 	}
-	panic("unreachable")
 }
 
 // valueFromIdent returns the LLVM IR value associated with the given
@@ -96,6 +199,7 @@ func (m *Module) typeOf(expr ast.Expr) irtypes.Type {
 	panic(fmt.Sprintf("unable to locate type for expression %v", expr))
 }
 
+// toIrType converts the given uC type to the corresponding LLVM IR type.
 func toIrType(n uctypes.Type) irtypes.Type {
 	//TODO: implement, placeholder implementation
 	var t irtypes.Type

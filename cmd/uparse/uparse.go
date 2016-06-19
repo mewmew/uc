@@ -5,8 +5,8 @@
 //
 // If FILE is -, read standard input.
 //
-//   -hand
-//        use hand-written lexer (default true)
+//   -gocc-lexer
+//        use Gocc generated lexer
 package main
 
 import (
@@ -38,11 +38,11 @@ If FILE is -, read standard input.
 
 func main() {
 	var (
-		// gocc specifies whether to use the gocc generated lexer, instead of the
-		// hand-written lexer.
-		gocc bool
+		// goccLexer specifies whether to use the Gocc generated lexer, instead of
+		// the hand-written lexer.
+		goccLexer bool
 	)
-	flag.BoolVar(&gocc, "gocc", false, "use gocc lexer")
+	flag.BoolVar(&goccLexer, "gocc-lexer", false, "use Gocc generated lexer")
 	flag.Usage = usage
 	flag.Parse()
 	if flag.NArg() == 0 {
@@ -52,7 +52,7 @@ func main() {
 
 	// Parse input.
 	for _, path := range flag.Args() {
-		err := parseFile(path, !gocc)
+		err := parseFile(path, goccLexer)
 		if err != nil {
 			log.Print(err)
 		}
@@ -60,8 +60,8 @@ func main() {
 }
 
 // parseFile parses the given file and pretty-prints its abstract syntax tree to
-// standard output, optionally using the hand-written lexer.
-func parseFile(path string, hand bool) error {
+// standard output, optionally using the Gocc generated lexer.
+func parseFile(path string, goccLexer bool) error {
 	// Create lexer for the input.
 	buf, err := ioutilx.ReadFile(path)
 	if err != nil {
@@ -73,10 +73,10 @@ func parseFile(path string, hand bool) error {
 		fmt.Fprintf(os.Stderr, "Parsing %q\n", path)
 	}
 	var s parser.Scanner
-	if hand {
-		s = handscanner.NewFromBytes(buf)
-	} else {
+	if goccLexer {
 		s = goccscanner.NewFromBytes(buf)
+	} else {
+		s = handscanner.NewFromBytes(buf)
 	}
 
 	// Parse input.

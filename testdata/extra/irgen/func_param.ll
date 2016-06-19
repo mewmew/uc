@@ -1,5 +1,5 @@
 define i32 @f(i32 %a) {
-0:
+; <label>:0
 	%1 = alloca i32
 	store i32 %a, i32* %1
 	%2 = load i32, i32* %1

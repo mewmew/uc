@@ -1,5 +1,5 @@
 define i32 @f() {
-0:
+; <label>:0
 	%a = alloca i32
 	%b = alloca i32
 	%1 = load i32, i32* %b

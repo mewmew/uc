@@ -1,4 +1,4 @@
 define void @f() {
-0:
+; <label>:0
 	ret void
 }

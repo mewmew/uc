@@ -1,25 +1,27 @@
-// uclang is compiler for the µC language which validates the input, creates
-// instructions from the input and reports errors to standard error.
+// uclang is compiler for the µC language which validates the input, generates
+// corresponding LLVM IR assembly and reports errors to standard error.
 //
 // Usage: uclang [OPTION]... FILE...
 //
 // If FILE is -, read standard input.
 //
 //   -gocc-lexer
-//        use the gocc uC lexer (default false)
+//        use Gocc generated lexer
 //   -no-colors
-//        do not use ANSI escape codes in output (default false)
+//        disable colors in output
 //   -no-nested-functions
-//        do not allow nested function declarations (default false)
+//        disable support for nested functions
+//   -o string
+//        output path
 package main
 
 import (
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 
-	"github.com/kr/pretty"
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewkiz/pkg/ioutilx"
 	"github.com/mewmew/uc/ast"
@@ -45,14 +47,18 @@ If FILE is -, read standard input.
 
 func main() {
 	var (
-		// hand specifies whether to use the hand-written lexer, instead of the
-		// Gocc generated.
-		useGoccLexer bool
-		noColors     bool
+		// goccLexer specifies whether to use the Gocc generated lexer, instead of
+		// the hand-written lexer.
+		goccLexer bool
+		// noColors specifies whether to disable colors in output.
+		noColors bool
+		// outputPath specifies the output path for the generated LLVM IR.
+		outputPath string
 	)
-	flag.BoolVar(&useGoccLexer, "gocc-lexer", false, "use gocc lexer")
-	flag.BoolVar(&noColors, "no-colors", false, "use colors in output")
-	flag.BoolVar(&semcheck.NoNestedFunctions, "no-nested-functions", false, "use colors in output")
+	flag.BoolVar(&goccLexer, "gocc-lexer", false, "use Gocc generated lexer")
+	flag.BoolVar(&noColors, "no-colors", false, "disable colors in output")
+	flag.BoolVar(&semcheck.NoNestedFunctions, "no-nested-functions", false, "disable support for nested functions")
+	flag.StringVar(&outputPath, "o", "", "output path")
 	flag.Usage = usage
 	flag.Parse()
 	semerrors.UseColor = !noColors
@@ -60,22 +66,30 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
+	// TODO: Remove once nested functions are supported. For now, disallow during
+	// semantic analysis.
+	semcheck.NoNestedFunctions = true
 
 	// Parse input.
-	for _, path := range flag.Args() {
-		err := compileFile(path, useGoccLexer)
+	output := os.Stdout
+	if len(outputPath) > 0 {
+		var err error
+		output, err = os.Create(outputPath)
 		if err != nil {
-			if _, ok := err.(*semerrors.Error); ok {
-				elog.Print(err)
-			} else {
-				log.Print(err)
-			}
+			log.Fatal(errutil.Err(err))
+		}
+		defer output.Close()
+	}
+	for _, path := range flag.Args() {
+		err := compileFile(path, output, goccLexer)
+		if err != nil {
+			log.Fatal(err)
 		}
 	}
 }
 
 // checkFile performs a static semantic analysis check on the given file.
-func compileFile(path string, useGoccLexer bool) error {
+func compileFile(path string, output io.Writer, goccLexer bool) error {
 	// Lexical analysis
 	// Syntactic analysis
 	// Semantic analysis
@@ -93,7 +107,7 @@ func compileFile(path string, useGoccLexer bool) error {
 	fmt.Fprintf(os.Stderr, "Compiling %q\n", path)
 
 	var s parser.Scanner
-	if useGoccLexer {
+	if goccLexer {
 		s = goccscanner.NewFromBytes(buf)
 	} else {
 		s = handscanner.NewFromBytes(buf)
@@ -125,15 +139,11 @@ func compileFile(path string, useGoccLexer bool) error {
 		return errutil.Err(err)
 	}
 
+	// Generate LLVM IR module based on the syntax tree of the given file.
 	module := irgen.Gen(file, info)
-	log.Println("=== [ Pretty module ] ===\n")
-	pretty.Println(module)
-	log.Println("=== [ LLVM IR module ] ===\n")
-	fmt.Println(module)
+	if _, err := fmt.Fprint(output, module); err != nil {
+		return errutil.Err(err)
+	}
 
 	return nil
 }
-
-// elog represents a logger with no prefix or flags, which logs errors to
-// standard error.
-var elog = log.New(os.Stderr, "", 0)
