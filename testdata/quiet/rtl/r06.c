@@ -14,5 +14,5 @@ int fac(int n) {
 }
 
 int main(void){
-  fac(5);
+  return fac(5);
 }
