@@ -1,6 +1,6 @@
 #!/bin/bash
 if [ $# -lt 1 ]; then
-	echo "Usage: strip FILE.ll"
+	echo "Usage: compile FILE.ll"
 	exit 1
 fi
 f=$1

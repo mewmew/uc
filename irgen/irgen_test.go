@@ -255,6 +255,11 @@ func TestGen(t *testing.T) {
 		//	path: "../testdata/extra/irgen/issue_73_pointer_pointer_use.c",
 		//	want: "../testdata/extra/irgen/issue_73_pointer_pointer_use.ll",
 		//},
+		// TODO: Re-enable; https://github.com/mewmew/uc/issues/73
+		{
+			path: "../testdata/extra/irgen/issue_73_pointer_pointer_ref.c",
+			want: "../testdata/extra/irgen/issue_73_pointer_pointer_ref.ll",
+		},
 	}
 
 	for _, g := range golden {
