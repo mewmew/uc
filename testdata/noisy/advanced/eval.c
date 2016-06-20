@@ -3,15 +3,15 @@
 // Try:
 // 1+2+3+4
 // 100-10-1
-// (12-4)+(99-11+16)*19 
+// (12-4)+(99-11+16)*19
 // (3*113+((2*2)*(2*2)))*1000000/113
 
 /* Important characters:
 
 '0' = 48
 '9' = 57
-'+' = 43 
-'-' = 45 
+'+' = 43
+'-' = 45
 '*' = 42
 '/' = 47
 '(' = 40
@@ -60,7 +60,7 @@ int expr(int l) {
 	  b = expr(1);
 	  a = a + b;
 	}
-      else 
+      else
 	{
 	  p = p + 1;
 	  b = expr(1);
@@ -78,7 +78,7 @@ int expr(int l) {
 	  b = expr(2);
 	  a = a * b;
 	}
-      else 
+      else
 	{
 	  p = p + 1;
 	  b = expr(2);
@@ -97,7 +97,7 @@ int expr(int l) {
       }
       p = p + 1;
       return a;
-    } 
+    }
     else if (!isNumber(s[p])) {
       putstring( bad_number );
       putstring( cr );
@@ -112,6 +112,7 @@ int expr(int l) {
       return a;
     }
   }
+  return 0;
 }
 
 int main(void) {
