@@ -3,13 +3,23 @@
 \section{IR Generation}
 \label{sec:ir_generation}
 
-foo
+One of the first decisions made when deciding to implement a compiler for the uC programming language was to target LLVM IR, rather than MIPS, as this would allow for native code generation to a wide variety of platforms, such as x86 and ARM.
 
-TODO: usage + sar robin
+A large amount of preparatory work was made before developing the IR generation phase of the compiler, in particular a library for LLVM IR was developed which implements support for parsing LLVM IR assembly files and provides an in-memory representation of LLVM IR which is capable of pretty-printing itself to LLVM IR assembly code. The design of the LLVM IR generator of the compiler has guided the design of the API for the LLVM IR library. The full API is too vast to cover here, but its documentation has been available online.
 
+\begin{itemize}
+	\item \url{https://godoc.org/github.com/llir/llvm/ir}
+	\item \url{https://godoc.org/github.com/llir/llvm/ir/constant}
+	\item \url{https://godoc.org/github.com/llir/llvm/ir/instruction}
+	\item \url{https://godoc.org/github.com/llir/llvm/ir/types}
+	\item \url{https://godoc.org/github.com/llir/llvm/ir/value}
+\end{itemize}
+
+Before diving into the design details of the IR generation phase of the compiler, a brief installation and usage introduction of the compiler is presented in section \ref{sec:installation_and_usage}, so that the interested reader may evaluate the compiler themselves on real world uC programs.
 
 % === [ Subsections ] ==========================================================
 
-\input{sections/6_ir_generation/1_design_decisions}
-\input{sections/6_ir_generation/2_implementation}
-\input{sections/6_ir_generation/3_validation}
+\input{sections/6_ir_generation/1_installation_and_usage}
+\input{sections/6_ir_generation/2_design_decisions}
+\input{sections/6_ir_generation/3_implementation}
+\input{sections/6_ir_generation/4_validation}
