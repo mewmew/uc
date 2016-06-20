@@ -1,6 +1,6 @@
 TESTDATA=../../../testdata
 UPROG=usem
-UCFLAGS=-colors=false
+UCFLAGS=-no-colors
 REDIRECTS=2>&1
 
 all: semantic_analysis
