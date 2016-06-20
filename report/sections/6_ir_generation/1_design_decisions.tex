@@ -1,0 +1,13 @@
+\subsection{Design Decisions}
+
+The uclang compiler is designed to output llvm code as close to the llvm output of the clang compiler for a µC program.
+
+
+\subsubsection{Local Identifiers}
+TODO: robin
+
+\subsubsection{Control Flow}
+The control flow of a µC program is determined by the use of if, else, while and return statements and calls to functions. In our code generation, we translate the first constructs to llvm basic blocks with conditional jumping with the calls and returns staying essentially the same.
+
+\subsubsection{Implicit Conversion}
+TODO: alex
