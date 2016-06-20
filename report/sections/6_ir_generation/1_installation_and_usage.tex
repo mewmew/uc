@@ -12,7 +12,7 @@ Once Go has been installed and a \texttt{GOPATH} workspace has been configured, 
 To generate lexers and parsers for uC source code and LLVM IR assembly the Gocc tool is used. To install Gocc, invoke the following command.
 
 \begin{verbatim}
-go get github.com/goccmack/gocc
+$ go get github.com/goccmack/gocc
 \end{verbatim}
 
 Once compiled, the \texttt{gocc} tool is placed within the \verb+$GOPATH/bin+ directory. Make sure to add this directory to the \texttt{PATH} environment variable, for subsequent \texttt{Makefile}s to work.
@@ -20,26 +20,26 @@ Once compiled, the \texttt{gocc} tool is placed within the \verb+$GOPATH/bin+ di
 To simplify the generation of test cases, a regular expression search and replace tool called \texttt{sar} has been used. To download \texttt{sar}, invoke the following command.
 
 \begin{verbatim}
-go get github.com/mewkiz/cmd/sar
+$ go get github.com/mewkiz/cmd/sar
 \end{verbatim}
 
 With the prerequisites out of the way, lets take a look at how to download and install the \texttt{uclang} compiler itself. To download the compiler, and all other tools and libraries related to it, invoke the following command. You may safely ignore the warning that the \texttt{uc} directory contains no buildable Go source files.
 
 \begin{verbatim}
-go get -d github.com/mewmew/uc
+$ go get -d github.com/mewmew/uc
 \end{verbatim}
 
 Now we are ready to generate the lexer and parser for uC. Traverse into the \texttt{gocc} directory of the \texttt{uc} repository and invoke \texttt{make}, i.e. invoke the following commands.
 
 \begin{verbatim}
-cd $GOPATH/src/github.com/mewmew/uc/gocc
-make
+$ cd $GOPATH/src/github.com/mewmew/uc/gocc
+$ make
 \end{verbatim}
 
 After generating the uC lexer and parser, invoke the following command to install the lexer tool, parser tool, semantic analysis tool and the uC compiler tool,
 
 \begin{verbatim}
-go get github.com/mewmew/uc/...
+$ go get github.com/mewmew/uc/...
 \end{verbatim}
 
 Now, the lexer tool (\texttt{ulex}), parser tool (\texttt{uparse}), semantic analysis tool (\texttt{usem}) and the uC compiler (\texttt{uclang}) should have been compiled and installed into the \verb+$GOPATH/bin+ directory.
@@ -60,13 +60,13 @@ For the remainder of this section, the usage of the uC compiler \texttt{uclang} 
 To compile a uC source file (e.g. \texttt{foo.c}) and emit the corresponding LLVM IR assembly code to standard output, invoke the following command.
 
 \begin{verbatim}
-uclang foo.c
+$ uclang foo.c
 \end{verbatim}
 
 To compile a uC source file (e.g. \texttt{foo.c}) and emit the corresponding LLVM IR assembly code to a given output file (e.g. \texttt{foo.ll}), invoke the following command.
 
 \begin{verbatim}
-uclang -o foo.ll foo.c
+$ uclang -o foo.ll foo.c
 \end{verbatim}
 
 A slightly modified version of the runtime library containing the \texttt{getint} and \texttt{putstring} functions is located at \texttt{testdata/uc.c}, and the corresponding LLVM IR assembly (compiled with Clang, since \texttt{uclang} has yet to support string literals) is located at \texttt{testdata/uc.ll}.
@@ -76,29 +76,30 @@ Using the standard \texttt{llvm-link} tool from the LLVM compiler framework, two
 To compile the \texttt{eval} test program into LLVM IR assembly, invoke the following commands.
 
 \begin{verbatim}
-cd $GOPATH/src/github.com/mewmew/uc
-uclang -o out.ll testdata/noisy/advanced/eval.c
-llvm-link -o eval.ll out.ll testdata/uc.ll
+$ cd $GOPATH/src/github.com/mewmew/uc
+$ uclang -o out.ll testdata/noisy/advanced/eval.c
+$ llvm-link -o eval.ll out.ll testdata/uc.ll
 \end{verbatim}
 
 The standard \texttt{lli} LLVM IR interpretor may then be used to invoke the resulting LLVM IR assembly file as such.
 
 \begin{verbatim}
-lli eval.ll
+$ lli eval.ll
 \end{verbatim}
 
 Another option is to compile the LLVM IR assembly file to a host native binary application, by invoking the following standard command from the LLVM compiler framework.
 
 \begin{verbatim}
-llc -o eval.S eval.ll
-as -o eval.o eval.S
-ld -o eval -dynamic-linker /usr/lib/ld-linux-x86-64.so.2 /usr/lib/crt1.o /usr/lib/crti.o /usr/lib/crtn.o eval.o -lc
+$ llc -o eval.S eval.ll
+$ as -o eval.o eval.S
+$ ld -o eval -dynamic-linker /usr/lib/ld-linux-x86-64.so.2 /usr/lib/crt1.o
+/usr/lib/crti.o /usr/lib/crtn.o eval.o -lc
 \end{verbatim}
 
 While it is possible to successfully compile and link LLVM IR assembly files using the \texttt{llc}, \texttt{as} and \texttt{ld} commands, simply invoking Clang to accomplish the same task if often far easier.
 
 \begin{verbatim}
-clang -o eval eval.ll
+$ clang -o eval eval.ll
 \end{verbatim}
 
 \subsubsection{Test Cases}
@@ -108,11 +109,11 @@ To run the test cases, simply invoke the \texttt{go} tool with the \texttt{test}
 To test all packages invoke \texttt{go test github.com/mewmew/uc/...} or run the following commands.
 
 \begin{verbatim}
-go test github.com/mewmew/uc/token
-go test github.com/mewmew/uc/gocc/lexer
-go test github.com/mewmew/uc/hand/lexer
-go test github.com/mewmew/uc/gocc/scanner
-go test github.com/mewmew/uc/gocc/parser
-go test github.com/mewmew/uc/sem
-go test github.com/mewmew/uc/irgen
+$ go test github.com/mewmew/uc/token
+$ go test github.com/mewmew/uc/gocc/lexer
+$ go test github.com/mewmew/uc/hand/lexer
+$ go test github.com/mewmew/uc/gocc/scanner
+$ go test github.com/mewmew/uc/gocc/parser
+$ go test github.com/mewmew/uc/sem
+$ go test github.com/mewmew/uc/irgen
 \end{verbatim}
