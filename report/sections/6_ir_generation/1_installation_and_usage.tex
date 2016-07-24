@@ -96,7 +96,7 @@ $ ld -o eval -dynamic-linker /usr/lib/ld-linux-x86-64.so.2 /usr/lib/crt1.o
 /usr/lib/crti.o /usr/lib/crtn.o eval.o -lc
 \end{verbatim}
 
-While it is possible to successfully compile and link LLVM IR assembly files using the \texttt{llc}, \texttt{as} and \texttt{ld} commands, simply invoking Clang to accomplish the same task if often far easier.
+While it is possible to successfully compile and link LLVM IR assembly files using the \texttt{llc}, \texttt{as} and \texttt{ld} commands, simply invoking Clang to accomplish the same task is often far easier.
 
 \begin{verbatim}
 $ clang -o eval eval.ll
