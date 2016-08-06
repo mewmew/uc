@@ -251,15 +251,32 @@ func TestGen(t *testing.T) {
 			want: "../testdata/extra/irgen/issue_69_trunc_arg.ll",
 		},
 		// TODO: Re-enable; https://github.com/mewmew/uc/issues/73
-		//{
-		//	path: "../testdata/extra/irgen/issue_73_pointer_pointer_use.c",
-		//	want: "../testdata/extra/irgen/issue_73_pointer_pointer_use.ll",
-		//},
+		{
+			path: "../testdata/extra/irgen/issue_73_pointer_pointer_use.c",
+			want: "../testdata/extra/irgen/issue_73_pointer_pointer_use.ll",
+		},
 		// TODO: Re-enable; https://github.com/mewmew/uc/issues/73
-		//{
-		//	path: "../testdata/extra/irgen/issue_73_pointer_pointer_ref.c",
-		//	want: "../testdata/extra/irgen/issue_73_pointer_pointer_ref.ll",
-		//},
+		{
+			path: "../testdata/extra/irgen/issue_73_pointer_pointer_ref.c",
+			want: "../testdata/extra/irgen/issue_73_pointer_pointer_ref.ll",
+		},
+		{
+			path: "../testdata/extra/irgen/global_array_arg.c",
+			want: "../testdata/extra/irgen/global_array_arg.ll",
+		},
+		{
+			path: "../testdata/extra/irgen/global_array_ident_use.c",
+			want: "../testdata/extra/irgen/global_array_ident_use.ll",
+		},
+		// NOTE: Not part of grammar for uC.
+		// {
+		// 	path: "../testdata/extra/irgen/global_array_ident_def.c",
+		// 	want: "../testdata/extra/irgen/global_array_ident_def.ll",
+		// },
+		{
+			path: "../testdata/extra/irgen/global_array_param.c",
+			want: "../testdata/extra/irgen/global_array_param.ll",
+		},
 	}
 
 	for _, g := range golden {
