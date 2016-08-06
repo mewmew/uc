@@ -205,10 +205,10 @@ func TestGen(t *testing.T) {
 		},
 		// Array parameters.
 		// TODO: Re-enable; https://github.com/mewmew/uc/issues/73
-		//{
-		//	path: "../testdata/extra/irgen/array_param.c",
-		//	want: "../testdata/extra/irgen/array_param.ll",
-		//},
+		{
+			path: "../testdata/extra/irgen/array_param.c",
+			want: "../testdata/extra/irgen/array_param.ll",
+		},
 		// Bug fixes.
 		{
 			path: "../testdata/extra/irgen/issue_68_nested_if.c",
