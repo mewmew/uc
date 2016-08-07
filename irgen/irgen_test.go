@@ -43,6 +43,14 @@ func TestGen(t *testing.T) {
 			path: "../testdata/extra/irgen/index_expr_def.c",
 			want: "../testdata/extra/irgen/index_expr_def.ll",
 		},
+		{
+			path: "../testdata/extra/irgen/global_index_expr_use.c",
+			want: "../testdata/extra/irgen/global_index_expr_use.ll",
+		},
+		{
+			path: "../testdata/extra/irgen/global_index_expr_def.c",
+			want: "../testdata/extra/irgen/global_index_expr_def.ll",
+		},
 
 		// Global variable declarations.
 		{
