@@ -158,6 +158,13 @@ func (f *Function) genUnique(ident *ast.Ident) string {
 	}
 }
 
+// isGlobal reports whether the given identifier is a global definition.
+func (m *Module) isGlobal(ident *ast.Ident) bool {
+	pos := ident.Decl.Name().Start()
+	_, exists := m.idents[pos]
+	return exists
+}
+
 // valueFromIdent returns the LLVM IR value associated with the given
 // identifier. Only search for global values if f is nil.
 func (m *Module) valueFromIdent(f *Function, ident *ast.Ident) value.Value {
