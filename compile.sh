@@ -1,6 +1,6 @@
 #!/bin/bash
 if [ $# -lt 1 ]; then
-	echo "Usage: compile FILE.ll"
+	echo "Usage: compile FILE.c"
 	exit 1
 fi
 f=$1

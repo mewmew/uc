@@ -669,9 +669,26 @@ func (m *Module) indexExpr(f *Function, n *ast.IndexExpr) value.Value {
 	}
 	typ := m.typeOf(n.Name)
 	array := m.valueFromIdent(f, n.Name)
+
+	// Dereference pointer pointer.
+	elem := typ
+	addr := array
 	zero := constZero(irtypes.I64)
 	indices := []value.Value{zero, index}
-	gepInst, err := instruction.NewGetElementPtr(typ, array, indices)
+	if typ, ok := typ.(*irtypes.Pointer); ok {
+		elem = typ.Elem()
+
+		// Emit load instruction.
+		loadInst, err := instruction.NewLoad(typ, array)
+		if err != nil {
+			panic(fmt.Sprintf("unable to create load instruction; %v", err))
+		}
+		addr = f.emitInst(loadInst)
+		indices = []value.Value{index}
+	}
+
+	// Emit getelementptr instruction.
+	gepInst, err := instruction.NewGetElementPtr(elem, addr, indices)
 	if err != nil {
 		panic(fmt.Sprintf("unable to create getelementptr instruction; %v", err))
 	}
