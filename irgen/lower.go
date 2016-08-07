@@ -619,6 +619,17 @@ func (m *Module) ident(f *Function, ident *ast.Ident) value.Value {
 		array := m.valueFromIdent(f, ident)
 		zero := constZero(irtypes.I64)
 		indices := []value.Value{zero, zero}
+
+		// Emit getelementptr instruction.
+		if m.isGlobal(ident) {
+			// In accordance with Clang, emit getelementptr constant expressions for
+			// global variables.
+			gepExpr, err := constant.NewGetElementPtr(typ, array, indices)
+			if err != nil {
+				panic(fmt.Sprintf("unable to create getelementptr expression; %v", err))
+			}
+			return gepExpr
+		}
 		gepInst, err := instruction.NewGetElementPtr(typ, array, indices)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create getelementptr instruction; %v", err))
@@ -688,6 +699,15 @@ func (m *Module) indexExpr(f *Function, n *ast.IndexExpr) value.Value {
 	}
 
 	// Emit getelementptr instruction.
+	if m.isGlobal(n.Name) {
+		// In accordance with Clang, emit getelementptr constant expressions for
+		// global variables.
+		gepExpr, err := constant.NewGetElementPtr(elem, addr, indices)
+		if err != nil {
+			panic(fmt.Sprintf("unable to create getelementptr expression; %v", err))
+		}
+		return gepExpr
+	}
 	gepInst, err := instruction.NewGetElementPtr(elem, addr, indices)
 	if err != nil {
 		panic(fmt.Sprintf("unable to create getelementptr instruction; %v", err))
