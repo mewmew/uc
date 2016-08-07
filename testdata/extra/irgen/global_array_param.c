@@ -4,6 +4,6 @@ int f(int a[]) {
 	return a[6];
 }
 
-int main(){
-	return f(b);
+void g(){
+	f(b);
 }
