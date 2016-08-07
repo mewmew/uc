@@ -10,6 +10,7 @@ void jal(void) {
 
 int mov(int lb) {
   addi = lb;
+  return 0;
 }
 
 int main (void) {
