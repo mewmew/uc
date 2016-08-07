@@ -10,6 +10,6 @@ define i32 @f(i32* %a) {
 }
 define void @g() {
 ; <label>:0
-	%1 = call i32 @f(i32* getelementptr ([5 x i32], [5 x i32]* @b, i32 0, i32 0))
+	%1 = call i32 @f(i32* getelementptr ([5 x i32], [5 x i32]* @b, i64 0, i64 0))
 	ret void
 }
