@@ -1,5 +1,5 @@
-// uclang is compiler for the µC language which validates the input, generates
-// corresponding LLVM IR assembly and reports errors to standard error.
+// uclang is compiler for the µC language which validates the input, and prints
+// corresponding LLVM IR assembly to standard output.
 //
 // Usage: uclang [OPTION]... FILE...
 //
