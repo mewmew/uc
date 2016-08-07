@@ -635,6 +635,13 @@ func (m *Module) ident(f *Function, ident *ast.Ident) value.Value {
 			panic(fmt.Sprintf("unable to create getelementptr instruction; %v", err))
 		}
 		return f.emitInst(gepInst)
+	case *irtypes.Pointer:
+		// Emit load instruction.
+		loadInst, err := instruction.NewLoad(typ, m.valueFromIdent(f, ident))
+		if err != nil {
+			panic(fmt.Sprintf("unable to create load instruction; %v", err))
+		}
+		return f.emitInst(loadInst)
 	default:
 		return m.valueFromIdent(f, ident)
 	}
