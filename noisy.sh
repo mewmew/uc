@@ -1,5 +1,5 @@
 #!/bin/bash
-for f in testdata/noisy/simple/*.c; do
+for f in testdata/noisy/*/*.c; do
 	echo "UC"
 	./compile.sh "${f}"
 	echo -e "\n### UC output:"
