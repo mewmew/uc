@@ -622,13 +622,23 @@ func (m *Module) ident(f *Function, ident *ast.Ident) value.Value {
 
 		// Emit getelementptr instruction.
 		if m.isGlobal(ident) {
-			// In accordance with Clang, emit getelementptr constant expressions for
-			// global variables.
-			gepExpr, err := constant.NewGetElementPtr(typ, array, indices)
-			if err != nil {
-				panic(fmt.Sprintf("unable to create getelementptr expression; %v", err))
+			var is []constant.Constant
+			for _, index := range indices {
+				i, ok := index.(constant.Constant)
+				if !ok {
+					break
+				}
+				is = append(is, i)
 			}
-			return gepExpr
+			if len(is) == len(indices) {
+				// In accordance with Clang, emit getelementptr constant expressions
+				// for global variables.
+				gepExpr, err := constant.NewGetElementPtr(typ, array, is)
+				if err != nil {
+					panic(fmt.Sprintf("unable to create getelementptr expression; %v", err))
+				}
+				return gepExpr
+			}
 		}
 		gepInst, err := instruction.NewGetElementPtr(typ, array, indices)
 		if err != nil {
@@ -707,13 +717,23 @@ func (m *Module) indexExpr(f *Function, n *ast.IndexExpr) value.Value {
 
 	// Emit getelementptr instruction.
 	if m.isGlobal(n.Name) {
-		// In accordance with Clang, emit getelementptr constant expressions for
-		// global variables.
-		gepExpr, err := constant.NewGetElementPtr(elem, addr, indices)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create getelementptr expression; %v", err))
+		var is []constant.Constant
+		for _, index := range indices {
+			i, ok := index.(constant.Constant)
+			if !ok {
+				break
+			}
+			is = append(is, i)
 		}
-		return gepExpr
+		if len(is) == len(indices) {
+			// In accordance with Clang, emit getelementptr constant expressions
+			// for global variables.
+			gepExpr, err := constant.NewGetElementPtr(elem, addr, is)
+			if err != nil {
+				panic(fmt.Sprintf("unable to create getelementptr expression; %v", err))
+			}
+			return gepExpr
+		}
 	}
 	gepInst, err := instruction.NewGetElementPtr(elem, addr, indices)
 	if err != nil {
