@@ -1,9 +1,13 @@
 % Skipping this section fow now.
 
-%\subsection{Implementation}
+\subsection{Implementation}
 
-%\subsubsection{Control Flow}
+\subsubsection{Control Flow}
 %TODO: alex
+
+When walking the ast for code generation, if an if-statement is encountered, two new basic blocks are created, one for the true branch and one end basic block to join the true and false branches. The false branch is set to the end basic block. If an else statement is present, a third new basic block is created and the false branch instead set to this new basic block. Both new branch basic blocks have their terminating instruction set to jump to the end basic block.
+
+Analogously for while and return statements.
 
 %\subsubsection{Implicit Conversion}
 %TODO: alex
