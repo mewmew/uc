@@ -1,11 +1,11 @@
-Only in ts-120116/: 00README.txt
-Only in ../testdata/: encoding
-Only in ../testdata/: extra
-Only in ts-120116/incorrect/semantic: se35.o
-Only in ../testdata/: Makefile
-diff -w -r -u ts-120116/noisy/advanced/eval.c ../testdata/noisy/advanced/eval.c
---- ts-120116/noisy/advanced/eval.c	2010-01-18 11:03:55.000000000 +0100
-+++ ../testdata/noisy/advanced/eval.c	2016-07-25 18:10:38.000000000 +0200
+Only in presentation/ts-120116/: 00README.txt
+Only in testdata/: encoding
+Only in testdata/: extra
+Only in presentation/ts-120116/incorrect/semantic: se35.o
+Only in testdata/: Makefile
+diff -w -r -u presentation/ts-120116/noisy/advanced/eval.c testdata/noisy/advanced/eval.c
+--- presentation/ts-120116/noisy/advanced/eval.c	2010-01-18 11:03:55.000000000 +0100
++++ testdata/noisy/advanced/eval.c	2016-07-25 18:10:38.000000000 +0200
 @@ -112,6 +112,7 @@
        return a;
      }
@@ -14,9 +14,9 @@ diff -w -r -u ts-120116/noisy/advanced/eval.c ../testdata/noisy/advanced/eval.c
  }
  
  int main(void) {
-diff -w -r -u ts-120116/quiet/mips/m01.c ../testdata/quiet/mips/m01.c
---- ts-120116/quiet/mips/m01.c	2010-01-18 11:03:55.000000000 +0100
-+++ ../testdata/quiet/mips/m01.c	2016-08-24 00:14:03.483331310 +0200
+diff -w -r -u presentation/ts-120116/quiet/mips/m01.c testdata/quiet/mips/m01.c
+--- presentation/ts-120116/quiet/mips/m01.c	2010-01-18 11:03:55.000000000 +0100
++++ testdata/quiet/mips/m01.c	2016-08-24 02:06:18.773319230 +0200
 @@ -10,6 +10,7 @@
  
  int mov(int lb) {
@@ -25,15 +25,9 @@ diff -w -r -u ts-120116/quiet/mips/m01.c ../testdata/quiet/mips/m01.c
  }
  
  int main (void) {
-diff -w -r -u ts-120116/quiet/rtl/r06.c ../testdata/quiet/rtl/r06.c
---- ts-120116/quiet/rtl/r06.c	2012-01-13 14:14:58.000000000 +0100
-+++ ../testdata/quiet/rtl/r06.c	2016-07-25 18:10:38.000000000 +0200
-@@ -1,4 +1,4 @@
--#include <stdio.h>
-+//#include <stdio.h>
- 
- int fac(int n) {
-   int i;
+diff -w -r -u presentation/ts-120116/quiet/rtl/r06.c testdata/quiet/rtl/r06.c
+--- presentation/ts-120116/quiet/rtl/r06.c	2012-01-13 14:14:58.000000000 +0100
++++ testdata/quiet/rtl/r06.c	2016-08-31 12:25:26.111448661 +0200
 @@ -14,5 +14,5 @@
  }
  
@@ -41,9 +35,9 @@ diff -w -r -u ts-120116/quiet/rtl/r06.c ../testdata/quiet/rtl/r06.c
 -  fac(5);
 +  return fac(5);
  }
-diff -w -r -u ts-120116/uc.c ../testdata/uc.c
---- ts-120116/uc.c	2010-01-18 11:03:54.000000000 +0100
-+++ ../testdata/uc.c	2016-07-25 18:10:38.000000000 +0200
+diff -w -r -u presentation/ts-120116/uc.c testdata/uc.c
+--- presentation/ts-120116/uc.c	2010-01-18 11:03:54.000000000 +0100
++++ testdata/uc.c	2016-07-25 18:10:38.000000000 +0200
 @@ -16,6 +16,5 @@
  
  
@@ -52,4 +46,4 @@ diff -w -r -u ts-120116/uc.c ../testdata/uc.c
 +	return scanf("%s", s);
  }
 -
-Only in ../testdata/: uc.ll
+Only in testdata/: uc.ll

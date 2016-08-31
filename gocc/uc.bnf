@@ -44,7 +44,11 @@ _decimals      : _decimal_digit { _decimal_digit } ;
 // ## Comments
 //
 
-_line_comment  : '/' '/' { . } '\n' ;
+_line_comment
+	: '/' '/' { . } '\n'
+	// TODO: Implement proper support for preprocess directive.
+	| '#'  { . } '\n'
+;
 _block_comment : '/' '*' { . | '*' } '*' '/' ;
 !comment       : _line_comment | _block_comment ;
 
@@ -189,16 +193,16 @@ BlockStmt
 
 MatchedStmt
 	: "if" Condition MatchedStmt
-	  "else" MatchedStmt               << astx.NewIfStmt($0, $1, $2, $4) >>
-	| "while" Condition MatchedStmt    << astx.NewWhileStmt($0, $1, $2) >>
+	  "else" MatchedStmt                << astx.NewIfStmt($0, $1, $2, $4) >>
+	| "while" Condition MatchedStmt     << astx.NewWhileStmt($0, $1, $2) >>
 	| OtherStmt
 ;
 
 OpenStmt
 	: "if" Condition Stmt               << astx.NewIfStmt($0, $1, $2, nil) >>
 	| "if" Condition MatchedStmt
-	  "else" OpenStmt                 << astx.NewIfStmt($0, $1, $2, $4) >>
-	| "while" Condition OpenStmt      << astx.NewWhileStmt($0, $1, $2) >>
+	  "else" OpenStmt                   << astx.NewIfStmt($0, $1, $2, $4) >>
+	| "while" Condition OpenStmt        << astx.NewWhileStmt($0, $1, $2) >>
 ;
 
 Condition
