@@ -193,16 +193,16 @@ BlockStmt
 
 MatchedStmt
 	: "if" Condition MatchedStmt
-	  "else" MatchedStmt               << astx.NewIfStmt($0, $1, $2, $4) >>
-	| "while" Condition MatchedStmt    << astx.NewWhileStmt($0, $1, $2) >>
+	  "else" MatchedStmt                << astx.NewIfStmt($0, $1, $2, $4) >>
+	| "while" Condition MatchedStmt     << astx.NewWhileStmt($0, $1, $2) >>
 	| OtherStmt
 ;
 
 OpenStmt
 	: "if" Condition Stmt               << astx.NewIfStmt($0, $1, $2, nil) >>
 	| "if" Condition MatchedStmt
-	  "else" OpenStmt                 << astx.NewIfStmt($0, $1, $2, $4) >>
-	| "while" Condition OpenStmt      << astx.NewWhileStmt($0, $1, $2) >>
+	  "else" OpenStmt                   << astx.NewIfStmt($0, $1, $2, $4) >>
+	| "while" Condition OpenStmt        << astx.NewWhileStmt($0, $1, $2) >>
 ;
 
 Condition
