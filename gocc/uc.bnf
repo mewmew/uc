@@ -81,7 +81,6 @@ char_lit      : '\'' ( _ascii_char | '"' | _escaped_char ) '\'' ;
 //
 
 << import (
-	"github.com/mewmew/uc/ast"
 	"github.com/mewmew/uc/ast/astx"
 	"github.com/mewmew/uc/token"
 ) >>
