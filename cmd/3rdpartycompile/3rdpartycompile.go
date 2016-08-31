@@ -136,11 +136,16 @@ func compileFile(path string, outputPath string, goccLexer bool) error {
 
 	// Generate LLVM IR module based on the syntax tree of the given file.
 	module := irgen.Gen(file, info)
+
+	// Add path to uc lib.
 	lib, err := goutil.SrcDir("github.com/mewmew/uc/testdata")
 	if err != nil {
 		return errutil.Err(err)
 	}
-	clang := exec.Command("clang", "-o", outputPath, "-x", "ir", filepath.Join(lib, "uc.ll"), "-")
+	lib = filepath.Join(lib, "uc.ll")
+
+	// Link and create binary through clang
+	clang := exec.Command("clang", "-o", outputPath, "-x", "ir", lib, "-")
 	clang.Stdin = strings.NewReader(module.String())
 	clang.Stderr = os.Stderr
 	clang.Stdout = os.Stdout
