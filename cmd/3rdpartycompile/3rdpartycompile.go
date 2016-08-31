@@ -22,9 +22,11 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/mewkiz/pkg/errutil"
+	"github.com/mewkiz/pkg/goutil"
 	"github.com/mewkiz/pkg/ioutilx"
 	"github.com/mewmew/uc/ast"
 	goccerrors "github.com/mewmew/uc/gocc/errors"
@@ -134,8 +136,19 @@ func compileFile(path string, outputPath string, goccLexer bool) error {
 
 	// Generate LLVM IR module based on the syntax tree of the given file.
 	module := irgen.Gen(file, info)
-	clang := exec.Command("clang", "-o", outputPath, "-x", "ir", "-")
+
+	// Add path to uc lib.
+	lib, err := goutil.SrcDir("github.com/mewmew/uc/testdata")
+	if err != nil {
+		return errutil.Err(err)
+	}
+	lib = filepath.Join(lib, "uc.ll")
+
+	// Link and create binary through clang
+	clang := exec.Command("clang", "-o", outputPath, "-x", "ir", lib, "-")
 	clang.Stdin = strings.NewReader(module.String())
+	clang.Stderr = os.Stderr
+	clang.Stdout = os.Stdout
 	if err := clang.Run(); err != nil {
 		return errutil.Err(err)
 	}

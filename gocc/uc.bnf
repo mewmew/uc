@@ -172,11 +172,17 @@ Type
 ;
 
 Stmt
+	: MatchedStmt
+	| OpenStmt
+;
+
+// Thanks to http://www.parsifalsoft.com/ifelse.html for loop statement
+// resolvning (while, do, for).
+
+OtherStmt
 	: Expr ";"                          << astx.NewExprStmt($0) >>
 	| "return" Expr ";"                 << astx.NewReturnStmt($0, $1) >>
 	| "return" ";"                      << astx.NewReturnStmt($0, nil) >>
-	| "while" Condition Stmt            << astx.NewWhileStmt($0, $1, $2) >>
-	| "if" Condition Stmt ElsePart      << astx.NewIfStmt($0, $1, $2, $3) >>
 	| BlockStmt
 	| ";"                               << astx.NewEmptyStmt($0) >>
 ;
@@ -185,9 +191,18 @@ BlockStmt
 	: "{" BlockItems "}"                << astx.NewBlockStmt($0, $1, $2) >>
 ;
 
-ElsePart
-	: empty
-	| "else" Stmt                       << $1, nil >>
+MatchedStmt
+	: "if" Condition MatchedStmt
+	  "else" MatchedStmt               << astx.NewIfStmt($0, $1, $2, $4) >>
+	| "while" Condition MatchedStmt    << astx.NewWhileStmt($0, $1, $2) >>
+	| OtherStmt
+;
+
+OpenStmt
+	: "if" Condition Stmt               << astx.NewIfStmt($0, $1, $2, nil) >>
+	| "if" Condition MatchedStmt
+	  "else" OpenStmt                 << astx.NewIfStmt($0, $1, $2, $4) >>
+	| "while" Condition OpenStmt      << astx.NewWhileStmt($0, $1, $2) >>
 ;
 
 Condition
