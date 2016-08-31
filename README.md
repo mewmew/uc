@@ -19,6 +19,7 @@ $ go get github.com/mewmew/uc/...
 $ go install github.com/mewmew/uc/cmd/ulex
 $ go install github.com/mewmew/uc/cmd/uparse
 $ go install github.com/mewmew/uc/cmd/uclang
+$ go install github.com/mewmew/uc/cmd/3rdpartycompile
 ```
 
 ## Usage
@@ -27,6 +28,7 @@ $ go install github.com/mewmew/uc/cmd/uclang
 * [uparse](https://godoc.org/github.com/mewmew/uc/cmd/uparse): a parser for the µC language which pretty-prints abstract syntax trees to standard output.
 * [usem](https://godoc.org/github.com/mewmew/uc/cmd/usem): a static semantic checker for the µC language which validates the input and reports errors to standard error.
 * [uclang](https://godoc.org/github.com/mewmew/uc/cmd/uclang): a compiler for the µC language which validates the input, and prints corresponding LLVM IR assembly to standard output.
+* [3rdpartycompile](https://godoc.org/github.com/mewmew/uc/cmd/3rdpartycompile): a compiler for the µC language which through the uclang tool chain validates the input, compiles to LLVM and through the third party compiler clang links with the supplied lib uc.c and outputs the corresponding binary.
 
 ## Public domain
 
