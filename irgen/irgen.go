@@ -88,7 +88,7 @@ func (f *Function) endBody() error {
 			// the main function returns a value of 0."
 			result := f.Sig().Result()
 			zero := constZero(result)
-			term, err := instruction.NewRet(result, zero)
+			term, err := instruction.NewRet(zero)
 			if err != nil {
 				panic(fmt.Sprintf("unable to create ret terminator; %v", err))
 			}
@@ -98,7 +98,7 @@ func (f *Function) endBody() error {
 			// terminator is missing.
 			switch result := f.Sig().Result(); {
 			case irtypes.IsVoid(result):
-				term, err := instruction.NewRet(irtypes.NewVoid(), nil)
+				term, err := instruction.NewRet(nil)
 				if err != nil {
 					panic(fmt.Sprintf("unable to create ret instruction; %v", err))
 				}
@@ -150,7 +150,10 @@ func (f *Function) NewBasicBlock(name string) *BasicBlock {
 
 // emitInst emits to b the given unnamed value instruction.
 func (b *BasicBlock) emitInst(inst instruction.ValueInst) value.Value {
-	v := instruction.NewLocalVarDef("", inst)
+	v, err := instruction.NewLocalVarDef("", inst)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create local variable definition; %v", err))
+	}
 	b.AppendInst(v)
 	return v
 }
@@ -158,7 +161,10 @@ func (b *BasicBlock) emitInst(inst instruction.ValueInst) value.Value {
 // emitLocal emits to b the given named value instruction.
 func (b *BasicBlock) emitLocal(ident *ast.Ident, inst instruction.ValueInst) value.Value {
 	name := b.parent.genUnique(ident)
-	v := instruction.NewLocalVarDef(name, inst)
+	v, err := instruction.NewLocalVarDef(name, inst)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create local variable definition; %v", err))
+	}
 	b.AppendInst(v)
 	b.parent.setIdentValue(ident, v)
 	return v

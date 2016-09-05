@@ -310,7 +310,7 @@ func (m *Module) returnStmt(f *Function, stmt *ast.ReturnStmt) {
 	// Output:
 	//    ret i32 42
 	if stmt.Result == nil {
-		term, err := instruction.NewRet(irtypes.NewVoid(), nil)
+		term, err := instruction.NewRet(nil)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create ret terminator; %v", err))
 		}
@@ -322,7 +322,7 @@ func (m *Module) returnStmt(f *Function, stmt *ast.ReturnStmt) {
 	// Implicit conversion.
 	resultType := f.Sig().Result()
 	result = m.convert(f, result, resultType)
-	term, err := instruction.NewRet(result.Type(), result)
+	term, err := instruction.NewRet(result)
 	if err != nil {
 		panic(fmt.Sprintf("unable to create ret terminator; %v", err))
 	}
