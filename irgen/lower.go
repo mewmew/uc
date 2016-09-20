@@ -527,7 +527,7 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 	case token.Eq:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
 		x, y = m.implicitConversion(f, x, y)
-		icmpInst, err := instruction.NewICmp(instruction.ICondEq, x, y)
+		icmpInst, err := instruction.NewICmp(instruction.ICondEQ, x, y)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
 		}
@@ -564,7 +564,7 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 			panic(fmt.Sprintf("unable to create incoming value; %v", err))
 		}
 		incs = append(incs, inc)
-		phiInst, err := instruction.NewPHI(irtypes.I1, incs)
+		phiInst, err := instruction.NewPHI(incs)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create br terminator; %v", err))
 		}
