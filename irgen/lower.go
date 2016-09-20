@@ -640,14 +640,15 @@ func (m *Module) ident(f *Function, ident *ast.Ident) value.Value {
 				return gepExpr
 			}
 		}
-		gepInst, err := instruction.NewGetElementPtr(typ, array, indices)
+		gepInst, err := instruction.NewGetElementPtr(array, indices)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create getelementptr instruction; %v", err))
 		}
 		return f.emitInst(gepInst)
 	case *irtypes.Pointer:
 		// Emit load instruction.
-		loadInst, err := instruction.NewLoad(typ, m.valueFromIdent(f, ident))
+		// TODO: Validate typ against srcAddr.Elem().
+		loadInst, err := instruction.NewLoad(m.valueFromIdent(f, ident))
 		if err != nil {
 			panic(fmt.Sprintf("unable to create load instruction; %v", err))
 		}
@@ -664,7 +665,8 @@ func (m *Module) identUse(f *Function, ident *ast.Ident) value.Value {
 	if isRef(typ) {
 		return v
 	}
-	loadInst, err := instruction.NewLoad(typ, v)
+	// TODO: Validate typ against v.Elem()
+	loadInst, err := instruction.NewLoad(v)
 	if err != nil {
 		panic(fmt.Sprintf("unable to create load instruction; %v", err))
 	}
@@ -707,7 +709,8 @@ func (m *Module) indexExpr(f *Function, n *ast.IndexExpr) value.Value {
 		elem = typ.Elem()
 
 		// Emit load instruction.
-		loadInst, err := instruction.NewLoad(typ, array)
+		// TODO: Validate typ against array.Elem().
+		loadInst, err := instruction.NewLoad(array)
 		if err != nil {
 			panic(fmt.Sprintf("unable to create load instruction; %v", err))
 		}
@@ -735,7 +738,8 @@ func (m *Module) indexExpr(f *Function, n *ast.IndexExpr) value.Value {
 			return gepExpr
 		}
 	}
-	gepInst, err := instruction.NewGetElementPtr(elem, addr, indices)
+	// TODO: Validate elem against array.Elem().
+	gepInst, err := instruction.NewGetElementPtr(addr, indices)
 	if err != nil {
 		panic(fmt.Sprintf("unable to create getelementptr instruction; %v", err))
 	}
@@ -750,7 +754,8 @@ func (m *Module) indexExprUse(f *Function, n *ast.IndexExpr) value.Value {
 	if isRef(typ) {
 		return v
 	}
-	loadInst, err := instruction.NewLoad(typ, v)
+	// TODO: Validate typ against v.Elem().
+	loadInst, err := instruction.NewLoad(v)
 	if err != nil {
 		panic(fmt.Sprintf("unable to create load instruction; %v", err))
 	}
