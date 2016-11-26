@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/llir/llvm/ir/constant"
-	"github.com/llir/llvm/ir/instruction"
 	irtypes "github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/mewkiz/pkg/errutil"
@@ -34,27 +33,21 @@ func (m *Module) convert(f *Function, v value.Value, to irtypes.Type) value.Valu
 	if irtypes.Equal(from, to) {
 		return v
 	}
-	fromType, ok := from.(*irtypes.Int)
+	fromType, ok := from.(*irtypes.IntType)
 	if !ok {
 		panic(fmt.Sprintf("support for converting from type %T not yet implemented", from))
 	}
-	toType, ok := to.(*irtypes.Int)
+	toType, ok := to.(*irtypes.IntType)
 	if !ok {
 		panic(fmt.Sprintf("support for converting to type %T not yet implemented", to))
 	}
 
 	// Convert constant values.
-	if v, ok := v.(constant.Constant); ok {
-		switch v := v.(type) {
-		case *constant.Int:
-			v, err := constant.NewInt(toType, v.ValueString())
-			if err != nil {
-				panic(fmt.Sprintf("unable to create integer constant; %v", err))
-			}
-			return v
-		default:
-			panic(fmt.Sprintf("support for converting type %T not yet implemented", v))
-		}
+	switch v := v.(type) {
+	case *constant.Int:
+		return constant.NewIntFromString(v.Ident(), toType)
+	case *constant.Float:
+		panic(fmt.Sprintf("support for converting type %T not yet implemented", v))
 	}
 
 	// TODO: Add proper support for converting signed and unsigned values, using
@@ -63,28 +56,16 @@ func (m *Module) convert(f *Function, v value.Value, to irtypes.Type) value.Valu
 	// Convert unsigned values.
 	if irtypes.IsBool(fromType) {
 		// Zero extend boolean values.
-		zextInst, err := instruction.NewZExt(v, toType)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create sext instruction; %v", err))
-		}
-		return f.emitInst(zextInst)
+		return f.curBlock.NewZExt(v, toType)
 	}
 
 	// Convert signed values.
 	if toType.Size() > fromType.Size() {
 		// Sign extend.
-		sextInst, err := instruction.NewSExt(v, toType)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create sext instruction; %v", err))
-		}
-		return f.emitInst(sextInst)
+		return f.curBlock.NewSExt(v, toType)
 	}
 	// Truncate.
-	truncInst, err := instruction.NewTrunc(v, toType)
-	if err != nil {
-		panic(fmt.Sprintf("unable to create trunc instruction; %v", err))
-	}
-	return f.emitInst(truncInst)
+	return f.curBlock.NewTrunc(v, toType)
 }
 
 // isLarger reports whether t has higher precision than u.
@@ -106,9 +87,9 @@ func isLarger(t, u irtypes.Type) bool {
 // array.
 func isRef(typ irtypes.Type) bool {
 	switch typ.(type) {
-	case *irtypes.Array:
+	case *irtypes.ArrayType:
 		return true
-	case *irtypes.Pointer:
+	case *irtypes.PointerType:
 		return true
 	default:
 		return false
@@ -117,20 +98,12 @@ func isRef(typ irtypes.Type) bool {
 
 // constZero returns the integer constant zero of the given type.
 func constZero(typ irtypes.Type) constant.Constant {
-	zero, err := constant.NewInt(typ, "0")
-	if err != nil {
-		panic(fmt.Sprintf("unable to create integer constant zero; %v", err))
-	}
-	return zero
+	return constant.NewInt(0, typ)
 }
 
 // constOne returns the integer constant one of the given type.
 func constOne(typ irtypes.Type) constant.Constant {
-	one, err := constant.NewInt(typ, "1")
-	if err != nil {
-		panic(fmt.Sprintf("unable to create integer constant one; %v", err))
-	}
-	return one
+	return constant.NewInt(1, typ)
 }
 
 // isTentativeDef reports whether the given global variable or function
@@ -216,18 +189,18 @@ func toIrType(n uctypes.Type) irtypes.Type {
 		switch ucType.Kind {
 		case uctypes.Int:
 			//TODO: Get int width from compile env
-			t, err = irtypes.NewInt(32)
+			t = irtypes.NewInt(32)
 		case uctypes.Char:
-			t, err = irtypes.NewInt(8)
+			t = irtypes.NewInt(8)
 		case uctypes.Void:
-			t = irtypes.NewVoid()
+			t = irtypes.Void
 		}
 	case *uctypes.Array:
 		elem := toIrType(ucType.Elem)
 		if ucType.Len == 0 {
-			t, err = irtypes.NewPointer(elem)
+			t = irtypes.NewPointer(elem)
 		} else {
-			t, err = irtypes.NewArray(elem, ucType.Len)
+			t = irtypes.NewArray(elem, ucType.Len)
 		}
 	case *uctypes.Func:
 		var params []*irtypes.Param
@@ -239,10 +212,12 @@ func toIrType(n uctypes.Type) irtypes.Type {
 			}
 			pt := toIrType(p.Type)
 			dbg.Printf("converting type %#v to %#v", p.Type, pt)
-			params = append(params, irtypes.NewParam(pt, p.Name))
+			params = append(params, irtypes.NewParam(p.Name, pt))
 		}
 		result := toIrType(ucType.Result)
-		t, err = irtypes.NewFunc(result, params, variadic)
+		typ := irtypes.NewFunc(result, params...)
+		typ.SetVariadic(variadic)
+		t = typ
 	default:
 		panic(fmt.Sprintf("support for translating type %T not yet implemented.", ucType))
 	}

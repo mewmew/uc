@@ -9,7 +9,6 @@ import (
 
 	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/constant"
-	"github.com/llir/llvm/ir/instruction"
 	irtypes "github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/mewmew/uc/ast"
@@ -54,11 +53,12 @@ func gen(file *ast.File, info *sem.Info) *ir.Module {
 // m.
 func (m *Module) funcDecl(n *ast.FuncDecl) {
 	// Generate function signature.
-	name := n.Name().String()
+	ident := n.Name()
+	name := ident.String()
 	typ := toIrType(n.Type())
-	sig, ok := typ.(*irtypes.Func)
+	sig, ok := typ.(*irtypes.FuncType)
 	if !ok {
-		panic(fmt.Sprintf("invalid function type; expected *types.Func, got %T", typ))
+		panic(fmt.Sprintf("invalid function type; expected *types.FuncType, got %T", typ))
 	}
 	f := NewFunction(name, sig)
 	if !astutil.IsDef(n) {
@@ -67,6 +67,7 @@ func (m *Module) funcDecl(n *ast.FuncDecl) {
 		m.emitFunc(f)
 		return
 	}
+	m.setIdentValue(ident, f.Function)
 
 	// Generate function body.
 	dbg.Printf("create function definition: %v", n)
@@ -133,17 +134,8 @@ func (m *Module) funcParam(f *Function, param *irtypes.Param) value.Value {
 	// Output:
 	//    %1 = alloca i32
 	//    store i32 %a, i32* %1
-	allocaInst, err := instruction.NewAlloca(param.Type(), 1)
-	if err != nil {
-		panic(fmt.Sprintf("unable to create alloca instruction; %v", err))
-	}
-	// Emit local variable definition for the given function parameter.
-	addr := f.emitInst(allocaInst)
-	storeInst, err := instruction.NewStore(param, addr)
-	if err != nil {
-		panic(fmt.Sprintf("unable to create store instruction; %v", err))
-	}
-	f.curBlock.AppendInst(storeInst)
+	addr := f.curBlock.NewAlloca(param.Type())
+	f.curBlock.NewStore(param, addr)
 	return addr
 }
 
@@ -159,23 +151,16 @@ func (m *Module) globalVarDecl(n *ast.VarDecl) {
 	ident := n.Name()
 	dbg.Printf("create global variable: %v", n)
 	typ := toIrType(n.Type())
-	var val value.Value
+	var val constant.Constant
 	switch {
 	case n.Val != nil:
 		panic("support for global variable initializer not yet implemented")
 	case irtypes.IsInt(typ):
-		var err error
-		val, err = constant.NewInt(typ, "0")
-		if err != nil {
-			panic(fmt.Sprintf("unable to create integer constant; %v", err))
-		}
+		val = constant.NewInt(0, typ)
 	default:
 		val = constant.NewZeroInitializer(typ)
 	}
-	global, err := ir.NewGlobalDef(ident.Name, val, false)
-	if err != nil {
-		panic(fmt.Sprintf("unable to create global variable definition %q", ident))
-	}
+	global := ir.NewGlobalDef(ident.Name, val)
 	m.setIdentValue(ident, global)
 	// Emit global variable definition.
 	m.emitGlobal(global)
@@ -204,10 +189,7 @@ func (m *Module) localVarDef(f *Function, n *ast.VarDecl) {
 	ident := n.Name()
 	dbg.Printf("create local variable: %v", n)
 	typ := toIrType(n.Type())
-	allocaInst, err := instruction.NewAlloca(typ, 1)
-	if err != nil {
-		panic(fmt.Sprintf("unable to create alloca instruction; %v", err))
-	}
+	allocaInst := f.curBlock.NewAlloca(typ)
 	// Emit local variable definition.
 	f.emitLocal(ident, allocaInst)
 	if n.Val != nil {
@@ -271,23 +253,21 @@ func (m *Module) exprStmt(f *Function, stmt *ast.ExprStmt) {
 // ifStmt lowers the given if statement to LLVM IR, emitting code to f.
 func (m *Module) ifStmt(f *Function, stmt *ast.IfStmt) {
 	cond := m.cond(f, stmt.Cond)
-	trueBranch := f.NewBasicBlock("")
-	end := f.NewBasicBlock("")
+	trueBranch := f.NewBlock("")
+	end := f.NewBlock("")
 	falseBranch := end
 	if stmt.Else != nil {
-		falseBranch = f.NewBasicBlock("")
+		falseBranch = f.NewBlock("")
 	}
-	term, err := instruction.NewBr(cond, trueBranch, falseBranch)
-	if err != nil {
-		panic(fmt.Sprintf("unable to create br terminator; %v", err))
-	}
-	f.curBlock.SetTerm(term)
+	termCondBr := ir.NewCondBr(cond, trueBranch.BasicBlock, falseBranch.BasicBlock)
+	f.curBlock.SetTerm(termCondBr)
 	f.curBlock = trueBranch
 	m.stmt(f, stmt.Body)
 	// Emit jump if body doesn't end with return statement (i.e. the current
 	// basic block is none nil).
 	if f.curBlock != nil {
-		f.curBlock.emitJmp(end)
+		termBr := ir.NewBr(end.BasicBlock)
+		f.curBlock.SetTerm(termBr)
 	}
 	if stmt.Else != nil {
 		f.curBlock = falseBranch
@@ -295,7 +275,8 @@ func (m *Module) ifStmt(f *Function, stmt *ast.IfStmt) {
 		// Emit jump if body doesn't end with return statement (i.e. the current
 		// basic block is none nil).
 		if f.curBlock != nil {
-			f.curBlock.emitJmp(end)
+			termBr := ir.NewBr(end.BasicBlock)
+			f.curBlock.SetTerm(termBr)
 		}
 	}
 	f.curBlock = end
@@ -310,45 +291,38 @@ func (m *Module) returnStmt(f *Function, stmt *ast.ReturnStmt) {
 	// Output:
 	//    ret i32 42
 	if stmt.Result == nil {
-		term, err := instruction.NewRet(nil)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create ret terminator; %v", err))
-		}
-		f.curBlock.SetTerm(term)
+		termRet := ir.NewRet(nil)
+		f.curBlock.SetTerm(termRet)
 		f.curBlock = nil
 		return
 	}
 	result := m.expr(f, stmt.Result)
 	// Implicit conversion.
-	resultType := f.Sig().Result()
+	resultType := f.Sig().RetType()
 	result = m.convert(f, result, resultType)
-	term, err := instruction.NewRet(result)
-	if err != nil {
-		panic(fmt.Sprintf("unable to create ret terminator; %v", err))
-	}
-	f.curBlock.SetTerm(term)
+	termRet := ir.NewRet(result)
+	f.curBlock.SetTerm(termRet)
 	f.curBlock = nil
 }
 
 // whileStmt lowers the given while statement to LLVM IR, emitting code to f.
 func (m *Module) whileStmt(f *Function, stmt *ast.WhileStmt) {
-	condBranch := f.NewBasicBlock("")
-	f.curBlock.emitJmp(condBranch)
+	condBranch := f.NewBlock("")
+	termBr := ir.NewBr(condBranch.BasicBlock)
+	f.curBlock.SetTerm(termBr)
 	f.curBlock = condBranch
 	cond := m.cond(f, stmt.Cond)
-	bodyBranch := f.NewBasicBlock("")
-	endBranch := f.NewBasicBlock("")
-	term, err := instruction.NewBr(cond, bodyBranch, endBranch)
-	if err != nil {
-		panic(fmt.Sprintf("unable to create br terminator; %v", err))
-	}
-	f.curBlock.SetTerm(term)
+	bodyBranch := f.NewBlock("")
+	endBranch := f.NewBlock("")
+	termCondBr := ir.NewCondBr(cond, bodyBranch.BasicBlock, endBranch.BasicBlock)
+	f.curBlock.SetTerm(termCondBr)
 	f.curBlock = bodyBranch
 	m.stmt(f, stmt.Body)
 	// Emit jump if body doesn't end with return statement (i.e. the current
 	// basic block is none nil).
 	if f.curBlock != nil {
-		f.curBlock.emitJmp(condBranch)
+		termBr := ir.NewBr(condBranch.BasicBlock)
+		f.curBlock.SetTerm(termBr)
 	}
 	f.curBlock = endBranch
 }
@@ -366,11 +340,7 @@ func (m *Module) cond(f *Function, expr ast.Expr) value.Value {
 	//    cond != 0
 	// zero is the integer constant 0.
 	zero := constZero(cond.Type())
-	icmpInst, err := instruction.NewICmp(instruction.ICondNE, cond, zero)
-	if err != nil {
-		panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
-	}
-	return f.emitInst(icmpInst)
+	return f.curBlock.NewICmp(ir.IntNE, cond, zero)
 }
 
 // expr lowers the given expression to LLVM IR, emitting code to f.
@@ -404,17 +374,9 @@ func (m *Module) basicLit(f *Function, n *ast.BasicLit) value.Value {
 		if err != nil {
 			panic(fmt.Sprintf("unable to unquote character literal; %v", err))
 		}
-		val, err := constant.NewInt(typ, strconv.Itoa(int(s[0])))
-		if err != nil {
-			panic(fmt.Sprintf("unable to create integer constant; %v", err))
-		}
-		return val
+		return constant.NewInt(int64(s[0]), typ)
 	case token.IntLit:
-		val, err := constant.NewInt(typ, n.Val)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create integer constant; %v", err))
-		}
-		return val
+		return constant.NewIntFromString(n.Val, typ)
 	default:
 		panic(fmt.Sprintf("support for basic literal kind %v not yet implemented", n.Kind))
 	}
@@ -427,149 +389,86 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 	case token.Add:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
 		x, y = m.implicitConversion(f, x, y)
-		addInst, err := instruction.NewAdd(x, y)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create add instruction; %v", err))
-		}
-		// Emit add instruction.
-		return f.emitInst(addInst)
+		return f.curBlock.NewAdd(x, y)
 
 	// -
 	case token.Sub:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
 		x, y = m.implicitConversion(f, x, y)
-		subInst, err := instruction.NewSub(x, y)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create sub instruction; %v", err))
-		}
-		// Emit sub instruction.
-		return f.emitInst(subInst)
+		return f.curBlock.NewSub(x, y)
 
 	// *
 	case token.Mul:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
 		x, y = m.implicitConversion(f, x, y)
-		mulInst, err := instruction.NewMul(x, y)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create mul instruction; %v", err))
-		}
-		// Emit mul instruction.
-		return f.emitInst(mulInst)
+		return f.curBlock.NewMul(x, y)
 
 	// /
 	case token.Div:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
 		x, y = m.implicitConversion(f, x, y)
 		// TODO: Add support for unsigned division.
-		sdivInst, err := instruction.NewSDiv(x, y)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create sdiv instruction; %v", err))
-		}
-		// Emit sdiv instruction.
-		return f.emitInst(sdivInst)
+		return f.curBlock.NewSDiv(x, y)
 
 	// <
 	case token.Lt:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
 		x, y = m.implicitConversion(f, x, y)
-		icmpInst, err := instruction.NewICmp(instruction.ICondSLT, x, y)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
-		}
-		// Emit icmp instruction.
-		return f.emitInst(icmpInst)
+		return f.curBlock.NewICmp(ir.IntSLT, x, y)
 
 	// >
 	case token.Gt:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
 		x, y = m.implicitConversion(f, x, y)
-		icmpInst, err := instruction.NewICmp(instruction.ICondSGT, x, y)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
-		}
-		// Emit icmp instruction.
-		return f.emitInst(icmpInst)
+		return f.curBlock.NewICmp(ir.IntSGT, x, y)
 
 	// <=
 	case token.Le:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
 		x, y = m.implicitConversion(f, x, y)
-		icmpInst, err := instruction.NewICmp(instruction.ICondSLE, x, y)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
-		}
-		// Emit icmp instruction.
-		return f.emitInst(icmpInst)
+		return f.curBlock.NewICmp(ir.IntSLE, x, y)
 
 	// >=
 	case token.Ge:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
 		x, y = m.implicitConversion(f, x, y)
-		icmpInst, err := instruction.NewICmp(instruction.ICondSGE, x, y)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
-		}
-		// Emit icmp instruction.
-		return f.emitInst(icmpInst)
+		return f.curBlock.NewICmp(ir.IntSGE, x, y)
 
 	// !=
 	case token.Ne:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
 		x, y = m.implicitConversion(f, x, y)
-		icmpInst, err := instruction.NewICmp(instruction.ICondNE, x, y)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
-		}
-		// Emit icmp instruction.
-		return f.emitInst(icmpInst)
+		return f.curBlock.NewICmp(ir.IntNE, x, y)
 
 	// ==
 	case token.Eq:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
 		x, y = m.implicitConversion(f, x, y)
-		icmpInst, err := instruction.NewICmp(instruction.ICondEQ, x, y)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create icmp instruction; %v", err))
-		}
-		// Emit icmp instruction.
-		return f.emitInst(icmpInst)
+		return f.curBlock.NewICmp(ir.IntEQ, x, y)
 
 	// &&
 	case token.Land:
 		x := m.cond(f, n.X)
 
 		start := f.curBlock
-		trueBranch := f.NewBasicBlock("")
-		end := f.NewBasicBlock("")
-		term, err := instruction.NewBr(x, trueBranch, end)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create br terminator; %v", err))
-		}
-		f.curBlock.SetTerm(term)
+		trueBranch := f.NewBlock("")
+		end := f.NewBlock("")
+		termCondBr := ir.NewCondBr(x, trueBranch.BasicBlock, end.BasicBlock)
+		f.curBlock.SetTerm(termCondBr)
 		f.curBlock = trueBranch
 
 		y := m.cond(f, n.Y)
-		trueBranch.emitJmp(end)
+		termBr := ir.NewBr(end.BasicBlock)
+		trueBranch.SetTerm(termBr)
 		f.curBlock = end
 
-		var incs []*instruction.Incoming
+		var incs []*ir.Incoming
 		zero := constZero(irtypes.I1)
-		inc, err := instruction.NewIncoming(zero, start)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create incoming value; %v", err))
-		}
+		inc := ir.NewIncoming(zero, start.BasicBlock)
 		incs = append(incs, inc)
-		inc, err = instruction.NewIncoming(y, trueBranch)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create incoming value; %v", err))
-		}
+		inc = ir.NewIncoming(y, trueBranch.BasicBlock)
 		incs = append(incs, inc)
-		phiInst, err := instruction.NewPHI(incs)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create br terminator; %v", err))
-		}
-		// Emit phi instruction.
-		return f.emitInst(phiInst)
+		return f.curBlock.NewPhi(incs...)
 
 	// =
 	case token.Assign:
@@ -592,12 +491,14 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 // callExpr lowers the given identifier to LLVM IR, emitting code to f.
 func (m *Module) callExpr(f *Function, callExpr *ast.CallExpr) value.Value {
 	typ := toIrType(callExpr.Name.Decl.Type())
-	sig, ok := typ.(*irtypes.Func)
+	sig, ok := typ.(*irtypes.FuncType)
 	if !ok {
-		panic(fmt.Sprintf("invalid function type; expected *types.Func, got %T", typ))
+		panic(fmt.Sprintf("invalid function type; expected *types.FuncType, got %T", typ))
 	}
 	params := sig.Params()
-	result := sig.Result()
+	result := sig.RetType()
+	// TODO: Validate result against function return type.
+	_ = result
 	var args []value.Value
 	// TODO: Add support for variadic arguments.
 	for i, arg := range callExpr.Args {
@@ -605,17 +506,18 @@ func (m *Module) callExpr(f *Function, callExpr *ast.CallExpr) value.Value {
 		expr = m.convert(f, expr, params[i].Type())
 		args = append(args, expr)
 	}
-	callInst, err := instruction.NewCall(result, callExpr.Name.String(), args)
-	if err != nil {
-		panic(fmt.Sprintf("unable to create call instruction; %v", err))
+	v := m.valueFromIdent(f, callExpr.Name)
+	callee, ok := v.(*ir.Function)
+	if !ok {
+		panic(fmt.Sprintf("invalid callee type; expected *ir.Function, got %T", v))
 	}
-	return f.emitInst(callInst)
+	return f.curBlock.NewCall(callee, args...)
 }
 
 // ident lowers the given identifier to LLVM IR, emitting code to f.
 func (m *Module) ident(f *Function, ident *ast.Ident) value.Value {
 	switch typ := m.typeOf(ident).(type) {
-	case *irtypes.Array:
+	case *irtypes.ArrayType:
 		array := m.valueFromIdent(f, ident)
 		zero := constZero(irtypes.I64)
 		indices := []value.Value{zero, zero}
@@ -633,26 +535,19 @@ func (m *Module) ident(f *Function, ident *ast.Ident) value.Value {
 			if len(is) == len(indices) {
 				// In accordance with Clang, emit getelementptr constant expressions
 				// for global variables.
-				gepExpr, err := constant.NewGetElementPtr(typ, array, is)
-				if err != nil {
-					panic(fmt.Sprintf("unable to create getelementptr expression; %v", err))
+				// TODO: Validate typ against array.
+				_ = typ
+				if array, ok := array.(constant.Constant); ok {
+					return constant.NewGetElementPtr(array, is...)
 				}
-				return gepExpr
+				panic(fmt.Sprintf("invalid constant array type; expected constant.Constant, got %T", array))
 			}
 		}
-		gepInst, err := instruction.NewGetElementPtr(array, indices)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create getelementptr instruction; %v", err))
-		}
-		return f.emitInst(gepInst)
-	case *irtypes.Pointer:
+		return f.curBlock.NewGetElementPtr(array, indices...)
+	case *irtypes.PointerType:
 		// Emit load instruction.
 		// TODO: Validate typ against srcAddr.Elem().
-		loadInst, err := instruction.NewLoad(m.valueFromIdent(f, ident))
-		if err != nil {
-			panic(fmt.Sprintf("unable to create load instruction; %v", err))
-		}
-		return f.emitInst(loadInst)
+		return f.curBlock.NewLoad(m.valueFromIdent(f, ident))
 	default:
 		return m.valueFromIdent(f, ident)
 	}
@@ -666,28 +561,19 @@ func (m *Module) identUse(f *Function, ident *ast.Ident) value.Value {
 		return v
 	}
 	// TODO: Validate typ against v.Elem()
-	loadInst, err := instruction.NewLoad(v)
-	if err != nil {
-		panic(fmt.Sprintf("unable to create load instruction; %v", err))
-	}
-	// Emit load instruction.
-	return f.emitInst(loadInst)
+	return f.curBlock.NewLoad(v)
 }
 
 // identDef lowers the given identifier definition to LLVM IR, emitting code to
 // f.
 func (m *Module) identDef(f *Function, ident *ast.Ident, v value.Value) {
 	addr := m.ident(f, ident)
-	addrType, ok := addr.Type().(*irtypes.Pointer)
+	addrType, ok := addr.Type().(*irtypes.PointerType)
 	if !ok {
-		panic(fmt.Sprintf("invalid pointer type; expected *types.Pointer, got %T", addr.Type()))
+		panic(fmt.Sprintf("invalid pointer type; expected *types.PointerType, got %T", addr.Type()))
 	}
 	v = m.convert(f, v, addrType.Elem())
-	storeInst, err := instruction.NewStore(v, addr)
-	if err != nil {
-		panic(fmt.Sprintf("unable to create store instruction; %v", err))
-	}
-	f.curBlock.AppendInst(storeInst)
+	f.curBlock.NewStore(v, addr)
 }
 
 // indexExpr lowers the given index expression to LLVM IR, emitting code to f.
@@ -705,16 +591,12 @@ func (m *Module) indexExpr(f *Function, n *ast.IndexExpr) value.Value {
 	addr := array
 	zero := constZero(irtypes.I64)
 	indices := []value.Value{zero, index}
-	if typ, ok := typ.(*irtypes.Pointer); ok {
+	if typ, ok := typ.(*irtypes.PointerType); ok {
 		elem = typ.Elem()
 
 		// Emit load instruction.
 		// TODO: Validate typ against array.Elem().
-		loadInst, err := instruction.NewLoad(array)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create load instruction; %v", err))
-		}
-		addr = f.emitInst(loadInst)
+		addr = f.curBlock.NewLoad(array)
 		indices = []value.Value{index}
 	}
 
@@ -731,19 +613,16 @@ func (m *Module) indexExpr(f *Function, n *ast.IndexExpr) value.Value {
 		if len(is) == len(indices) {
 			// In accordance with Clang, emit getelementptr constant expressions
 			// for global variables.
-			gepExpr, err := constant.NewGetElementPtr(elem, addr, is)
-			if err != nil {
-				panic(fmt.Sprintf("unable to create getelementptr expression; %v", err))
+			// TODO: Validate elem against addr.
+			_ = elem
+			if addr, ok := addr.(constant.Constant); ok {
+				return constant.NewGetElementPtr(addr, is...)
 			}
-			return gepExpr
+			panic(fmt.Sprintf("invalid constant address type; expected constant.Constant, got %T", addr))
 		}
 	}
 	// TODO: Validate elem against array.Elem().
-	gepInst, err := instruction.NewGetElementPtr(addr, indices)
-	if err != nil {
-		panic(fmt.Sprintf("unable to create getelementptr instruction; %v", err))
-	}
-	return f.emitInst(gepInst)
+	return f.curBlock.NewGetElementPtr(addr, indices...)
 }
 
 // indexExprUse lowers the given index expression usage to LLVM IR, emitting
@@ -755,28 +634,19 @@ func (m *Module) indexExprUse(f *Function, n *ast.IndexExpr) value.Value {
 		return v
 	}
 	// TODO: Validate typ against v.Elem().
-	loadInst, err := instruction.NewLoad(v)
-	if err != nil {
-		panic(fmt.Sprintf("unable to create load instruction; %v", err))
-	}
-	// Emit load instruction.
-	return f.emitInst(loadInst)
+	return f.curBlock.NewLoad(v)
 }
 
 // indexExprDef lowers the given identifier expression definition to LLVM IR,
 // emitting code to f.
 func (m *Module) indexExprDef(f *Function, n *ast.IndexExpr, v value.Value) {
 	addr := m.indexExpr(f, n)
-	addrType, ok := addr.Type().(*irtypes.Pointer)
+	addrType, ok := addr.Type().(*irtypes.PointerType)
 	if !ok {
-		panic(fmt.Sprintf("invalid pointer type; expected *types.Pointer, got %T", addr.Type()))
+		panic(fmt.Sprintf("invalid pointer type; expected *types.PointerType, got %T", addr.Type()))
 	}
 	v = m.convert(f, v, addrType.Elem())
-	storeInst, err := instruction.NewStore(v, addr)
-	if err != nil {
-		panic(fmt.Sprintf("unable to create store instruction; %v", err))
-	}
-	f.curBlock.AppendInst(storeInst)
+	f.curBlock.NewStore(v, addr)
 }
 
 // unaryExpr lowers the given unary expression to LLVM IR, emitting code to f.
@@ -793,12 +663,7 @@ func (m *Module) unaryExpr(f *Function, n *ast.UnaryExpr) value.Value {
 		//    %2 = sub i32 0, %1
 		expr := m.expr(f, n.X)
 		zero := constZero(expr.Type())
-		subInst, err := instruction.NewSub(zero, expr)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create sub instruction; %v", err))
-		}
-		// Emit sub instruction.
-		return f.emitInst(subInst)
+		return f.curBlock.NewSub(zero, expr)
 	// !expr
 	case token.Not:
 		// TODO: Replace `(x != 0) ^ 1` with `x == 0`. Using the former for now to
@@ -814,18 +679,8 @@ func (m *Module) unaryExpr(f *Function, n *ast.UnaryExpr) value.Value {
 		//    %3 = xor i1 %2, true
 		cond := m.cond(f, n.X)
 		one := constOne(cond.Type())
-		xorInst, err := instruction.NewXor(cond, one)
-		if err != nil {
-			panic(fmt.Sprintf("unable to create xor instruction; %v", err))
-		}
-		// Emit xor instruction.
-		notCond := f.emitInst(xorInst)
-		zextInst, err := instruction.NewZExt(notCond, m.typeOf(n.X))
-		if err != nil {
-			panic(fmt.Sprintf("unable to create zext instruction; %v", err))
-		}
-		// Emit zext instruction.
-		return f.emitInst(zextInst)
+		notCond := f.curBlock.NewXor(cond, one)
+		return f.curBlock.NewZExt(notCond, m.typeOf(n.X))
 	default:
 		panic(fmt.Sprintf("support for unary operator %v not yet implemented", n.Op))
 	}

@@ -5,6 +5,8 @@
 //
 // If FILE is -, read standard input.
 //
+//   -debug
+//        enable debug output
 //   -gocc-lexer
 //        use Gocc generated lexer
 //   -no-colors
@@ -22,6 +24,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/kr/pretty"
 	"github.com/mewkiz/pkg/errutil"
 	"github.com/mewkiz/pkg/ioutilx"
 	"github.com/mewmew/uc/ast"
@@ -45,6 +48,9 @@ If FILE is -, read standard input.
 	flag.PrintDefaults()
 }
 
+// debug specifies whether to enable debug output.
+var debug bool
+
 func main() {
 	var (
 		// goccLexer specifies whether to use the Gocc generated lexer, instead of
@@ -55,6 +61,7 @@ func main() {
 		// outputPath specifies the output path for the generated LLVM IR.
 		outputPath string
 	)
+	flag.BoolVar(&debug, "debug", false, "enable debug output")
 	flag.BoolVar(&goccLexer, "gocc-lexer", false, "use Gocc generated lexer")
 	flag.BoolVar(&noColors, "no-colors", false, "disable colors in output")
 	flag.BoolVar(&semcheck.NoNestedFunctions, "no-nested-functions", false, "disable support for nested functions")
@@ -143,6 +150,9 @@ func compileFile(path string, output io.Writer, goccLexer bool) error {
 	module := irgen.Gen(file, info)
 	if _, err := fmt.Fprint(output, module); err != nil {
 		return errutil.Err(err)
+	}
+	if debug {
+		pretty.Println(module)
 	}
 
 	return nil
