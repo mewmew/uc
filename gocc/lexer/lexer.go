@@ -3,13 +3,11 @@
 package lexer
 
 import (
-
 	// "fmt"
-	// "github.com/mewmew/uc/gocc/util"
-
 	"io/ioutil"
 	"unicode/utf8"
 
+	// "github.com/mewmew/uc/gocc/util"
 	"github.com/mewmew/uc/gocc/token"
 )
 
@@ -57,7 +55,7 @@ func (this *Lexer) Scan() (tok *token.Token) {
 	start, startLine, startColumn, end := this.pos, this.line, this.column, 0
 	tok.Type = token.INVALID
 	state, rune1, size := 0, rune(-1), 0
-	for state != NoState {
+	for state != -1 {
 
 		// fmt.Printf("\tpos=%d, line=%d, col=%d, state=%d\n", this.pos, this.line, this.column, state)
 
@@ -72,24 +70,24 @@ func (this *Lexer) Scan() (tok *token.Token) {
 		if rune1 != -1 {
 			state = TransTab[state](rune1)
 		} else {
-			state = NoState
+			state = -1
 		}
 		// Production end
 
 		// Debug start
-		// nextState := NoState
+		// nextState := -1
 		// if rune1 != -1 {
 		// 	nextState = TransTab[state](rune1)
 		// }
 		// fmt.Printf("\tS%d, : tok=%s, rune == %s(%x), next state == %d\n", state, token.TokMap.Id(tok.Type), util.RuneToString(rune1), rune1, nextState)
 		// fmt.Printf("\t\tpos=%d, size=%d, start=%d, end=%d\n", this.pos, size, start, end)
-		// if nextState != NoState {
+		// if nextState != -1 {
 		// 	fmt.Printf("\t\taction:%s\n", ActTab[nextState].String())
 		// }
 		// state = nextState
 		// Debug end
 
-		if state != NoState {
+		if state != -1 {
 
 			switch rune1 {
 			case '\n':
