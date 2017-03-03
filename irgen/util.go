@@ -60,7 +60,7 @@ func (m *Module) convert(f *Function, v value.Value, to irtypes.Type) value.Valu
 	}
 
 	// Convert signed values.
-	if toType.Size() > fromType.Size() {
+	if toType.Size > fromType.Size {
 		// Sign extend.
 		return f.curBlock.NewSExt(v, toType)
 	}
@@ -200,7 +200,7 @@ func toIrType(n uctypes.Type) irtypes.Type {
 		if ucType.Len == 0 {
 			t = irtypes.NewPointer(elem)
 		} else {
-			t = irtypes.NewArray(elem, ucType.Len)
+			t = irtypes.NewArray(elem, int64(ucType.Len))
 		}
 	case *uctypes.Func:
 		var params []*irtypes.Param
@@ -216,7 +216,7 @@ func toIrType(n uctypes.Type) irtypes.Type {
 		}
 		result := toIrType(ucType.Result)
 		typ := irtypes.NewFunc(result, params...)
-		typ.SetVariadic(variadic)
+		typ.Variadic = variadic
 		t = typ
 	default:
 		panic(fmt.Sprintf("support for translating type %T not yet implemented.", ucType))

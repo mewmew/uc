@@ -87,7 +87,7 @@ func (m *Module) funcBody(f *Function, params []*ast.VarDecl, body *ast.BlockStm
 	// approach which only needs one of these two.
 
 	// Emit local variable declarations for function parameters.
-	for i, param := range f.Sig().Params() {
+	for i, param := range f.Sig.Params {
 		p := m.funcParam(f, param)
 		// Add mapping from parameter name to the corresponding allocated local
 		// variable; i.e.
@@ -298,7 +298,7 @@ func (m *Module) returnStmt(f *Function, stmt *ast.ReturnStmt) {
 	}
 	result := m.expr(f, stmt.Result)
 	// Implicit conversion.
-	resultType := f.Sig().RetType()
+	resultType := f.Sig.Ret
 	result = m.convert(f, result, resultType)
 	termRet := ir.NewRet(result)
 	f.curBlock.SetTerm(termRet)
@@ -495,8 +495,8 @@ func (m *Module) callExpr(f *Function, callExpr *ast.CallExpr) value.Value {
 	if !ok {
 		panic(fmt.Sprintf("invalid function type; expected *types.FuncType, got %T", typ))
 	}
-	params := sig.Params()
-	result := sig.RetType()
+	params := sig.Params
+	result := sig.Ret
 	// TODO: Validate result against function return type.
 	_ = result
 	var args []value.Value
@@ -572,7 +572,7 @@ func (m *Module) identDef(f *Function, ident *ast.Ident, v value.Value) {
 	if !ok {
 		panic(fmt.Sprintf("invalid pointer type; expected *types.PointerType, got %T", addr.Type()))
 	}
-	v = m.convert(f, v, addrType.Elem())
+	v = m.convert(f, v, addrType.Elem)
 	f.curBlock.NewStore(v, addr)
 }
 
@@ -592,7 +592,7 @@ func (m *Module) indexExpr(f *Function, n *ast.IndexExpr) value.Value {
 	zero := constZero(irtypes.I64)
 	indices := []value.Value{zero, index}
 	if typ, ok := typ.(*irtypes.PointerType); ok {
-		elem = typ.Elem()
+		elem = typ.Elem
 
 		// Emit load instruction.
 		// TODO: Validate typ against array.Elem().
@@ -645,7 +645,7 @@ func (m *Module) indexExprDef(f *Function, n *ast.IndexExpr, v value.Value) {
 	if !ok {
 		panic(fmt.Sprintf("invalid pointer type; expected *types.PointerType, got %T", addr.Type()))
 	}
-	v = m.convert(f, v, addrType.Elem())
+	v = m.convert(f, v, addrType.Elem)
 	f.curBlock.NewStore(v, addr)
 }
 

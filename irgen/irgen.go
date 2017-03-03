@@ -42,7 +42,7 @@ func (m *Module) emitFunc(f *Function) {
 
 // emitGlobal emits to m the given global variable declaration.
 func (m *Module) emitGlobal(global *ir.Global) {
-	m.AppendGlobal(global)
+	m.Globals = append(m.Globals, global)
 }
 
 // A Function represents an LLVM IR function generator.
@@ -62,7 +62,7 @@ type Function struct {
 //
 // The caller is responsible for initializing basic blocks.
 func NewFunction(name string, sig *irtypes.FuncType) *Function {
-	f := ir.NewFunction(name, sig.RetType(), sig.Params()...)
+	f := ir.NewFunction(name, sig.Ret, sig.Params...)
 	return &Function{Function: f, idents: make(map[int]value.Value), exists: make(map[string]bool)}
 }
 
@@ -74,9 +74,9 @@ func (f *Function) startBody() {
 
 // endBody finalizes the generation of the function body.
 func (f *Function) endBody() error {
-	if block := f.curBlock; block != nil && block.Term() == nil {
+	if block := f.curBlock; block != nil && block.Term == nil {
 		switch {
-		case f.Function.Name() == "main":
+		case f.Function.Name == "main":
 			// From C11 spec $5.1.2.2.3.
 			//
 			// "If the return type of the main function is a type compatible with
@@ -84,14 +84,14 @@ func (f *Function) endBody() error {
 			// equivalent to calling the exit function with the value returned by
 			// the main function as its argument; reaching the } that terminates
 			// the main function returns a value of 0."
-			result := f.Sig().RetType()
+			result := f.Sig.Ret
 			zero := constZero(result)
 			termRet := ir.NewRet(zero)
 			block.SetTerm(termRet)
 		default:
 			// Add void return terminator to the current basic block, if a
 			// terminator is missing.
-			switch result := f.Sig().RetType(); {
+			switch result := f.Sig.Ret; {
 			case irtypes.IsVoid(result):
 				termRet := ir.NewRet(nil)
 				block.SetTerm(termRet)
@@ -131,25 +131,23 @@ func (f *Function) NewBlock(name string) *BasicBlock {
 
 // valueInst represents an instruction producing a value.
 type valueInst interface {
-	value.Value
 	ir.Instruction
-	// SetIdent sets the identifier associated with the value.
-	SetIdent(ident string)
+	value.Named
 }
 
 // emitLocal emits to b the given named value instruction.
 func (b *BasicBlock) emitLocal(ident *ast.Ident, inst valueInst) value.Value {
 	name := b.parent.genUnique(ident)
-	inst.SetIdent(name)
+	inst.SetName(name)
 	b.parent.setIdentValue(ident, inst)
 	return inst
 }
 
 // SetTerm sets the terminator of the basic block.
 func (b *BasicBlock) SetTerm(term ir.Terminator) {
-	if b.Term() != nil {
-		panic(fmt.Sprintf("terminator instruction already set for basic block; old term (%v), new term (%v), basic block (%v)", term, b.Term(), b))
+	if b.Term != nil {
+		panic(fmt.Sprintf("terminator instruction already set for basic block; old term (%v), new term (%v), basic block (%v)", term, b.Term, b))
 	}
-	b.BasicBlock.SetTerm(term)
-	b.parent.AppendBlock(b.BasicBlock)
+	b.BasicBlock.Term = term
+	b.parent.Blocks = append(b.parent.Blocks, b.BasicBlock)
 }
