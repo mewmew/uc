@@ -1,0 +1,276 @@
+(* parser/uc.grm
+ *)
+
+(* represent left-recursive sequences *)
+datatype 'a seq
+  = SINGLE of 'a
+  | SEQ of 'a seq * 'a
+
+(* convert a left-recursive sequence to a normal list *)
+fun seqToList2(SINGLE(x), xs) = x::xs
+  | seqToList2(SEQ(seq,x), xs) = seqToList2(seq, x::xs)
+fun seqToList(seq) = seqToList2(seq, [])
+
+%%
+
+(* don't change these two declarations *)
+%name UC
+%header (functor UCLrValsFn(structure Token : TOKEN
+			    structure Absyn : ABSYN
+			    structure LexArg : LEXARG) : UC_LRVALS)
+
+%term	ANDAND				(* && *)
+|	CHAR				(* char *)
+|	COMMA				(* , *)
+|	DIV				(* / *)
+|	ELSE				(* else *)
+|	EOF				(* <end-of-file> *)
+|	EQ				(* = *)
+|	EQEQ				(* == *)
+|	GTEQ				(* >= *)
+|	GT				(* > *)
+|	IDENT of string			(* foo *)
+|	IF				(* if *)
+|	INT				(* int *)
+|	INTEGER_CONSTANT of int		(* 27, '\n' *)
+|	LBRACE				(* { *)
+|	LBRACK				(* [ *)
+|	LPAREN				(* ( *)
+|	LT				(* < *)
+|	LTEQ				(* <= *)
+|	MINUS				(* - *)
+|	MUL				(* * *)
+|	NOT				(* ! *)
+|	NOTEQ				(* != *)
+|	PLUS				(* + *)
+|	RBRACE				(* } *)
+|	RBRACK				(* ] *)
+|	RETURN				(* return *)
+|	RPAREN				(* ) *)
+|	SEMI				(* ; *)
+|	VOID				(* void *)
+|	WHILE				(* while *)
+
+%keyword
+	CHAR
+	ELSE
+	IF
+	INT
+	RETURN
+	VOID
+	WHILE
+
+%nonterm
+	identifier of Absyn.ident
+|	expression of Absyn.exp
+|	argument_expression_list_opt of Absyn.exp list
+|	argument_expression_list of Absyn.exp seq
+|	unary_operator of Absyn.unop
+|	binary_operator of Absyn.binop
+|	statement of Absyn.stmt
+|	simple_compound_statement of Absyn.stmt
+|	compound_statement of (Absyn.varDec list * Absyn.stmt)
+|	statement_list of Absyn.stmt
+|	declaration of Absyn.varDec
+|	declaration_list_opt of Absyn.varDec list
+|	declaration_list of Absyn.varDec seq
+|	base_type of Absyn.baseTy
+|	declarator of Absyn.declarator
+|	program of Absyn.program
+|	toplevel_declaration_list of Absyn.topDec seq
+|	toplevel_declaration of Absyn.topDec
+|	function_parameters of Absyn.varDec list
+|	formals_list of Absyn.varDec seq
+|	formal of Absyn.varDec
+
+%eop EOF
+%noshift EOF
+
+%pos LexArg.pos
+%arg () : unit
+%pure
+%verbose
+%start program
+
+%%
+
+(* A.1.3 Identifiers *)
+
+identifier
+	: IDENT
+		(Absyn.makeIdent(IDENT, IDENTleft, IDENTright))
+
+(* A.2.1 Expressions *)
+
+(* YOUR MODIFICATIONS HERE. YOUR NEED TO EXPRESS PRECEDENCE
+   AND ASSOCIATIVITY USING A GRAMMAR REWRITE. *)
+
+expression
+	: identifier
+		()
+	| INTEGER_CONSTANT
+		()
+	| LPAREN expression RPAREN
+		(expression)
+	| identifier LBRACK expression RBRACK
+		()
+	| identifier LPAREN argument_expression_list_opt RPAREN
+		()
+	| unary_operator expression
+		()
+	| expression binary_operator expression
+		()
+	| expression EQ expression
+		()
+
+unary_operator
+	: MINUS
+		(Absyn.NEG)
+	| NOT
+		(Absyn.NOT)
+
+binary_operator
+	: MUL
+		(Absyn.MUL)
+	| DIV
+		(Absyn.DIV)
+	| PLUS
+		(Absyn.ADD)
+	| MINUS
+		(Absyn.SUB)
+	| LT
+		(Absyn.LT)
+	| GT
+		(Absyn.GT)
+	| LTEQ
+		(Absyn.LE)
+	| GTEQ
+		(Absyn.GE)
+	| EQEQ
+		(Absyn.EQ)
+	| NOTEQ
+		(Absyn.NE)
+	| ANDAND
+		(Absyn.ANDALSO)
+
+argument_expression_list_opt
+	: (*empty*)
+		([])
+	| argument_expression_list
+		(seqToList(argument_expression_list))
+
+argument_expression_list
+	: assignment_expression
+		(SINGLE(assignment_expression))
+	| argument_expression_list COMMA assignment_expression
+		(SEQ(argument_expression_list, assignment_expression))
+
+(* A.2.3 Statements *)
+
+statement
+	: simple_compound_statement
+		()
+	| expression SEMI
+		()
+	| SEMI
+		()
+	| IF LPAREN expression RPAREN statement
+		()
+	| IF LPAREN expression RPAREN statement ELSE statement
+		()
+	| WHILE LPAREN expression RPAREN statement
+		()
+	| RETURN expression SEMI
+		()
+	| RETURN SEMI
+		()
+
+simple_compound_statement
+	: LBRACE statement_list RBRACE
+		()
+
+compound_statement
+	: LBRACE declaration_list_opt statement_list RBRACE
+		((declaration_list_opt,statement_list))
+
+statement_list
+	: statement
+		()
+	| statement_list statement
+		()
+
+(* A.2.2 Declarations *)
+
+declaration
+	: base_type declarator SEMI
+		(Absyn.VARDEC(base_type, declarator))
+
+declaration_list_opt
+	: (*empty*)
+		([])
+	| declaration_list
+		(seqToList(declaration_list))
+
+declaration_list
+	: declaration
+		(SINGLE(declaration))
+	| declaration_list declaration
+		(SEQ(declaration_list, declaration))
+
+base_type
+	: CHAR
+		(Absyn.CHARty)
+	| INT
+		(Absyn.INTty)
+	| VOID
+		(Absyn.VOIDty)
+
+declarator
+	: identifier
+		(Absyn.VARdecl(identifier))
+	| identifier LBRACK INTEGER_CONSTANT RBRACK
+		(Absyn.ARRdecl(identifier, SOME INTEGER_CONSTANT))
+	| identifier LBRACK RBRACK
+		(Absyn.ARRdecl(identifier, NONE))
+
+(* A.2.4 External definitions *)
+
+program
+	: toplevel_declaration_list
+		(Absyn.PROGRAM{decs=seqToList(toplevel_declaration_list),
+			       source=Absyn.Source.dummy})
+
+toplevel_declaration_list
+	: toplevel_declaration
+		(SINGLE(toplevel_declaration))
+	| toplevel_declaration_list toplevel_declaration
+		(SEQ(toplevel_declaration_list, toplevel_declaration))
+
+toplevel_declaration
+	: base_type identifier function_parameters compound_statement
+		(Absyn.FUNC{name=identifier,formals=function_parameters,
+			    retTy=base_type,
+			    locals= (#1) compound_statement,
+			    body= (#2) compound_statement})
+	| base_type identifier function_parameters SEMI
+		(Absyn.EXTERN{name=identifier,
+			      retTy=base_type,
+			      formals=function_parameters})
+	| declaration
+		(Absyn.GLOBAL(declaration))
+
+function_parameters
+	: LPAREN VOID RPAREN
+		([])
+	| LPAREN formals_list RPAREN
+		(seqToList(formals_list))
+
+formals_list
+	: formal
+		(SINGLE(formal))
+	| formals_list COMMA formal
+		(SEQ(formals_list, formal))
+
+formal
+	: base_type declarator
+		(Absyn.VARDEC(base_type, declarator))

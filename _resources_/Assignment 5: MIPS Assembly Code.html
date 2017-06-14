@@ -1,0 +1,186 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<title>Assignment 5: MIPS Assembly Code</title>
+<meta name="version" content="S5 1.0">
+<link rel="stylesheet" href="Assignment%205:%20MIPS%20Assembly%20Code_files/my-slides.htm" type="text/css" media="projection" id="slideProj">
+<link rel="stylesheet" href="Assignment%205:%20MIPS%20Assembly%20Code_files/opera.htm" type="text/css" media="projection" id="operaFix">
+<link rel="stylesheet" href="Assignment%205:%20MIPS%20Assembly%20Code_files/print.htm" type="text/css" media="print" id="slidePrint">
+<link rel="stylesheet" href="Assignment%205:%20MIPS%20Assembly%20Code_files/outline.htm" type="text/css" media="screen" id="outlineStyle">
+<script src="Assignment%205:%20MIPS%20Assembly%20Code_files/slides.htm" type="text/javascript"></script>
+</head>
+<body>
+
+<div class="layout">
+
+<div id="currentSlide"></div>
+<div id="header"></div>
+<div id="footer">
+<div id="controls"></div>
+</div>
+
+</div>
+<div class="presentation">
+
+<div class="slide">
+<p>
+</p><h1><small>Compiler Project</small><br>
+Assignment 5: MIPS Assembly Code</h1>
+<p></p>
+<h3> Alexandra Jimborean</h3>
+<h4>Uppsala University</h4>
+</div><div class="slide">
+ <h1>Assignment 5</h1>
+
+<p class="first">Implement a translation from the <code>RTL</code> intermediate code
+to MIPS assembly code for the uC language.</p>
+
+<p>The main tasks for the translator are:</p>
+
+<ul>
+<li>Instruction selection.</li>
+
+<li>Mapping temporaries to the stack frame.</li>
+
+<li>Translating function calls and parameter references.</li>
+</ul>
+
+
+<h3>Instruction selection.</h3>
+
+<p class="first">Each <code>RTL</code> instruction must be translated to
+equivalent MIPS instructions.</p>
+
+
+<h3>Mapping temporaries to the stack frame.</h3>
+
+<p class="first">This involves reserving a stack slot for each temporary, and rewriting
+the code to use load and store instructions (to and from actual
+registers) at references to these temporaries.</p>
+
+<p>(An optimising compiler would attempt to assign temporaries to actual
+registers. That optimisation is <em>not</em> required in this assignment.)</p>
+
+<p>The virtual frame containing the function's local array variables must
+be included in the stack frame, and references to it via the virtual
+frame pointer must be rewritten to use the actual frame pointer or the
+actual stack pointer.</p>
+
+<p>The function entry sequence must allocate stack space for the frame
+(activation record), and the exit sequence must release that space
+before returning.</p>
+
+
+<h3>Translating function calls and parameter references.</h3>
+
+<p class="first">The <em>calling convention</em> determines how many parameters are passed in
+registers, which registers are used for parameter passing, where
+additional parameters are located on the stack, the parameter passing
+order (left to right or right to left), and where the return value is
+placed.</p>
+
+<p>The calling convention also determines which registers a called
+function must save before it is allowed to use them (callee-save), and
+which ones it can use immediately (caller-save).</p>
+
+<p>You have the option of either following the standard MIPS calling
+convention as described in the SPIM document, or making up your own
+calling convention.</p>
+
+<p>A uC procedure may contain calls to other procedures, so you will need
+a strategy to allocate parameters for calls to other procedures.</p>
+
+
+
+
+
+
+
+
+
+<p>The code you generate for the predefined standard procedures
+(<code>putchar</code> etc.) must of course be compatible with your calling
+convention.</p>
+
+
+
+
+
+</div><div class="slide">
+ <h1>The report</h1>
+
+<p class="first">In the report you should describe the following:</p>
+
+<ul>
+<li>how control flow statements are translated</li>
+
+<li>if you map temporaries to registers, and if so, how</li>
+
+<li>the layout of your activation records (stack frames)</li>
+
+<li>the calling convention you use</li>
+</ul>
+
+<p>The last two points, calling convention and layout of activation
+records, are particularly important.</p>
+
+<p>Also include MIPS output from compiling the following programs:</p>
+
+<pre class="example">quiet/rtl/r01.c
+quiet/rtl/r02.c
+</pre>
+
+<p>and output from the following programs when executed under the spim
+simulator:</p>
+
+<pre class="example">noisy/simple/sim04.c
+noisy/simple/sim06.c
+noisy/simple/sim07.c
+noisy/simple/sim10.c// You need to give your name and age
+noisy/medium/fac.c// input: 5
+noisy/medium/fib.c
+noisy/advanced/8q.c
+noisy/advanced/quick.c
+</pre>
+
+
+</div><div class="slide">
+ <h1>Hints</h1>
+
+<p class="first">Make sure you understand the MIPS instruction set.</p>
+
+<p>Try your calling convention on paper before you start writing the code
+generator.</p>
+
+<p>The simplest solution is to map all temporaries to stack slots, pass
+all parameters on the stack, and use variable-sized frames and a
+separate frame pointer register.  The code generator will need two or
+three scratch registers while translating arithmetic instructions.</p>
+
+<p>Make sure your implementation handles the available test programs in
+the course directory before you hand in your solution.</p>
+
+
+</div><div class="slide">
+ <h1>Non SML/NJ users</h1>
+
+<p class="first">You do <em>not</em> need a data type to represent MIPS instructions. Instead,
+when emitting an instruction, simply print it to the output MIPS
+assembly file.</p>
+
+
+
+</div><div class="slide">
+ <h1>SML/NJ users</h1>
+
+<p class="first">Extend the incomplete translator <code>mips/mips-codegen.sml</code> in the <code>ucc</code> lab
+skeleton.</p>
+
+
+</div>
+
+</div>
+
+
+
+</body></html>

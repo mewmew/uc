@@ -1,0 +1,161 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<title>Assignment 3: Semantic Analysis</title>
+<meta name="version" content="S5 1.0">
+<link rel="stylesheet" href="Assignment%203:%20Semantic%20Analysis_files/my-slides.htm" type="text/css" media="projection" id="slideProj">
+<link rel="stylesheet" href="Assignment%203:%20Semantic%20Analysis_files/opera.htm" type="text/css" media="projection" id="operaFix">
+<link rel="stylesheet" href="Assignment%203:%20Semantic%20Analysis_files/print.htm" type="text/css" media="print" id="slidePrint">
+<link rel="stylesheet" href="Assignment%203:%20Semantic%20Analysis_files/outline.htm" type="text/css" media="screen" id="outlineStyle">
+<script src="Assignment%203:%20Semantic%20Analysis_files/slides.htm" type="text/javascript"></script>
+</head>
+<body>
+
+<div class="layout">
+
+<div id="currentSlide"></div>
+<div id="header"></div>
+<div id="footer">
+<div id="controls"></div>
+</div>
+
+</div>
+<div class="presentation">
+
+<div class="slide">
+<p>
+</p><h1><small>Compiler Project</small><br>
+Assignment 3: Semantic Analysis</h1>
+<p></p>
+<h3> Alexandra Jimborean</h3>
+<h4>Uppsala University</h4>
+</div><div class="slide">
+ <h1>Assignment 3</h1>
+
+<p class="first">Implement a static semantics (types and scope rules) checker
+for the uC language.</p>
+
+<p>The main tasks for the checker are:</p>
+
+<ul>
+<li class="incremental">Enforcing the type system.</li>
+
+<li class="incremental">Checking the use of primitive operations.</li>
+
+<li class="incremental">Maintaining the environment (symbol table).</li>
+
+<li class="incremental">Collecting information from declarations.</li>
+
+<li class="incremental">Detecting and reporting errors.</li>
+</ul>
+
+<h3>Primitive operators</h3>
+
+<p class="first">Each expression operator accepts only certain types for its operands,
+and returns a result whose type may depend on the types of its
+operands.  To check this, expressions should be ``evaluated'' to
+types, using one or several recursive functions.</p>
+
+<p>The evaluation needs an environment (symbol table) to keep track of
+visible identifiers and information (e.g. types) about them.</p>
+
+
+<h3>Processing declarations</h3>
+
+<p class="first">When the analysis processes a declaration, it records information
+about the declared identifiers in the environment.  In a
+block-structured language such as uC, an indentifier must be declared
+before it is used.  Therefore, the syntax tree for the program is
+traversed top-down and left-to-right. At each declaration, the
+declaration is analysed and the environment is updated with
+information about the identifiers in it. At each statement and
+expression, the environment is inspected to make sure that identifiers
+are declared in a way that agrees with how they are used.</p>
+
+<p>Naturally, any definitions found in a delimited scope construct (in uC
+those are the function bodies) should not be visible outside the
+construct.</p>
+
+
+<h3>Detecting and reporting errors.</h3>
+
+<p class="first">If a program contains at least one semantic error, then the first such
+error <em>shall</em> be detected and reported to the user. The compiler <em>shall
+not</em> produce object code for an erroneous program. A compiler <em>may</em> try
+to detect and report further semantic errors.</p>
+
+
+<h3>The report</h3>
+
+<p class="first">In the report you should describe the following:</p>
+
+<ul>
+<li class="incremental">your representation of types</li>
+
+<li class="incremental">what information you associate with identifiers in the environment</li>
+
+<li class="incremental">how you chose to implement the environment (symbol table)</li>
+
+<li class="incremental">how you handle delimited scopes (restoring the environment when
+leaving the scope)</li>
+
+<li class="incremental">the typing rules you have implemented for expression operators</li>
+</ul>
+
+<p>Also give some test runs with incorrect programs. If there is one
+semantic error you had trouble detecting, include the corresponding
+test program.</p>
+
+
+
+<h3>Hints</h3>
+
+<p class="first">You need to design data structures for the representation of the types
+of variables and functions.</p>
+
+<p>Do not forget that assignment to an array variable is not allowed in
+uC; you can only assign to individual array elements.</p>
+
+<p>Do not forget to check that a <code>return</code> statement is
+consistent with the declared return type of the function
+it occurs in.</p>
+
+<p>Make sure your static semantics checker handles the available test
+programs in the course directory before you hand in your solution. For
+examples of correct programs, first consider the ones in
+<code>quiet/semantic</code>. Also consider the ones in <code>noisy/advanced</code>. For examples
+of <em>incorrect</em> programs, see <code>incorrect/semantic</code>. Your semantic analysis
+should give an error message for each of these.</p>
+
+
+
+<h3>If you are <em>not</em> using SML/NJ</h3>
+
+<p class="first">If you are writing your compiler in a different language than
+SML/NJ, you may simply halt the compiler after reporting the first
+error.</p>
+
+
+
+<h3>Rules for SML/NJ users</h3>
+
+<p class="first">Implement the semantic analysis  by extending the incomplete checker
+<code>absyn/absyn-check.sml</code> in the <code>ucc</code> lab skeleton.</p>
+
+<p>When checking a non-erroneous program, <code>AbsynCheck.program</code>
+should simply return an empty value (<code>()</code>).</p>
+
+<p>If you choose to use a functional symbol table (no side-effects in its
+implementation), then you may use <code>Absyn.IdentDict</code>. <code>IdentDict</code> is a
+predefined polymorphic abstract data type for functional mappings from
+identifiers to an arbitrary data type.</p>
+
+
+
+</div>
+
+</div>
+
+
+
+</body></html>

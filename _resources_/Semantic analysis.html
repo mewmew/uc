@@ -1,0 +1,492 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<title>Semantic analysis</title>
+<meta name="version" content="S5 1.0">
+<link rel="stylesheet" href="Semantic%20analysis_files/my-slides.htm" type="text/css" media="projection" id="slideProj">
+<link rel="stylesheet" href="Semantic%20analysis_files/opera.htm" type="text/css" media="projection" id="operaFix">
+<link rel="stylesheet" href="Semantic%20analysis_files/print.htm" type="text/css" media="print" id="slidePrint">
+<link rel="stylesheet" href="Semantic%20analysis_files/outline.htm" type="text/css" media="screen" id="outlineStyle">
+<script src="Semantic%20analysis_files/slides.htm" type="text/javascript"></script>
+</head>
+<body>
+
+<div class="layout">
+
+<div id="currentSlide"></div>
+<div id="header"></div>
+<div id="footer">
+<div id="controls"></div>
+</div>
+
+</div>
+<div class="presentation">
+
+<div class="slide">
+<p>
+</p><h1><small>Compiler project</small><br>
+Semantic analysis</h1>
+<p></p>
+<h3> Alexandra Jimborean</h3>
+<h4>Uppsala University</h4>
+</div><div class="slide">
+ <h1>Today</h1>
+
+<ul>
+<li>What is...?</li>
+
+<li>A simple example</li>
+
+<li>Formal parameters and local variables</li>
+
+<li>Symbol tables
+<ul>
+<li>handling of scope</li>
+<li>implementation</li>
+</ul></li>
+
+<li>(Some) semantic errors in uC</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>What is semantic analysis?</h1>
+
+<ul>
+<li>Determine whether the program is
+semantically correct
+
+<p>i.e., find errors that have to do with the <em>meaning</em> of the program
+(and not with the syntax)</p></li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Semantic errors,  examples</h1>
+
+<ul>
+<li>Indexing a scalar
+
+<p><code>
+int a;
+a[5] = 42;
+</code></p></li>
+
+<li>Assigning a constant:
+
+<p><code>
+5 = x+1;
+</code></p>
+
+<p>(may also be a syntax error)</p></li>
+
+<li>Usage of non-declared variables</li>
+
+<li>In other languages (for example
+Java)
+
+<p><code>
+if (42) ....
+</code></p>
+
+<p>an if-statement requires a boolean value</p></li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Semantic analysis, alternative definition:</h1>
+
+<ul>
+<li>A semantic error is an error that
+passes the syntax analys but is
+found later in the compiler.</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>What is to be discovered?</h1>
+
+<ul>
+<li>Undefined symbols</li>
+
+<li>Symbols defined several times in the
+same scope,</li>
+
+<li>Type errors</li>
+
+<li>Errors in function calls, parameter
+passing</li>
+
+<li>etc</li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>How to find the errors</h1>
+
+<ul>
+<li>recurse over the datastructures
+defined in the abstract syntax,</li>
+</ul>
+
+
+<p>Example: A simple programming language</p>
+
+<p>Need only to make sure that each
+variable is assigned before it is used.</p>
+
+<p>SML: <code>simple.sml</code></p>
+
+<p>Java: <code>simple-jj/</code></p>
+
+
+
+</div><div class="slide">
+ <h1>On semantic analysis of uC</h1>
+
+<ul>
+<li>More complex</li>
+
+<li>The analysis must determine the type
+of each expression</li>
+
+<li>Must handle nested scopes</li>
+
+<li>Must handle parameter passing and
+return type of functions</li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>On function parameters</h1>
+
+<p class="first">in uC the following applies:</p>
+
+<div><div><img class="elastic" src="Semantic%20analysis_files/In%252520the%252520body%252520of%252520a%252520function%252520the%252520fo.htm"></div><div src="%0A%20parameters%20are%20treated%20" as="" if'="" they'=""></div><div src="%0A%20had%20been%20declared%20locally.%0A"></div></div>
+
+<p>The following function declaration <em>must</em> give a semantic error (since <code>x</code>
+is defined twice)</p>
+
+<pre class="example">void f(int x){
+    int x;
+}
+</pre>
+
+
+</div><div class="slide">
+ <h1>The symbol table: insert and lookup</h1>
+
+<p class="first">Operations:</p>
+
+<ul>
+<li>create new table</li>
+
+<li>store information about an identifier</li>
+
+<li>lookup an identifier</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>The symbol table, possible interfaces</h1>
+
+<p class="first">Java:</p>
+
+<pre class="example">interface Env {
+    void insert(String s, Type t, Position p);
+    void insert(String s, Type t);
+    Type lookup(String s);
+}
+</pre>
+
+<p>SML:</p>
+
+<pre class="example">  val empty :
+    'a dict
+
+  val insert :
+    'a dict * Key.ord_key * 'a -&gt; 'a dict
+
+  val find :
+    'a dict * Key.ord_key -&gt; 'a option
+</pre>
+
+
+</div><div class="slide">
+ <h1>Handling scope</h1>
+
+<p class="first">Problem:</p>
+
+<ul>
+<li>Allow both global and local definitions</li>
+
+<li>Two global definitions of the same indentifier is an error</li>
+
+<li>Two local defs of <code>x</code> in the same scope is an error</li>
+
+<li>But <code>x</code> can be redefined freely in different scopes</li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>Operations for handling scope</h1>
+
+<p class="first">Alternatives:</p>
+
+<ol>
+<li><code>enter_scope</code> (create a new scope)</li>
+
+<li><code>plus</code> (combine two tables)</li>
+
+<li><code>enter_scope</code> / <code>exit_scope</code> (destructive update of table)</li>
+</ol>
+
+<p>Alternatives 1 and 2 are <em>functional</em>; the operations return a new environment.</p>
+
+<p>Alternative 3 is <em>imperative</em>; the environment is modified.</p>
+
+
+
+</div><div class="slide">
+ <h1>Scope: Example</h1>
+
+<p class="first">Suppose we are working with a
+programming language that allows
+compound statements with declarations:</p>
+
+<pre class="example">{ int x;
+  char a[10];
+  print("hello");
+}
+</pre>
+
+
+
+</div><div class="slide">
+ <h1>Alternative (1), SML</h1>
+
+<pre class="example">fun analyze (COMPOUND_STMNT(localdefs, s), env) =
+  let val env0 = enter_scope env
+    val env1 = process_declarations(localdefs, env0)
+               (* No side effects *)
+  in
+    analyze(s, env1)
+  end
+</pre>
+
+<p>Assumptions:</p>
+
+<ul>
+<li><code>analyze</code> performs case-analysis on type of statement.</li>
+
+<li>Throws an exception if analysis fails.</li>
+
+<li>The analysis does not modify <code>env</code>.</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Alternative (1), Java</h1>
+
+<pre class="example">static boolean checkStmnt (Node stmnt, Set&lt;String&gt;env) {
+
+    switch (stmnt.getId()) {
+    ...
+    case COMPOUND_STMNT :
+        Node localDefs = stmnt.getChild(0,2);
+        Node localStmnt = stmnt.getChild(1,2);
+        Env env1 = env.enter_scope(env);
+
+        processDeclarations(localDefs, env1);
+        // env1 is modified!
+
+        boolean flag = checkStmnt(localStmnt, env1);
+
+        return flag;
+
+    ...
+    }
+</pre>
+
+
+</div><div class="slide">
+ <h1>Alternative (2), SML</h1>
+
+<pre class="example">fun analyze
+    (COMPOUND_STMNT(localdefs, s), env) =
+    let val env1 = process_declarations(localdefs),
+         val env2 = plus(env, env1)
+    in
+       analyze(s, env2)
+    end
+</pre>
+
+<p><code>plus</code> combines two environments into a new one.</p>
+
+
+</div><div class="slide">
+ <h1>Composition of environments</h1>
+
+<p class="first">The SML framework defines a functional solution with composition of
+environments.</p>
+
+<p>What does <code>plus(env, env1)</code> compute?</p>
+
+<p>The entries (key-value pairs) of <code>env</code> and <code>env1</code> are combined. If a key is
+defined in both —- the definition given in <code>env1</code> applies.</p>
+
+<p>In certain situations it may be convenient to have many small symbol
+tables. Examples:</p>
+
+<ul>
+<li>struct in C</li>
+
+<li>Class definitions in object-oriented
+languages (such as Java)</li>
+</ul>
+
+
+
+
+
+</div><div class="slide">
+ <h1>Alternative (2), Java</h1>
+
+<pre class="example">case COMPOUND_STMNT :
+    Node localDefs = stmnt.getChild(0,2);
+    Node localStmnt = stmnt.getChild(1,2);
+
+    Env env0 = processDeclarations(localDefs, env1);
+    // processDeclarations creates a new environment
+
+    Env env1 = env.plus(env0); // Create a new environment
+
+    // Might also be defined as a static method,
+    // Env env1 = Env.plus(env, env0);
+
+    boolean flag = checkStmnt(localStmnt, env1);
+
+    return flag;
+</pre>
+
+
+
+</div><div class="slide">
+ <h1>Alternative (3), SML</h1>
+<pre class="example">fun analyze (COMPOUND_STMNT(localdefs, s), env) =
+    (enter_scope (env);
+     process_declarations(localdefs, env);
+     analyze(s, env);
+     exit_scope (env))
+</pre>
+
+<p><code>enter_scope()</code> changes the state of the table.</p>
+
+<p><code>exit_scope</code>() restores the state.</p>
+
+<p>Assumption: processing a declaration modifies the current environment.</p>
+
+
+</div><div class="slide">
+ <h1>Alternative (3), Java</h1>
+
+<pre class="example">case COMPOUND_STMNT :
+    Node localDefs = stmnt.getChild(0,2);
+    Node localStmnt = stmnt.getChild(1,2);
+
+    env.enter_scope();
+
+    processDeclarations(localDefs, env);
+
+    boolean flag = checkStmnt(localStmnt, env);
+
+    env.exit_scope();
+
+    return flag;
+</pre>
+
+<p>Probably the most natural solution if you are using C or C++</p>
+
+
+
+
+</div><div class="slide">
+ <h1>Semantic errors of uC</h1>
+
+<p class="first">Suggestions?</p>
+
+
+
+</div><div class="slide">
+ <h1>Some semantic errors of uC</h1>
+
+<ul>
+<li>Doubly defined identifier</li>
+
+<li>Undeclared identifier</li>
+
+<li>Type conversion, only between
+
+<ul>
+<li>identical types</li>
+
+<li><code>int</code> and <code>char</code></li>
+
+<li>arrays that store the same data type
+
+<p>Note: an array of <code>char</code> cannot be converted to an array of <code>int</code></p></li>
+</ul></li>
+
+<li>Unary and binary operations can only be applied to <code>char</code> and <code>int</code></li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Semantic errors (cont)</h1>
+
+<ul>
+<li>indexing only of arrays</li>
+
+<li>any index must be convertible to <code>int</code></li>
+
+<li>It must be possible to assign an expression to the left of an
+'='.
+
+<p>(The expression must be an l-value, i.e, an identifier or the
+indexing of an array, say <code>a[4+i]</code>)</p></li>
+
+<li>if the l-value is an identifier it must have the type <code>int</code> or
+<code>char</code>,</li>
+
+<li>In an assignment the RHS must be convertible to the LHS</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Errors (cont)</h1>
+
+<ul>
+<li>In a function call <code>f(...)</code> the identifier
+<code>f</code> must be defined as a function</li>
+
+<li>A function call must have the same number of arguments in the call as in the
+definition</li>
+
+<li>The actual parameters must be convertible to the formal parameters
+of the declaration</li>
+
+<li>In the body of a function definition each return statement must
+return a value convertible to the type given in the type definition</li>
+</ul>
+
+
+</div>
+
+</div>
+
+
+
+</body></html>

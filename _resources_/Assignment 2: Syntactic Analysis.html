@@ -1,0 +1,172 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<title>Assignment 2: Syntactic Analysis</title>
+<meta name="version" content="S5 1.0">
+<link rel="stylesheet" href="Assignment%202:%20Syntactic%20Analysis_files/my-slides.htm" type="text/css" media="projection" id="slideProj">
+<link rel="stylesheet" href="Assignment%202:%20Syntactic%20Analysis_files/opera.htm" type="text/css" media="projection" id="operaFix">
+<link rel="stylesheet" href="Assignment%202:%20Syntactic%20Analysis_files/print.htm" type="text/css" media="print" id="slidePrint">
+<link rel="stylesheet" href="Assignment%202:%20Syntactic%20Analysis_files/outline.htm" type="text/css" media="screen" id="outlineStyle">
+<script src="Assignment%202:%20Syntactic%20Analysis_files/slides.htm" type="text/javascript"></script>
+</head>
+<body>
+
+<div class="layout">
+
+<div id="currentSlide"></div>
+<div id="header"></div>
+<div id="footer">
+<div id="controls"></div>
+</div>
+
+</div>
+<div class="presentation">
+
+<div class="slide">
+<p>
+</p><h1><small>Compiler Project</small><br>
+Assignment 2: Syntactic Analysis</h1>
+<p></p>
+<h3> Alexandra Jimborean</h3>
+<h4>Uppsala University</h4>
+</div><div class="slide">
+ <h1>Assignment 2</h1>
+
+<p class="first">Construct a parser (syntax analyser) for the uC language.  Do this
+by first modifying the existing incomplete grammar given in the
+description of the uC language.</p>
+
+<p>You should consider using a parser generator, if there is one for the
+programming language you are using.</p>
+
+<p>The given grammar omits two key features which you must implement:</p>
+
+<ul>
+<li class="incremental">The grammar for expressions does not define associativity
+or precedence (priority) for binary operators. You need to
+define these properties by rewriting the grammar.</li>
+
+<li class="incremental">You need to add actions at the end of each production to construct
+an abstract syntax trees.</li>
+</ul>
+
+<p>The result of a successful parse shall be an abstract syntax
+tree. (Make sure you understand the difference between parse trees
+(concrete syntax trees) and (abstract) syntax trees.)</p>
+
+<p>If the input program contains syntax errors, then the first of
+these shall be detected and logged with an error message.</p>
+
+<p>You will need to design data structures for representing your abstract
+syntax trees.  It is recommended to use different types for different
+syntactic categories: statements use one type, expressions another,
+declarations a third, etc. You will need to <em>tag</em> values somehow to
+distinguish between syntax trees with different labels.  For each kind
+of abstract syntax tree node, there should be a helper function to
+construct that kind of node given the attributes to store in it.</p>
+
+
+<h3>The report</h3>
+
+<p class="first">In the report you should describe how you handle the following issues:</p>
+
+<ul>
+<li class="incremental">precedence of binary operators</li>
+<li class="incremental">associativity of binary operators</li>
+</ul>
+
+<p>You should also describe the representation of syntax trees and list
+the different kinds of nodes.</p>
+
+<p>Also include the output from compiling the following programs:</p>
+
+<pre class="example">quiet/lexer/l05.c
+quiet/parser/p01.c
+quiet/parser/p02.c
+quiet/parser/p03.c
+quiet/parser/p04.c
+quiet/parser/p07.c
+quiet/parser/p08.c
+</pre>
+
+<p>and the errors you get from the following incorrect programs:</p>
+
+<pre class="example">incorrect/parser/pe01.c
+incorrect/parser/pe03.c
+incorrect/parser/pe05.c
+incorrect/parser/pe10.c
+incorrect/parser/pe11.c
+incorrect/parser/pe12.c
+</pre>
+
+
+
+<h3>Hints</h3>
+
+<p class="first">Make sure your parser handles the available test programs in the
+course directory before you hand in your solution.</p>
+
+
+<h3>Rules for SML/NJ users</h3>
+
+<p class="first">Construct the parser by modifying the existing incomplete grammar
+<code>parser/uc.grm</code> in the <code>ucc</code> lab skeleton.</p>
+
+<p>The result of a successful parse shall be an abstract syntax tree, as
+defined by the <code>absyn/absyn.sml</code> module.  The abstract syntax tree shall
+have ``source code positions'' embedded within it, indicating the
+positions of the first and last characters of main constructs such as
+identifiers, expressions, and statements.</p>
+
+<p>The parser should be written using a specification for the ML-Yacc
+tool.  A link to the ML-Yacc manual is available on the course
+web-page.</p>
+
+<p>If you give the <code>--print-absyn</code> flag to the compiler, it will print a
+textual representation of the abstract syntax tree to a file. The file
+will have the same name as the source file, but with extension
+<code>.absyn</code>. You should use this to verify that your expression grammar
+handles priority and precedence correctly.</p>
+
+<p>Before you start this assignment, change <code>sources.cm</code> and <code>main/link.sml</code>
+to remove the ``fake'' parser used for assignment 1. Follow the
+instructions given in those two files.</p>
+
+<p>The source code positions for each symbol in a production's right-hand
+side are available via <code>left</code> and <code>right</code> variables automatically bound by
+the parser. When you construct an abstract syntax tree node for an
+expression or a statement, you should store the appropriate <code>left</code> and
+<code>right</code> positions in that tree node.  See the <code>identifier</code> production for
+an example.</p>
+
+<p>Since each abstract syntax tree node for expressions has two position
+attributes, the datatype is split in two parts:</p>
+
+<pre class="example">datatype exp
+  = EXP of exp' * int * int
+and exp'
+  = CONST of const
+  | VAR of ident
+  (*etc*)
+</pre>
+
+<p>where <code>exp</code> contains the common attributes and <code>exp'</code> contains those that
+are specific to each kind of expression.</p>
+
+<p>To construct a <code>VAR</code> expression with left position <code>left</code> and
+right position <code>right</code>, evaluate</p>
+
+<pre class="example">Absyn.EXP(Absyn.VAR(...), left, right)
+</pre>
+
+<p>Statements are handled similarly.</p>
+
+
+
+</div>
+
+</div>
+
+
+
+</body></html>

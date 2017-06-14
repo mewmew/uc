@@ -1,0 +1,46 @@
+(* sources.cm -- CM source list for the Micro-C compiler UCC *)
+(* designed for use with SML/NJ 110.59 *)
+
+Group
+is
+
+$/basis.cm
+$/smlnj-lib.cm
+$/ml-yacc-lib.cm
+
+util/source.sig
+util/source.sml
+util/ord-dict-sig.sml
+util/aa-dict-fn.sml
+
+absyn/absyn.sig
+absyn/absyn.sml
+absyn/absyn-check.sml
+absyn/absyn-print.sml
+
+lexer/lexarg.sig
+lexer/lexarg.sml
+(*parser/uc.grm*)	(* uncomment after assignment 1 *)
+lexer/uc.lex
+parser/parse.sig
+parser/parse.sml
+parser/fake-parse.sml	(* comment out when uc.grm is working *)
+
+rtl/rtl.sig
+rtl/rtl.sml
+rtl/absyn-to-rtl.sml
+rtl/rtl-print.sml
+
+codegen/insns.sig
+codegen/assem.sig
+codegen/codegen.sig
+codegen/assem-print.sig
+
+mips/mips-codegen.sml
+mips/mips-assem-print.sml
+mips/mips.sig
+mips/mips.sml
+
+main/main.sml
+main/link.sml
+main/start.sml

@@ -1,0 +1,180 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<title>Assignment 4: Intermediate Code</title>
+<meta name="version" content="S5 1.0">
+<link rel="stylesheet" href="Assignment%204:%20Intermediate%20Code_files/my-slides.htm" type="text/css" media="projection" id="slideProj">
+<link rel="stylesheet" href="Assignment%204:%20Intermediate%20Code_files/opera.htm" type="text/css" media="projection" id="operaFix">
+<link rel="stylesheet" href="Assignment%204:%20Intermediate%20Code_files/print.htm" type="text/css" media="print" id="slidePrint">
+<link rel="stylesheet" href="Assignment%204:%20Intermediate%20Code_files/outline.htm" type="text/css" media="screen" id="outlineStyle">
+<script src="Assignment%204:%20Intermediate%20Code_files/slides.htm" type="text/javascript"></script>
+</head>
+<body>
+
+<div class="layout">
+
+<div id="currentSlide"></div>
+<div id="header"></div>
+<div id="footer">
+<div id="controls"></div>
+</div>
+
+</div>
+<div class="presentation">
+
+<div class="slide">
+<p>
+</p><h1><small>Compiler Project</small><br>
+Assignment 4: Intermediate Code</h1>
+<p></p>
+<h3> Alexandra Jimborean</h3>
+<h4>Uppsala University</h4>
+</div><div class="slide">
+ <h1>Assignment 4</h1>
+
+<p class="first">Implement a translation from abstract syntax to an RTL-like
+intermediate code for the uC language.</p>
+
+<p>The main tasks for the translator are to</p>
+
+<ul>
+<li>flatten control structures,</li>
+
+<li>translate variable declarations,</li>
+
+<li>translate variable references in expressions, and</li>
+
+<li>flatten expressions.</li>
+</ul>
+
+<h3>Flatten control structure</h3>
+
+<p class="first">Each control-flow statement needs to be broken down to RTL code using
+labels, jumps, and conditional jumps.</p>
+
+<p>The <code>return</code> statement should be translated to an assignment to the
+return value (in the SML framework, the temporary <code>RTL.RV</code> is reserved
+for this purpose) followed by a jump to the end of the procedure body.</p>
+
+
+<h3>Translate variable declarations</h3>
+
+<p class="first">For a global variable or a local array variable, the translation
+requires computing the size in bytes of the variable.</p>
+
+<p>Local arrays are stored in a memory area pointed to by the virtual
+frame pointer (in the SML framework, this is <code>RTL.FP</code>). The translation
+must map each local array to a suitable offset in the virtual
+frame. It must also compute the size of the virtual frame and record
+that in the function object. (Later the virtual frame will be embedded
+in the actual stack frame.)</p>
+
+<p>The translation needs to maintain a mapping from abstract syntax
+variable names to their storage locations in the RTL form: labels for
+global variables, temporaries for actual parameters and local scalar
+variables, and virtual frame offsets for local array variables.</p>
+
+<p>Scalar variables and arrays should also be distinguished.</p>
+
+
+<h3>Translate variables references in expressions</h3>
+
+<p class="first">To translate variables occurring in expressions, you need to use the
+variable name mapping mentioned above.</p>
+
+<p>For scalar variables, the translation needs to distinguish between
+global and local variables. Function parameters are like local
+variables.</p>
+
+<p>For array variables, the translation needs to distinguish between
+global variables, local variables, and arrays passed as function
+parameters. In the first case the address of the storage area is known
+via its label.  In the second case the address is computed as
+<code>RTL.FP</code> plus a constant offset.  In the third case the address
+is passed in a scalar pointer variable.</p>
+
+
+<h3>Flatten expressions</h3>
+
+<p class="first">You need to flatten expressions to sequences of assignments and simple
+expressions with only constants or temporaries as operands.</p>
+
+
+
+
+
+</div><div class="slide">
+ <h1>The report</h1>
+
+<p class="first">In the report you should describe:</p>
+
+<ul>
+<li>how control flow statements are translated</li>
+
+<li>how variable references are translated, and how you
+handle the difference between local and global variables,
+and the difference between scalar and array variables</li>
+</ul>
+
+<p>Also include RTL output from compiling the following programs:</p>
+
+<pre class="example">quiet/lexer/l05.c
+quiet/rtl/r01.c
+quiet/rtl/r02.c
+quiet/rtl/r03.c
+quiet/rtl/r04.c
+quiet/rtl/r05.c
+</pre>
+
+
+
+</div><div class="slide">
+ <h1>Hints</h1>
+
+<p class="first">Note that in C, an array variable cannot be assigned, but the
+individual array elements can be. When the array is passed as a
+parameter to a function. the intermediate code will pass the base
+address of the array.</p>
+
+<p>Make sure your implementation handles the available test
+programs in the course directory before you hand in your solution.</p>
+
+
+</div><div class="slide">
+ <h1>Non SML/NJ users</h1>
+
+<p class="first">If you are writing your compiler in a different language than SML/NJ,
+then you will need to design your RTL-like intermediate language and
+implement data types for representing it (or use one I propose in
+the tutorial). The RTL language will probably be similar to your
+implementation of the abstract syntax tree, but simpler and more
+low-level.</p>
+
+<p>Also please document your RTL language. Present the set of instructions
+in a style similar to the one I give in the <code>c-rtl</code> example. If you make
+any design choices that differ from the proposed design, please
+explain them.</p>
+
+<p>You should also define a way to output your RTL code in a readable
+format. As part of your solution, you should give output for some of
+the programs in the test suite (they are listed above).</p>
+
+
+</div><div class="slide">
+ <h1>SML/NJ users</h1>
+
+<p class="first">Implement the translation from abstract syntax to RTL by extending the
+incomplete translator <code>rtl/absyn-to-rtl.sml</code> in the <code>ucc</code> lab skeleton.</p>
+
+<p>You can pass the <code>--print-rtl</code> option to the compiler to make it print
+the intermediate RTL representation to a text file.  This can be
+useful for checking that the translation is correct.</p>
+
+
+</div>
+
+</div>
+
+
+
+</body></html>

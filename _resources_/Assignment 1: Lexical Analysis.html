@@ -1,0 +1,150 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<title>Assignment 1: Lexical Analysis</title>
+<meta name="version" content="S5 1.0">
+<link rel="stylesheet" href="Assignment%201:%20Lexical%20Analysis_files/my-slides.htm" type="text/css" media="projection" id="slideProj">
+<link rel="stylesheet" href="Assignment%201:%20Lexical%20Analysis_files/opera.htm" type="text/css" media="projection" id="operaFix">
+<link rel="stylesheet" href="Assignment%201:%20Lexical%20Analysis_files/print.htm" type="text/css" media="print" id="slidePrint">
+<link rel="stylesheet" href="Assignment%201:%20Lexical%20Analysis_files/outline.htm" type="text/css" media="screen" id="outlineStyle">
+<script src="Assignment%201:%20Lexical%20Analysis_files/slides.htm" type="text/javascript"></script>
+</head>
+<body>
+
+<div class="layout">
+
+<div id="currentSlide"></div>
+<div id="header"></div>
+<div id="footer">
+<div id="controls"></div>
+</div>
+
+</div>
+<div class="presentation">
+
+<div class="slide">
+<p>
+</p><h1><small>Compiler Project</small><br>
+Assignment 1: Lexical Analysis</h1>
+<p></p>
+<h3> Alexandra Jimborean</h3>
+<h4>Uppsala University</h4>
+</div><div class="slide">
+ <h1>Assignment 1</h1>
+Construct a lexer (lexical analyser, also known as a tokeniser or scanner)
+for the uC language.
+
+<p>The resulting compiler shall, when given a uC program to compile,
+perform lexical analysis on the program and print the tokens to
+the standard output file. There should be one token per line, and
+each token should be printed together with its attributes, if it has any.</p>
+
+<p>Lexical errors in the input program must be detected and result
+in an error message.</p>
+
+<p>Tokens shall have ``source code positions'' embedded within them,
+indicating the positions of the first and last characters of the
+corresponding lexeme.</p>
+
+<h3>The report</h3>
+
+<p class="first">In the report you should describe how you handle the following issues:</p>
+
+<ul>
+<li class="incremental">comments</li>
+<li class="incremental">end-of-file</li>
+<li class="incremental">source code positions</li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>Test runs</h1>
+
+<p class="first">Output: Tokens</p>
+
+<pre class="example">quiet/lexer/l02.c
+quiet/lexer/l03.c
+quiet/lexer/l04.c
+quiet/lexer/l05.c
+quiet/lexer/l06.c
+</pre>
+
+<p>Output: Error messages</p>
+
+<pre class="example">incorrect/lexer/long-char.c
+incorrect/lexer/ugly.c (you only need to show the first lines)
+incorrect/lexer/bad.c
+</pre>
+
+
+</div><div class="slide">
+ <h1>Hints</h1>
+
+<p class="first">Make sure your lexer handles the available test programs in the
+course directory before you hand in your solution.</p>
+
+<p>A program containing an unfinished multi-line comment
+</p><pre class="example">/*... </pre> should <em>always</em> give a lexical error.<p></p>
+
+
+</div><div class="slide">
+ <h1>Rules for SML/NJ users</h1>
+
+<p class="first">The lexer is written using a specification for the ML-Lex tool, by
+modifying or replacing the existing incomplete lexer <code>lexer/uc.lex</code> in
+the <code>ucc</code> lab skeleton.</p>
+
+<p>A link to the ML-Lex manual is available on the course web-page
+(on the page "Useful links").</p>
+
+<p>In the completed compiler, the parser (which is generated from
+the grammar) repeatedly calls the lexer and gets a new token each time.
+In the skeleton, that parser is disabled since the grammar is
+incomplete. Instead you should modify <code>parser/fake-parse.sml</code>
+to continuously call the lexer and print the tokens.</p>
+
+<p>To ensure that your lexer is compatible with the real parser,
+use the token names from the <code>%term</code> declaration at
+the start of <code>parser/uc.grm</code>.</p>
+
+<p>Handling source code positions requires a well-designed
+infrastructure.  Much of it is given in the <code>ucc</code> skeleton, in the
+<code>LexArg</code> (<code>lexer/lexarg.sml</code>) and <code>Source</code> (<code>util/source.sml</code>) modules. <code>LexArg</code>
+implements a type which maintains additional state about the lexer
+process, such as input position and the positions of the line
+breaks. The file name and line break positions are then put in a
+<code>source</code> value, which is embedded in the program's abstract syntax
+tree. The <code>Source</code> module implements a function that takes a <code>source</code>
+value, an error message, and a pair of source code positions, and
+prints the error message together with the line numbers and columns
+corresponding to the indicated region.</p>
+
+<p>All <em>you</em> need to do is to have the lexer inform <code>LexArg</code> each time there
+is a line break, and to embed left and right positions in each token
+returned from the lexer.</p>
+
+
+</div><div class="slide">
+ <h1>Rules for non SML/NJ users</h1>
+
+<p class="first">If you are writing your compiler in a different language than
+SML/NJ, then the following applies.</p>
+
+<ul>
+<li class="incremental">You should consider using a Lex-like scanner generator, if there is
+one for the programming language you are using.</li>
+
+<li class="incremental">Your lexer does <em>not</em> have to maintain source code positions,
+consequently you do <em>not</em> need to attach source code positions as
+attributes to tokens.</li>
+</ul>
+
+
+</div>
+
+</div>
+
+
+
+</body></html>

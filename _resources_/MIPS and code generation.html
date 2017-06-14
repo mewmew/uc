@@ -1,0 +1,630 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<title>MIPS and code generation</title>
+<meta name="version" content="S5 1.0">
+<link rel="stylesheet" href="MIPS%20and%20code%20generation_files/my-slides.htm" type="text/css" media="projection" id="slideProj">
+<link rel="stylesheet" href="MIPS%20and%20code%20generation_files/opera.htm" type="text/css" media="projection" id="operaFix">
+<link rel="stylesheet" href="MIPS%20and%20code%20generation_files/print.htm" type="text/css" media="print" id="slidePrint">
+<link rel="stylesheet" href="MIPS%20and%20code%20generation_files/outline.htm" type="text/css" media="screen" id="outlineStyle">
+<script src="MIPS%20and%20code%20generation_files/slides.htm" type="text/javascript"></script>
+</head>
+<body>
+
+<div class="layout">
+
+<div id="currentSlide"></div>
+<div id="header"></div>
+<div id="footer">
+<div id="controls"></div>
+</div>
+
+</div>
+<div class="presentation">
+
+<div class="slide">
+<p>
+</p><h1><small>Compiler project</small><br>
+MIPS and code generation</h1>
+<p></p>
+<h3> Alexandra Jimborean</h3>
+<h4>Uppsala University</h4>
+</div><div class="slide">
+ <h1>Today</h1>
+
+<p class="first">MIPS</p>
+
+<ul>
+<li>general</li>
+<li>registers</li>
+<li>instructions</li>
+<li>examples</li>
+<li>calling conventions</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>MIPS</h1>
+
+
+
+<ul>
+<li>Designed 1981 by John Hennessy at Stanford</li>
+
+<li>A RISC processor</li>
+
+<li>Intended for workstations and servers</li>
+
+<li>Today mostly used for embedded systems (hand-held computers, VoIP,
+set-top boxes, DVD-players, cable modems, cameras)</li>
+
+<li>Examples:
+
+<p>70% of all DVD-recorders</p>
+
+<p>Sony Playstation 2</p></li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>MIPS/SPIM</h1>
+
+<p class="first">Appendix A from Hennessy &amp; Patterson,
+Computer Organization and Design: The
+Hardware/Software Interface</p>
+
+<p><a href="http://www.cs.wisc.edu/%7Elarus/SPIM/HP_AppA.pdf">http://www.cs.wisc.edu/~larus/SPIM/HP_AppA.pdf</a></p>
+
+<p>Also on link page.</p>
+
+
+
+</div><div class="slide">
+ <h1>Registers (there are 32)</h1>
+
+<pre class="example">0       - the constant 0
+
+v0, v1	- result of function calls
+
+a0-a3	- arguments in function calls
+
+t0-t9   - temporaries not saved at calls (caller save)
+
+s0-s7   - temporaries saved at calls (callee save)
+</pre>
+
+
+</div><div class="slide">
+ <h1>Registers (cont)</h1>
+
+<pre class="example">sp	- stack pointer
+
+fp	- frame pointer
+
+ra	- return address
+</pre>
+
+<p>(four registers are not listed)</p>
+
+<p>The organization above is in part due to the hardware.</p>
+
+<p>However, some differences between registers (for example, <code>a-</code>, <code>t-</code> and
+<code>s-</code>) are only due to the call conventions defined by the processor
+manufacturer.</p>
+
+
+</div><div class="slide">
+ <h1>Concepts in MIPS assembly</h1>
+
+<ul>
+<li>labels
+
+<p>written as an identifier. Usually an address in memory.</p></li>
+
+<li>registers
+
+<p>written with a $</p></li>
+
+<li>integer constants</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Concepts (cont)</h1>
+
+<ul>
+<li>offset expressions
+
+<p><code>123($r)</code></p>
+
+<p>value of <code>$r + 123</code></p></li>
+
+<li>instructions</li>
+
+<li>assembly directives</li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>Arithmetic</h1>
+
+<p class="first">Example</p>
+
+<pre class="example">add       $t2, $t0, $t1  #t2 = t0 + t1
+div       $t2, $t0, $t1
+mul       $t2, $t0, $t1
+sub       $t2, $t0, $t1
+
+addi      $fp, $sp, 388  #fp=sp+388
+</pre>
+
+<p>(Other arithmetic and logical operations are similar)</p>
+
+
+
+</div><div class="slide">
+ <h1>Move</h1>
+<pre class="example">move      $t0, $fp      # t0=fp
+</pre>
+
+
+</div><div class="slide">
+ <h1>Branching</h1>
+
+<pre class="example">b         L102            # unconditional
+beq       $t0, $t1, L103
+bgt       $t0, $t1, L101  # branch if t0&gt;t1
+ble       $t0, $t1, L109
+blt       $t0, $t1, L101
+bne       $t0, $t1, L135
+</pre>
+
+<p>(think I forgot one?)</p>
+
+
+</div><div class="slide">
+ <h1>Jumps</h1>
+
+<p><code>jal       Pputint</code></p>
+
+<p>Jumps to address (in the example, given by label). Puts the address of
+next instruction in <code>ra</code>.</p>
+
+<p><code>jr $ra</code></p>
+
+<p>Jump to the address stored in <code>ra</code> (i.e., return)</p>
+
+
+</div><div class="slide">
+ <h1>Loads and stores</h1>
+
+<pre class="example">lb        $t1, ($t0)
+lw        $a0, 12($sp)
+sb        $t1, ($t0)
+sw        $a0, 12($sp)
+la        $t0, Vmax
+li        $t0, -4
+</pre>
+
+
+</div><div class="slide">
+ <h1>Other instructions</h1>
+
+<p><code>slt $t0, $t1, $t2</code></p>
+
+<p>Set <code>$t0</code> to 1 if <code>$t1</code> &lt; <code>$t2</code>, 0 otherwise</p>
+
+<p><code>beqz $t0, L</code></p>
+
+<p>Branch if <code>$t0</code> == 0.</p>
+
+
+
+</div><div class="slide">
+ <h1>Assembly directives</h1>
+
+<p><code>.data</code></p>
+
+<p>Data area starts here</p>
+
+<p><code>.text</code></p>
+
+<p>Code area starts here</p>
+
+<p><code>Vfoo:</code></p>
+
+<p>(or any other non-reserved identifier.) Defines a label</p>
+
+
+</div><div class="slide">
+ <h1>Assembly directives (cont)</h1>
+
+<p><code>.word 123, 456, 789</code></p>
+
+<p>Three words, to be allocated in memory</p>
+
+<p><code>.space 64</code></p>
+
+<p>Allocate 64 bytes.</p>
+
+<p><code>.asciiz "hello"</code></p>
+
+<p>Zero-terminated string, to be allocated.</p>
+
+<p><code>.align 2</code></p>
+
+<p>Align the next datum on a word boundary.</p>
+
+
+
+</div><div class="slide">
+ <h1>Stack, general</h1>
+
+<p class="first">The stack grows toward lower addresses.</p>
+
+<p>The <code>$sp</code> register points to the first free word.</p>
+
+<p>Notation: <code>4($sp)</code> is <code>4+$sp</code>, i.e., address of top of stack.</p>
+
+
+</div><div class="slide">
+ <h1>SPIM system calls</h1>
+
+<p class="first">Primitive <code>syscall</code> implements simple I/O and some OS operations.</p>
+
+<p>The call code is given in <code>v0</code> and arguments in <code>a0</code> and <code>a1</code>.</p>
+
+<pre class="example">Service         Code    Arguments       Result
+-------------------------------------------------------
+
+print int       1       a0=integer
+
+print string    4       a0=string
+
+read int        5                       integer (in v0)
+
+read string     8       a0=buffer,
+                        a1=length
+</pre>
+
+
+</div><div class="slide">
+ <h1>Define your own I/O primitives</h1>
+
+<p class="first">The 'noisy' programs in the test suite perform I/O through <code>putint</code> etc.</p>
+
+<p>You should provide definitions of <code>putint</code> etc using <code>syscall</code>, so that
+the 'noisy' programs can be run.</p>
+
+
+</div><div class="slide">
+ <h1>I/O primitive, example</h1>
+
+<p class="first">One possible definition of <code>Pputint</code>:
+</p><pre class="example">Pputint:
+        addi      $sp, $sp, -8
+        sw        $fp, 4($sp)
+        sw        $ra, 8($sp)
+        addi      $fp, $sp, 8
+	lw        $a0, 4($fp)
+	li 	  $v0, 1
+	syscall
+	lw        $fp, 4($sp)
+        lw        $ra, 8($sp)
+        addi      $sp, $sp, 8
+        jr        $ra
+</pre><p></p>
+
+<p>(The code is of course dependent on call convention.)</p>
+
+
+
+
+</div><div class="slide">
+ <h1>Examples</h1>
+
+<ul>
+<li><code>answer.asm</code></li>
+<li><code>fac.asm</code></li>
+<li><code>sort.asm</code></li>
+<li><code>fib.asm</code></li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>Calling conventions</h1>
+
+<p class="first">Decide how to</p>
+
+<ul>
+<li>save and restore registers at function call</li>
+
+<li>access data on the stack</li>
+
+<li>pass arguments</li>
+
+<li>return result</li>
+
+<li>divide the work between caller and callee</li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>Manufacturer's calling conventions</h1>
+
+<ul>
+<li>put first four arguments in registers</li>
+
+<li>distinguish between callee save and caller save registers</li>
+
+<li>handle procedures with a variable number of arguments</li>
+
+<li>allow procedure to return 64-bit results</li>
+</ul>
+
+<p>In a commercial compiler, it is important to follow the call
+conventions defined by the manufacturer so that code from different
+compilers can be linked.</p>
+
+<p>(See also <em>application binary interface</em>.)</p>
+
+<p>In your compiler you should simplify the convention.</p>
+
+
+</div><div class="slide">
+ <h1>The stack under standard call conventions:</h1>
+
+
+<p>The stack grows toward lower addresses.</p>
+
+<p>Assume: <code>n</code> bytes for local variables and <code>s</code> bytes for saved registers.</p>
+
+<p>Arguments 0..3 are always passed in
+registers.</p>
+
+<p><code>sp</code> always points to the first free word.</p>
+
+<p>Notation <code>4(sp)</code> indicates the word stored
+at the address <code>4 + sp.</code></p>
+
+
+
+</div><div class="slide">
+ <h1>An activation frame</h1>
+
+<pre class="example">	--------------------------
+        |   ...                  |
+        |   Argument 6           |
+        |   Argument 5           |
+        |   Argument 4           | 4(fp)
+	--------------------------
+fp -&gt;   |                        |
+        |                        |
+        |                        |
+        |   Saved registers      |
+        |                        |
+        |                        |
+        |                        |
+	--------------------------
+        |                        | n(sp)
+        |                        |
+        |                        |
+        |   Local variables      |
+        |                        |
+        |                        |
+        |                        |
+        |                        | 4(sp)
+	--------------------------
+sp -&gt;
+</pre>
+
+
+
+
+
+</div><div class="slide">
+ <h1>Division of work:</h1>
+
+<ol>
+<li>(caller): set up the call</li>
+
+<li>(callee): prologue</li>
+
+<li>(callee): epilogue</li>
+
+<li>(caller): cleanup</li>
+</ol>
+
+<p>Make sure that</p>
+
+<ul>
+<li>stack is in consistent state after 1+2</li>
+
+<li>stack is restored after 1+2+3+4</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Division of work in standard call convention:</h1>
+
+<p class="first">(1) (caller) Call:</p>
+
+<ul>
+<li>evaluate arguments, put first four in regs and push the rest on stack.</li>
+
+<li>save caller-save regs</li>
+
+<li>execute jal</li>
+</ul>
+
+<p>(2) (callee) Prologue:</p>
+
+<ul>
+<li>allocate space on stack</li>
+
+<li>save callee-save regs</li>
+
+<li>set fp</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Division of work (cont)</h1>
+
+<p class="first">(3) (callee) Epilogue</p>
+
+<ul>
+<li>place result in v0</li>
+
+<li>restore callee-save</li>
+
+<li>restore sp</li>
+
+<li>jump to address in ra</li>
+</ul>
+
+<p>(4) (caller) Cleanup</p>
+
+<ul>
+<li>restore caller-save</li>
+
+<li>pop arguments from stack</li>
+
+<li>pick up returned result</li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>Activation record for the assignment, questions</h1>
+
+<p class="first">In which order should the following be allocated?</p>
+
+<ul>
+<li>saved registers</li>
+
+<li>arguments</li>
+
+<li>temp (from RTL)</li>
+
+<li>local arrays</li>
+</ul>
+
+
+<p>Should we have a frame pointer?</p>
+
+<ul>
+<li>Yes, easiest solution</li>
+
+<li>No, any data can be reached by offset
+from SP. This will save a register...</li>
+</ul>
+
+
+
+
+
+
+</div><div class="slide">
+ <h1>Activation record for the assignment (suggestion)</h1>
+
+<ul>
+<li>always let <code>sp</code> point to first free word</li>
+
+<li>pass all arguments on the stack</li>
+
+<li>pass return address in <code>ra</code> (<code>jal</code> does this automatically)</li>
+
+<li>only use a few of the temporaries
+(<code>t0</code>...)</li>
+
+<li>and only use them in evaluation of
+RTL instructions</li>
+
+<li>all temporary registers are callee-save</li>
+
+<li>access local variables and parameters via <code>fp</code> or <code>sp</code></li>
+
+<li>return results in register <code>v0</code></li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>One possible solution:</h1>
+
+<pre class="example">	--------------------------
+        |   ...                  |
+        |   Argument 2           |
+        |   Argument 1           |
+        |   Argument 0           | 4(fp)
+	--------------------------
+fp -&gt;   |                        |
+        |                        |
+        |  local arrays          |
+        |                        |
+        |                        |
+	--------------------------
+        |                        |
+        |                        |
+        |   Saved registers      |
+        |                        |
+        |                        |
+	--------------------------
+        |                        | n(sp)
+        |                        |
+        |   temp-variables       |
+        |                        |
+        |                        | 4(sp)
+	--------------------------
+sp -&gt;
+</pre>
+
+
+<p>Your solution should contain a detailed description of the activation
+record and what the caller and callee need to do at call and return.</p>
+
+
+</div><div class="slide">
+ <h1>Recommendations:</h1>
+
+<ul>
+<li>make sure you understand the MIPS instruction set</li>
+
+<li>try your calling convention on paper first!</li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>Tips</h1>
+
+<ul>
+<li>alignment
+
+<p>Note that 32-bit quantities must be stored on an address divisible
+by 4!</p></li>
+
+<li>endianness
+
+<p>If you write the integer '1' to the word at address 24, three bytes
+will contain '0' and one will contain '1'. Which byte will contain
+'1'?</p></li>
+
+<li>xspim
+
+<p>Interactive evaluation, debugging support</p></li>
+</ul>
+
+
+</div>
+
+</div>
+
+
+
+</body></html>

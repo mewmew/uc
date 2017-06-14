@@ -1,0 +1,719 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<title>Intermediate code</title>
+<meta name="version" content="S5 1.0">
+<link rel="stylesheet" href="Intermediate%20code_files/my-slides.htm" type="text/css" media="projection" id="slideProj">
+<link rel="stylesheet" href="Intermediate%20code_files/opera.htm" type="text/css" media="projection" id="operaFix">
+<link rel="stylesheet" href="Intermediate%20code_files/print.htm" type="text/css" media="print" id="slidePrint">
+<link rel="stylesheet" href="Intermediate%20code_files/outline.htm" type="text/css" media="screen" id="outlineStyle">
+<script src="Intermediate%20code_files/slides.htm" type="text/javascript"></script>
+</head>
+<body>
+
+<div class="layout">
+
+<div id="currentSlide"></div>
+<div id="header"></div>
+<div id="footer">
+<div id="controls"></div>
+</div>
+
+</div>
+<div class="presentation">
+
+<div class="slide">
+<p>
+</p><h1><small>Compiler project</small><br>
+Intermediate code</h1>
+<p></p>
+<h3> Alexandra Jimborean</h3>
+<h4>Uppsala University</h4>
+</div><div class="slide">
+ <h1>Plan</h1>
+
+<ul>
+<li>general remarks</li>
+
+<li>the intermediate code of uC</li>
+
+<li>translation</li>
+</ul>
+
+<p>Idea: an intermediate stage between
+source and object code.</p>
+
+<p>Ideally, the intermediate code should be
+independent of the source language <em>and</em>
+the machine you are generating code for.</p>
+
+
+</div><div class="slide">
+ <h1>Why intermediate code?</h1>
+
+<ul>
+<li>A simple way to structure your
+compiler. You get one programming language
+dependent part (front end) and one
+processor-dependent part (back end).</li>
+
+<li>You can combine several front ends (for
+different programming languages) and
+several back ends (for different
+processors).</li>
+
+<li>Also, optimizing compilers typically work on intermediate code.</li>
+</ul>
+
+
+
+
+</div><div class="slide">
+ <h1>Easier to solve a task if you break down in two steps!</h1>
+
+
+<pre class="example">Source    -------------------&gt; Object
+code                           code
+
+Source    ---&gt;  inter-   ----&gt; Object
+code            mediate        code
+</pre>
+
+<p>The second alternative is probably easier to implement!</p>
+
+
+
+
+</div><div class="slide">
+ <h1>What should the intermediate code look like?</h1>
+
+<ul>
+<li>it should be simple, well-defined</li>
+
+<li>it should have well-defined <em>semantics</em>, i.e., there should be no
+doubt about what different constructs mean</li>
+
+<li>it should be independent of both source language and machine
+language</li>
+
+<li>but translation from source and to machine
+should be easy</li>
+</ul>
+
+
+
+
+</div><div class="slide">
+ <h1>The intermediate code of the frameworks</h1>
+
+<p class="first">I'll give code for SML, Java, C.</p>
+
+<p>Minor differences in conditional jumps and load instructions.</p>
+
+<p>Also, the C framework has a different model for expressing procedure
+definitions.</p>
+
+
+</div><div class="slide">
+ <h1>Intermediate code, concepts</h1>
+
+<ul>
+<li>labels</li>
+
+<li>temporaries</li>
+
+<li>integer constants</li>
+
+<li>type (<code>BYTE</code> or <code>LONG</code>)</li>
+
+<li>binary operators</li>
+
+<li>expressions</li>
+
+<li>instructions</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Intermediate code, concepts (cont)</h1>
+
+<p class="first">A <em>label</em> is a string naming a position in object code</p>
+
+<p>A <em>temporary</em> is a place to put an intermediate result of a
+computation.</p>
+
+<p>Two special temporaries: <code>FP</code> and <code>RV</code></p>
+
+
+</div><div class="slide">
+ <h1>Notes on temporaries</h1>
+
+<p class="first">In a more sophisticated compiler, the final phase of the compiler
+would map each temporary to a hardware register using <em>graph coloring
+register allocation</em></p>
+
+<p>To keep things simple, our compiler will store all temporaries in
+memory</p>
+
+<p>In the RTL code we represent all temporaries as integers.</p>
+
+
+
+</div><div class="slide">
+ <h1>Instructions of the SML framework, conventions</h1>
+
+<p class="first">In the following, the names <code>dst</code>, <code>src</code>, <code>temp</code>, <code>formal</code> and <code>local</code> refer to
+temporaries.</p>
+
+<p><code>ty</code> is either <code>BYTE</code> or <code>LONG</code>.</p>
+
+<p><code>relop</code> is a relational operator (<code>LT</code>, <code>LE</code>, ..).</p>
+
+<p><code>binop</code> is a binary operator (<code>ADD</code>, <code>SUB</code>, ...)</p>
+
+<p><code>unop</code> is always <code>LOAD ty</code></p>
+
+<p><code>i</code>, <code>frameSize</code> and <code>size</code> are integers</p>
+
+
+</div><div class="slide">
+ <h1>Instructions of the SML framework</h1>
+
+<ul>
+<li><code>LABDEF label</code></li>
+
+<li><code>JUMP label</code></li>
+
+<li><code>CJUMP relop src1 src2 label</code></li>
+
+<li><code>STORE ty dst src</code></li>
+
+<li><code>EVAL dst exp</code></li>
+
+<li><code>CALL dst label (temp list)</code></li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Expressions</h1>
+
+<ul>
+<li><code>TEMP temp</code></li>
+
+<li><code>ICON i</code></li>
+
+<li><code>LABREF label</code></li>
+
+<li><code>UNARY unop src</code></li>
+
+<li><code>BINARY binop src1 src2</code></li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Procedure and data definitions:</h1>
+
+<pre class="example">PROC label
+    (formal list)
+    (local list)
+    frameSize
+    (instruction list)
+</pre>
+
+<p><code>DATA label size</code></p>
+
+
+</div><div class="slide">
+ <h1>Note that</h1>
+
+<ul>
+<li>a program consists of a list of procedure and data definitions</li>
+
+<li>the instruction set is flat (no trees)</li>
+
+<li>RTL allows operations that do not have a
+correspondence in the abstract syntax: <code>load</code>,
+<code>store</code>, <code>move</code></li>
+
+<li>temporaries are used for local scalars</li>
+
+<li>a separate area in the activation record
+stores local arrays</li>
+
+<li><code>load</code> is represented as a unary operation.</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Examples</h1>
+
+<p><code>EVAL(t1, UNARY(LOAD(BYTE), t2))</code></p>
+
+<p>to load a byte from the address
+indicated by <code>t2</code> (in SML)</p>
+
+
+<p><code>STORE(BYTE, t1, t2)</code></p>
+
+<p>to store the value of <code>t2</code> in the address
+indicated by <code>t1</code>.</p>
+
+
+</div><div class="slide">
+ <h1>Java and C framework, conditional jump</h1>
+
+<p class="first">A simpler format for conditional jump:</p>
+
+<p><code>cjump flag temp label</code></p>
+
+<p>The flag determines when to jump</p>
+
+<p><code>cjump true temp label</code></p>
+
+<p>jump if true</p>
+
+<p><code>cjump false temp label</code></p>
+
+<p>jump if false</p>
+
+
+</div><div class="slide">
+ <h1>Java and C, load</h1>
+
+<p><code>load type temp1 temp2</code></p>
+
+<p>load value stored at address given by <code>temp2</code> into temporary <code>temp1</code></p>
+
+
+</div><div class="slide">
+ <h1>C framework, procedure definitions</h1>
+
+<p class="first">In the C framework, procedure definitions are expressed in three
+instructions:</p>
+
+<pre class="example">proc label (formal*)
+frame size (local*)
+...
+end_proc
+</pre>
+
+<pre class="example">
+</pre>
+
+<p>(show frameworks)</p>
+
+
+
+
+</div><div class="slide">
+ <h1>Translation, general comments:</h1>
+
+<ul>
+<li>local variables must be mapped to
+temporaries</li>
+
+<li>you must flatten expressions</li>
+
+<li>temporaries must be introduced for storing
+the values of subexpressions</li>
+
+<li><code>ANDALSO</code> must be translated to
+control flow</li>
+
+<li><code>if</code> and <code>while</code> must be translated to
+control flow</li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>Details on the translation</h1>
+
+<p class="first">As in the semantic analysis it is natural to
+implement the translation to intermediate code
+as a system of functions, one for each data type
+in the abstract syntax.</p>
+
+
+</div><div class="slide">
+ <h1>Translating expressions</h1>
+
+<p class="first">in:</p>
+
+<ul>
+<li>an expression in abstract syntax,</li>
+
+<li>environment</li>
+</ul>
+
+<p>out:</p>
+
+<ul>
+<li>a sequence of RTL instructions</li>
+
+<li>allocated temporaries</li>
+
+<li>a temporary t containing the result</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Translating expressions, example</h1>
+
+<p class="first">Example: <code>E1 + E2</code></p>
+
+<p>(assume that <code>E1</code> and <code>E2</code> are arbitrary
+expressions)</p>
+
+<ol>
+<li>Translate <code>E1</code>.
+
+<p>We obtain</p>
+
+<ul>
+<li>a list of instructions <code>il1</code></li>
+
+<li>a temporary <code>t1</code>, that will contain the
+result of <code>E1</code>, after <code>il1</code> has been executed.</li>
+</ul></li>
+
+<li>Similarly, translate <code>E2</code>, giving <code>il2</code> and <code>t2</code>.</li>
+</ol>
+
+
+</div><div class="slide">
+ <h1>Translating expressions, cont</h1>
+
+<ol>
+<li>We must allocate a new temporary <code>t3</code> to
+store the result.
+
+<p>The instruction sequence for the
+expression <code>E1 + E2</code> is</p>
+
+<pre class="example">il1
+il2
+EVAL(t3, BINARY(ADD, t1, t2))
+</pre></li>
+</ol>
+
+<p>The allocated temporaries are those allocated
+for <code>E1</code> and <code>E2</code>, and temporary <code>t3</code>.</p>
+
+
+
+</div><div class="slide">
+ <h1>Translating expressions, variations:</h1>
+
+<ul>
+<li>May also make temporary for result input.</li>
+
+<li>Allocated temps may be collected in a
+separate pass, or collected in a global data
+structure.</li>
+
+<li>Instead of collecting the generated code in a temporary data
+structure (a list, say), let the translation of an expression
+output the instructions as a side effect.</li>
+</ul>
+
+
+
+
+</div><div class="slide">
+ <h1>Symbol table</h1>
+
+<p class="first">You will need a symbol table to keep track of
+variables. You need information such as:</p>
+
+<ul>
+<li>global or local</li>
+
+<li>which type?</li>
+
+<li>allocation details</li>
+</ul>
+
+<p>For local scalar variables use
+temporaries—-numbered 1, 2, 3</p>
+
+<p>Local arrays are stored in frame. Address
+them by adding the offset to <code>FP</code>.</p>
+
+
+</div><div class="slide">
+ <h1>Labels</h1>
+
+<p class="first">Labels are used for</p>
+
+<ul>
+<li>positions in the code</li>
+
+<li>names of functions</li>
+
+<li>global variables</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Labels, suggestions</h1>
+
+<p class="first">Name positions in the code
+<code>"L1"</code>, <code>"L2"</code>, <code>"L3"</code> etc</p>
+
+<p>Let global variables have a name with a <code>"V"</code>
+prefix, and functions have a <code>"P"</code> prefix.</p>
+
+
+
+</div><div class="slide">
+ <h1>New temporaries</h1>
+
+<p class="first">The SML framework has a function that allocates new temporaries,
+<code>newTemp()</code>.</p>
+
+<p>(It simply increments a counter.)</p>
+
+<p>It you use Java or C, write something similar.</p>
+
+
+</div><div class="slide">
+ <h1>Translation of expressions</h1>
+
+<p class="first">Unary <code>-</code> and <code>!</code> are missing, so translate</p>
+
+<pre class="example">-x as 0-x
+
+!x as 0==x
+</pre>
+
+
+
+</div><div class="slide">
+ <h1>Use of variables, case analysis</h1>
+
+<p class="first">You must consider eight cases, i.e., all
+combinations of</p>
+
+<ul>
+<li>as <em>l-value</em> (the variable is assigned) or as
+<em>r-value</em> (the value is used)</li>
+
+<li><em>global</em> or <em>local</em></li>
+
+<li><em>scalar</em> or <em>array</em></li>
+</ul>
+
+<p>Also, arrays passed as parameters require special treatment.</p>
+
+
+</div><div class="slide">
+ <h1>Use of variables, address calculation</h1>
+
+<p class="first">Different instructions are required to access
+local and global variables.</p>
+
+<p>In indexing of arrays the address calculation is
+explicit.</p>
+
+<p>To calculate the r-value of <code>a[i]</code> we compute</p>
+
+<p><code>mem[&amp;a + i*c]</code></p>
+
+<p>where <code>&amp;a</code> is the base-address of <code>a</code> and <code>c</code> is the
+size of an element (<code>1</code> if the array <code>a</code> stores
+bytes and <code>4</code> if <code>a</code> stores long).</p>
+
+
+
+</div><div class="slide">
+ <h1>Use of variables, a scalar r-value</h1>
+
+<p class="first">Syntax tree: <code>VAR(x)</code></p>
+
+<p>If <code>x</code> is local, assume that <code>x</code> is stored in temp <code>42</code>:</p>
+
+<pre class="example">TEMP(42)
+</pre>
+
+<p>If <code>x</code> is global:</p>
+
+<pre class="example">EVAL(t0, LABREF("x"))
+EVAL(tr, UNARY(LOAD(LONG), t0))
+</pre>
+
+<p>Assume: <code>t0</code>, <code>t1</code>, ... are newly allocated
+temporaries and <code>tr</code> is the temporary that will hold
+the result</p>
+
+
+</div><div class="slide">
+ <h1>Use of variables, an array</h1>
+
+<p class="first">Syntax tree: <code>ARRAY(a, e)</code></p>
+
+<p>Assume <code>a</code> is a local array of <code>int</code>, value of expression <code>e</code> is stored in a
+temporary named <code>index</code>, and offset of <code>a</code> is "<code>offset</code>"</p>
+
+<p>If <code>a</code> is local we need to compute <code>mem[FP+offset+index*4]</code></p>
+
+<pre class="example">EVAL(t1, ICON(4))
+EVAL(t2, BINARY(MUL, index, t1))
+EVAL(t3, ICON(offset))
+EVAL(t4, BINARY(ADD, t3, t2))
+EVAL(t5, BINARY(ADD, t4, FP))
+EVAL(t6, UNARY(LOAD(LONG), t5))
+</pre>
+
+
+</div><div class="slide">
+ <h1>A global array</h1>
+
+<pre class="example">EVAL(t1, ICON(4))
+EVAL(t2, BINARY(MUL, index, t1))
+EVAL(t3, LABREF(l))
+EVAL(t4, BINARY(ADD, t3, t2))
+EVAL(t5, UNARY(LOAD(LONG), t4))
+</pre>
+
+
+</div><div class="slide">
+ <h1>Assigning arrays:</h1>
+
+<p class="first">In the abstract syntax: <code>ASSIGN(ARRAY(a, index), value)</code></p>
+
+<p>If <code>a</code> is global:
+</p><pre class="example">EVAL(t1, ICON(4))
+EVAL(t2, BINARY(MUL, index, t1))
+EVAL(t3, LABREF(l))
+EVAL(t4, BINARY(ADD, t3, t2))
+STORE(LONG, t4, value)
+</pre><p></p>
+
+
+
+</div><div class="slide">
+ <h1>Questions about local arrays:</h1>
+
+<ul>
+<li>Should the arrays be stored with positive or
+negative offset?</li>
+
+<li>Should each array have an offset divisible by 4?</li>
+
+<li>(Doesn't this representation make the
+intermediate code machine dependent?)</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Translation of control structures (if, while)</h1>
+
+<ul>
+<li>need to introduce new labels</li>
+
+<li>translate using conditional and
+unconditional jumps</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Control structure, example 1</h1>
+
+<p><code>if(e, stmnt1, stmnt2)</code></p>
+
+&lt;Draw control structure&gt;
+
+<p>Let</p>
+
+<p><code>se</code> - instructions for <code>e</code></p>
+
+<p><code>te</code> - temporary containing the result of <code>e</code></p>
+
+<p><code>s1</code> - instructions for statement <code>stmnt1</code></p>
+
+<p><code>s2</code> - instructions for statement <code>stmnt2</code></p>
+
+<p><code>l1</code>, <code>l2</code> - new labels</p>
+
+
+</div><div class="slide">
+ <h1>Control structure, example 1, generated code</h1>
+
+<pre class="example">se
+
+CJUMP(EQ, te, 0, l1)
+
+s1
+
+JUMP l2
+
+LABDEF l1
+
+s2
+
+LABDEF l2
+</pre>
+
+
+</div><div class="slide">
+ <h1>Control structure, example 2</h1>
+
+<p><code>while(e, stmnt)</code></p>
+
+&lt;Draw control structure&gt;
+
+
+<p><code>se</code> - instructions for <code>e</code></p>
+
+<p><code>te</code> - temporary containing the result of <code>e</code></p>
+
+<p><code>s</code> - instructions for statement <code>stmnt</code></p>
+
+<p><code>loop</code>, <code>stop</code> - new labels</p>
+
+
+</div><div class="slide">
+ <h1>Control structure, example 2, generated code:</h1>
+
+<pre class="example">labdef loop
+
+se
+
+CJUMP(EQ, te, 0, stop)
+
+s
+
+JUMP loop
+
+LABDEF stop
+</pre>
+
+
+</div><div class="slide">
+ <h1>Returning from function call and returning results</h1>
+<pre class="example">int f() {
+
+    ...
+	 return 42;
+    ...
+
+}
+</pre>
+
+<p>No special instruction for this. Instead, just</p>
+
+<ul>
+<li>store result in <code>RV</code></li>
+
+<li>jump to end of function.</li>
+</ul>
+
+
+</div>
+
+</div>
+
+
+
+</body></html>

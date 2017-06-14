@@ -1,0 +1,844 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<title>Introduction, Lexical analysis</title>
+<meta name="version" content="S5 1.0">
+<link rel="stylesheet" href="Introduction,%20Lexical%20analysis_files/my-slides.htm" type="text/css" media="projection" id="slideProj">
+<link rel="stylesheet" href="Introduction,%20Lexical%20analysis_files/opera.htm" type="text/css" media="projection" id="operaFix">
+<link rel="stylesheet" href="Introduction,%20Lexical%20analysis_files/print.htm" type="text/css" media="print" id="slidePrint">
+<link rel="stylesheet" href="Introduction,%20Lexical%20analysis_files/outline.htm" type="text/css" media="screen" id="outlineStyle">
+<script src="Introduction,%20Lexical%20analysis_files/slides.htm" type="text/javascript"></script>
+</head>
+<body>
+
+<div class="layout">
+
+<div id="currentSlide"></div>
+<div id="header"></div>
+<div id="footer">
+<div id="controls"></div>
+</div>
+
+</div>
+<div class="presentation">
+
+<div class="slide">
+<p>
+</p><h1><small>Compiler Project</small><br>
+Introduction, Lexical analysis</h1>
+<p></p>
+<h3> Alexandra Jimborean</h3>
+<h4>Uppsala University</h4>
+</div><div class="slide">
+ <h1>Plan</h1>
+
+<ul>
+<li class="incremental">Introduction</li>
+
+<li class="incremental">The Project</li>
+
+<li class="incremental">The uC language</li>
+
+<li class="incremental">The test suite</li>
+
+<li class="incremental">Frameworks in SML and Java</li>
+
+<li class="incremental">Lexical analysis</li>
+
+<li class="incremental">Tools for lexical analysis</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Teachers</h1>
+
+<p class="first">Alexandra Jimborean</p>
+
+
+</div><div class="slide">
+ <h1>The course</h1>
+
+<ul>
+<li class="incremental">A project, consisting of five assignments</li>
+
+<li class="incremental">Tutorials</li>
+
+<li class="incremental">Labs</li>
+</ul>
+
+<p>The tutorials and labs are intended to support you in your work with
+the project.</p>
+
+
+</div><div class="slide">
+ <h1>The Project: overview</h1>
+
+<p class="first">The project consists of five assignments:</p>
+
+<ul>
+<li class="incremental">lexical analysis</li>
+
+<li class="incremental">Syntax analysis (parsing and generation of
+syntax tree)</li>
+
+<li class="incremental">Semantic analysis</li>
+
+<li class="incremental">Generation of intermediate code</li>
+
+<li class="incremental">Code generation</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Goals and motivation:</h1>
+
+<ul>
+<li class="incremental">A complete compiler from source code to machine code</li>
+</ul>
+
+<p>Motivation:</p>
+
+<ul>
+<li class="incremental">Understand all parts of a compiler</li>
+
+<li class="incremental">Understand the execution of a program</li>
+
+<li class="incremental">Experience of a larger programming project.</li>
+</ul>
+
+
+
+
+</div><div class="slide">
+ <h1>Implementation language</h1>
+
+<p class="first">Any language you want, but we will give you help with the framework if
+you choose SML or Java. (Writing a compiler in C or C++ is harder, so
+it is <em>not</em> recommended.)</p>
+
+
+</div><div class="slide">
+ <h1>General requirement</h1>
+
+<p class="first">Each assignment—one phase of the compiler</p>
+
+<p>Write each assignment so that it produces
+printed output:</p>
+
+<p>It should be possible to tell from the output
+whether the solution is correct or not.</p>
+
+
+
+</div><div class="slide">
+ <h1>Organization of the project</h1>
+
+<ul>
+<li class="incremental">lexical analysis</li>
+
+<li class="incremental">parser</li>
+
+<li class="incremental">semantic analysis</li>
+
+<li class="incremental">generation of intermediate code</li>
+
+<li class="incremental">generation of machine code</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Lexical analysis</h1>
+
+<p class="first">Input: A uC source file</p>
+
+<p>Output: A "stream" of tokens, errors</p>
+
+
+</div><div class="slide">
+ <h1>Lexical analysis, notes</h1>
+
+<ul>
+<li class="incremental">The stream of tokens should be represented as a function that
+returns the next token when called.</li>
+
+<li class="incremental">The solution of the first assignment should include a "fakeparse"
+function that simulates the behaviour of the parser, but simply
+prints the stream of tokens (instead of parsing them).</li>
+
+<li class="incremental">To keep things simple, simply stop the compiler when the first
+error is encountered.</li>
+
+<li class="incremental">You <em>must</em> build a separate lexical analysis.</li>
+</ul>
+
+
+
+
+</div><div class="slide">
+ <h1>Parser (Syntax analysis)</h1>
+
+<p class="first">Input: A stream of tokens</p>
+
+<p>Output: Syntax tree, errors</p>
+
+
+</div><div class="slide">
+ <h1>Parser, notes</h1>
+
+<ul>
+<li class="incremental">Build a syntax tree, not a parse tree (what is the difference?)</li>
+
+<li class="incremental">You <em>must</em> represent the syntax tree as a datastructure.</li>
+
+<li class="incremental">The syntax tree should contain all information relevant for the
+next phases of the compiler.</li>
+
+<li class="incremental">There should be a way to print syntax trees.</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Semantic analysis</h1>
+
+<p class="first">Input: Syntax tree</p>
+
+<p>Output: errors (or a syntax tree that is known to be semantically
+correct)</p>
+
+
+</div><div class="slide">
+ <h1>Generation of intermediate code</h1>
+
+<p class="first">Input: Syntax tree (known to be correct)</p>
+
+<p>Output: Intermediate code (some form of register transfer language)</p>
+
+<p>Note:</p>
+
+<ul>
+<li class="incremental">The intermediate code should be represented by a datastructure.</li>
+
+<li class="incremental">It should contain all information relevant for code generation.</li>
+
+<li class="incremental">There should be a way to print the intermediate code.</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Generation of machine code (MIPS)</h1>
+
+<p class="first">Input: Intermediate code</p>
+
+<p>Output: A file containing MIPS assembly code</p>
+
+<p>Note:</p>
+
+<ul>
+<li class="incremental">The assembly code should execute on the SPIM simulator.</li>
+</ul>
+
+
+
+
+</div><div class="slide">
+ <h1>uC</h1>
+
+<p class="first">A subset of C.</p>
+
+<p>Example:</p>
+
+<p>[sim01.c, sim06.c]</p>
+
+
+
+
+</div><div class="slide">
+ <h1>Included in uC</h1>
+
+<ul>
+<li class="incremental">datatypes: int, char, arrays</li>
+
+<li class="incremental">functions, parameter passing</li>
+
+<li class="incremental">if-statements, while loops</li>
+
+<li class="incremental">expresions: constants, identifiiers,
+function calls, array indexing</li>
+
+<li class="incremental">literals: characters and integers</li>
+
+<li class="incremental">unary expressions: - !</li>
+
+<li class="incremental">binary operators:
++ - * / &lt; &gt; &lt;= &gt;= == != &amp;&amp;</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Not included in uC</h1>
+
+<ul>
+<li class="incremental">Multidimensional arrays, pointers,
+structures</li>
+
+<li class="incremental">floating point numbers</li>
+
+<li class="incremental">initialization in declarations</li>
+
+<li class="incremental">functions that take a variable number of
+arguments</li>
+
+<li class="incremental">declarations in nested blocks</li>
+</ul>
+
+
+
+
+</div><div class="slide">
+ <h1>uC, tricky issues:</h1>
+
+<ul>
+<li class="incremental">unterminated comments: /* ....</li>
+
+<li class="incremental">handling of boolean expressions</li>
+
+<li class="incremental">type conversion char - int</li>
+
+<li class="incremental">type conversion char[] - int[]</li>
+
+<li class="incremental">passing arrays as argument</li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>Boolean expressions</h1>
+
+<p class="first">Which of the following code fragments are OK?</p>
+
+<p>if (42) { ...</p>
+
+<p>int x;
+x = (2&lt;3);</p>
+
+
+
+</div><div class="slide">
+ <h1>Type conversion char - int</h1>
+
+<p class="first">Which of the following are OK?</p>
+
+
+<pre class="example">int x;
+char y;
+x=y;
+
+int x;
+char y;
+y=x;
+</pre>
+
+
+</div><div class="slide">
+ <h1>Conversion char[] - int[]. Given</h1>
+
+<pre class="example">int x[10];
+char y[10]
+
+void f(int a[]) { ... }
+void g(char a[]) { ... }
+</pre>
+
+<p>Which of the following are OK?</p>
+
+<ul>
+<li class="incremental"><code>f(x)</code></li>
+
+<li class="incremental"><code>g(x)</code></li>
+
+<li class="incremental"><code>f(y)</code></li>
+
+<li class="incremental"><code>g(y)</code></li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>The test suite:</h1>
+
+<p class="first">Note:</p>
+
+<ul>
+<li class="incremental">to test a program in the test suite
+using an "ordinary" c-compiler, write (for example)
+
+<p><code>cc sim01.c uc.c</code></p></li>
+
+<li class="incremental"><code>uc.c</code> defines IO-functions such as
+<code>putint</code>.</li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>Test suite, Three classes of programs:</h1>
+
+<ul>
+<li class="incremental">incorrect
+
+<p>Compilation should give error messages in either the lexer, the
+parser or the semantic analysis.</p></li>
+
+<li class="incremental">quiet
+
+<p>Fairly short programs that do not produce
+any output.</p></li>
+
+<li class="incremental">noisy
+
+<p>Slightly larger programs that produce
+output and sometimes read from the
+terminal. Divided in three groups; simple,
+medium and advanced.</p></li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>The frameworks</h1>
+
+<ul>
+<li class="incremental">SML</li>
+
+<li class="incremental">Java</li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>The SML framework</h1>
+
+<ul>
+<li class="incremental">More details in assignment overview</li>
+
+<li class="incremental">Uses ML-lex and ML-Yacc</li>
+
+<li class="incremental">Uses functors, structures and signatures </li>
+
+<li class="incremental">Uses Makefile and compilation manager</li>
+
+<li class="incremental">Is compiled and executed from the command line</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>The Java framework</h1>
+
+<ul>
+<li class="incremental">Uses javacc for parsing and lexical analysis
+
+<p>javacc generates a predictive parser. Easier to understand, but
+less powerful than LR parsers.</p></li>
+
+<li class="incremental">Simple Makefile to avoid having source files mixed
+up with the Java files that javacc produces</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Java framework, directories</h1>
+
+<ul>
+<li class="incremental">directories:
+
+<ul>
+<li class="incremental"><code>lexer-test</code>
+
+<p>Place the first version of the lexer here (with fake-parser)</p></li>
+
+<li class="incremental"><code>parser</code>
+
+<p>For lexer and parser. Contains Java definitions for a
+simple syntax tree.</p></li>
+
+<li class="incremental"><code>absyn</code>
+
+<p>For semantic analysis. Contains a simple data structure for
+environments.</p></li>
+</ul></li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Java framework, directories (cont)</h1>
+
+<ul>
+<li class="incremental"><code>rtl</code>
+
+<p>Generation of intermediate code. Defines some classes for rtl
+instructions.</p></li>
+
+<li class="incremental"><code>mips</code>
+
+<p>Generation of MIPS code. No given code here.</p></li>
+
+<li class="incremental"><code>generated</code>
+
+<p>Place for code generated by javacc</p></li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Java framework, directories (cont)</h1>
+
+<ul>
+<li class="incremental"><code>build</code>
+
+<p>Place for <code>.class</code> files.</p></li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Other languages</h1>
+
+<p class="first">Reasonable alternatives: Haskell, Erlang, Common Lisp</p>
+
+<p>Contact me for advice on how to proceed.</p>
+
+<p>Links:</p>
+
+<ul>
+<li class="incremental"><a href="http://fileadmin.cs.lth.se/cs/Education/EDAN40/assignment4/parser.pdf">Parsing with Haskell</a></li>
+
+<li class="incremental"><a href="http://www.erlang.org/doc/man/yecc.html">Erlang - Yecc</a></li>
+
+<li class="incremental"><a href="http://www.pps.jussieu.fr/%7Ejch/software/cl-yacc/">CL-yacc</a></li>
+</ul>
+
+<p>All three links describe general parsing solutions.</p>
+
+
+</div><div class="slide">
+ <h1>Lexical analysis</h1>
+
+<p class="first">Goal:</p>
+
+<ul>
+<li class="incremental">turn a stream of characters into a stream
+of tokens</li>
+
+<li class="incremental">ignore white space and comments</li>
+
+<li class="incremental">recognize operators</li>
+
+<li class="incremental">recognize identifers, integer literals,
+keywords...</li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>Lexical analysis, general solution</h1>
+
+<ul>
+<li class="incremental">Specify the different tokens using
+regular expressions.</li>
+
+<li class="incremental">Define a data type that represents
+the different tokens</li>
+
+<li class="incremental">Define how to print tokens</li>
+
+<li class="incremental">define a routine that reads the input
+file and returns next token.</li>
+</ul>
+
+<p>Write lexical analysis + program that calls
+lexer and prints tokens</p>
+
+
+
+
+</div><div class="slide">
+ <h1>ML-Lex and Lex (C)</h1>
+
+<p class="first">Both</p>
+
+<ul>
+<li class="incremental">take a file with rules that describe the lexical structure of a
+programming language and</li>
+
+<li class="incremental">translate the rules into a program that takes a stream of
+characters and produce a stream of tokens</li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>A rule in ML-Lex or Lex</h1>
+
+<p class="first">consists of</p>
+
+<ul>
+<li class="incremental">(optional) starting states</li>
+<li class="incremental">a regular expression</li>
+<li class="incremental">a code fragment</li>
+</ul>
+
+<p>The <em>starting states</em> tell us when the rule can
+be applied,</p>
+
+<p>the <em>regexp</em> when the rule can be applied, and</p>
+
+<p>the <em>code</em> is executed when a rule has been
+successfully applied</p>
+
+
+
+</div><div class="slide">
+ <h1>The file (name.lex):</h1>
+
+<pre class="example">User declarations (ML code or C code)
+%%
+LEX definitions (abbreviations)
+%%
+Rules
+</pre>
+
+
+
+</div><div class="slide">
+ <h1>Declarations</h1>
+<pre class="example">val eof = fn () =&gt; MyTokens.EOF
+</pre>
+
+<p>(i.e., tell the scanner what to do when end
+of file is reached)</p>
+
+<pre class="example">type lexresult = MyTokens.tokens
+</pre>
+(Which type does the scanner return)
+
+<p>+ Other data types and help functions</p>
+
+
+
+</div><div class="slide">
+ <h1>Definitions</h1>
+
+<p class="first">Start state</p>
+
+<pre class="example">%s SkipComment;
+</pre>
+
+<p>Short names for regular expressions</p>
+
+<pre class="example">digit=[0-9];
+int={digit}+;
+float={int}"."{int};
+</pre>
+
+
+
+</div><div class="slide">
+ <h1>Rules</h1>
+
+<pre class="example">Regexp =&gt; (action);
+
+&lt;STATE&gt; Regexp =&gt; (action);
+</pre>
+
+<p>(If you do not provide a starting state the
+rule will apply for all starting states)</p>
+
+
+</div><div class="slide">
+ <h1>Rules, examples</h1>
+
+<pre class="example">"+"      =&gt; (Tokens.PLUS);
+{int}    =&gt; (case (Int.fromString(yytext)) of
+	      SOME i =&gt; Tokens.INT(i);
+	    | NONE =&gt; error...)
+</pre>
+
+
+<p><code>yytext</code> gives the string corresponding to the token</p>
+
+<p><code>yypos</code> gives the position in the input file of the first character of
+the token (starting at 2)</p>
+
+<ul>
+<li class="incremental">If several rules match, the rule matching
+the longest prefix will be selected</li>
+
+<li class="incremental">If several rules match the longest prefix,
+the first of them is selected</li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>How to run ML-Lex</h1>
+
+<p class="first">from unix:</p>
+
+<pre class="example">ml-lex lexer.lex
+</pre>
+
+<p>Creates a file</p>
+
+<pre class="example">lexer.lex.sml
+</pre>
+
+<p>(But in the assignment, use the pre-defined make file)</p>
+
+
+
+
+</div><div class="slide">
+ <h1>How to use the lexer</h1>
+
+<ul>
+<li class="incremental">The file <code>*.lex.sml</code> defines a structure
+containing a function <code>makeLexer</code></li>
+
+<li class="incremental">makeLexer is to be called with a function
+with type int -&gt; string</li>
+
+<li class="incremental">this (other) function reads characters from
+the input stream</li>
+
+<li class="incremental">makeLexer returns a function that returns
+next token each time it is called</li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>Lexer, examples</h1>
+
+<p class="first">Example (lex-file)</p>
+
+<p>[moo.lex]</p>
+
+<p>Example (usage of lexer)
+[moo.sml]</p>
+
+
+
+
+</div><div class="slide">
+ <h1>A similar example in C/lex.</h1>
+
+<ul>
+<li class="incremental">tokens.h  (Definition of tokens)</li>
+
+<li class="incremental">tiger.lex (lexer)
+
+<p><code>%{</code></p>
+
+<p><code>%}</code></p>
+
+<p>indicates included source code</p></li>
+
+<li class="incremental">driver.c  (To test the lexer)</li>
+
+<li class="incremental">makefile</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>C/lex example</h1>
+
+<p class="first">Source can be found here:
+<a href="http://www.cs.princeton.edu/%7Eappel/modern/c/chap2/">http://www.cs.princeton.edu/~appel/modern/c/chap2/</a></p>
+
+<p>[Files: <code>tokens.h</code>, <code>tiger.lex</code>, <code>driver.c</code>, <code>makefile</code>]</p>
+
+
+
+
+
+</div><div class="slide">
+ <h1>Writing a tokenizer in Java.</h1>
+
+<p class="first">Example: moo.jj</p>
+
+<p>javacc moo.jj</p>
+
+<p>creates 7 files:</p>
+
+<pre class="example">Moo.java
+MooConstants.java
+MooTokenManager.java
+
+ParseException.java
+SimpleCharStream.java
+TokenMgrError.java
+Token.java
+</pre>
+
+<p>Do not modify them!</p>
+
+
+</div><div class="slide">
+ <h1>Attributes to a token in JavaCC:</h1>
+
+
+<ul>
+<li class="incremental"><code>image</code>
+The corresponding string</li>
+
+<li class="incremental"><code>beginLine</code>, <code>beginColumn</code>, <code>endLine</code>, <code>endColumn</code>
+
+<p>position in source file</p></li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>More information</h1>
+
+<p class="first">The course page</p>
+
+<p><a href="http://www.it.uu.se/edu/course/homepage/kompprojekt/vt13">http://www.it.uu.se/edu/course/homepage/kompprojekt/vt13</a></p>
+
+
+<p>SML-NJ</p>
+
+<p><a href="http://www.smlnj.org/doc/">http://www.smlnj.org/doc/</a></p>
+
+
+<p>ML-lex</p>
+
+<p><a href="http://www.cs.princeton.edu/%7Eappel/modern/ml/ml-lex/manual.html">http://www.cs.princeton.edu/~appel/modern/ml/ml-lex/manual.html</a></p>
+
+
+<p>Compilation Manager</p>
+
+<p><a href="http://www.smlnj.org/doc/CM/">http://www.smlnj.org/doc/CM/</a></p>
+
+
+</div><div class="slide">
+ <h1>More information (cont)</h1>
+
+<p class="first">The lex and yacc page</p>
+
+<p><a href="http://dinosaur.compilertools.net/">http://dinosaur.compilertools.net/</a></p>
+
+
+<p>JavaCC</p>
+
+<p><a href="http://javacc.java.net/">http://javacc.java.net</a></p>
+
+<p><a href="http://www.engr.mun.ca/%7Etheo/JavaCC-FAQ/">http://www.engr.mun.ca/~theo/JavaCC-FAQ/</a></p>
+
+<p><a href="http://www.engr.mun.ca/%7Etheo/JavaCC-Tutorial/">http://www.engr.mun.ca/~theo/JavaCC-Tutorial/</a></p>
+
+
+</div>
+
+</div>
+
+
+
+</body></html>

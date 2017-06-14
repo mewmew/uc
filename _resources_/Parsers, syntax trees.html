@@ -1,0 +1,671 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<title>Parsers, syntax trees</title>
+<meta name="version" content="S5 1.0">
+<link rel="stylesheet" href="Parsers,%20syntax%20trees_files/my-slides.htm" type="text/css" media="projection" id="slideProj">
+<link rel="stylesheet" href="Parsers,%20syntax%20trees_files/opera.htm" type="text/css" media="projection" id="operaFix">
+<link rel="stylesheet" href="Parsers,%20syntax%20trees_files/print.htm" type="text/css" media="print" id="slidePrint">
+<link rel="stylesheet" href="Parsers,%20syntax%20trees_files/outline.htm" type="text/css" media="screen" id="outlineStyle">
+<script src="Parsers,%20syntax%20trees_files/slides.htm" type="text/javascript"></script>
+</head>
+<body>
+
+<div class="layout">
+
+<div id="currentSlide"></div>
+<div id="header"></div>
+<div id="footer">
+<div id="controls"></div>
+</div>
+
+</div>
+<div class="presentation">
+
+<div class="slide">
+<p>
+</p><h1><small>Compiler project</small><br>
+Parsers, syntax trees</h1>
+<p></p>
+<h3> Alexandra Jimborean</h3>
+<h4>Uppsala University</h4>
+</div><div class="slide">
+ <h1>Overview</h1>
+
+<p class="first">Tutorial on grammars, parsers and parser generators, in particular
+LR-parsers and predictive parsers</p>
+
+<ul>
+<li class="incremental">What is a parser</li>
+
+<li class="incremental">more on grammars</li>
+
+<li class="incremental">syntax trees</li>
+
+<li class="incremental">LR-parser generators
+
+<ul>
+<li class="incremental">Yacc, ML-Yacc</li>
+
+<li class="incremental">The grammar file</li>
+
+<li class="incremental">examples</li>
+</ul></li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>Parsers, general</h1>
+
+<p class="first">What is a parser/what does it do?</p>
+
+<ul>
+<li class="incremental">recognize a grammar
+
+<p>(show that a string can indeed be
+generated from a grammar)</p></li>
+
+<li class="incremental">perform some action (generate syntax
+tree, compute expression)</li>
+
+<li class="incremental">Two types of parsers: LR and LL (predictive)</li>
+</ul>
+
+
+
+
+</div><div class="slide">
+ <h1>More on grammars</h1>
+
+<p class="first">Formally:</p>
+
+<ul>
+<li class="incremental">A language = a set of strings</li>
+
+<li class="incremental">A context-free grammar describes a
+language</li>
+
+<li class="incremental">For each string in the language there
+is a parse tree (concrete syntax tree)</li>
+
+<li class="incremental">If there is more than one parse tree for some strings the
+grammar is <em>ambiguous</em></li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Example: ambiguous grammar</h1>
+
+<pre class="example">E -&gt; E + E
+E -&gt; E * E
+E -&gt; id
+</pre>
+
+<p>Ambiguity is OK as long as we do not attempt to associate actions or
+translations to the different rules...</p>
+
+<p>...but a grammar in a programming language is not just a way to
+specify a set of strings; it is also intended to reflect the structure
+of the program.</p>
+
+<p>Example:</p>
+
+<pre class="example">2*3+4*5
+</pre>
+
+<p>The value of the expression depends on the structure of the parse tree!</p>
+
+
+
+</div><div class="slide">
+ <h1>Solutions</h1>
+
+<p class="first">One solution: Solve ambiguities by indicating priorities for different
+operations in the parser.</p>
+
+<p>This is messy and the solution is specific for the parser generator
+you are using.</p>
+
+<p>The assignment requires you to write an unambiguous grammar!</p>
+
+
+
+</div><div class="slide">
+ <h1>How to write an unambiguous grammar</h1>
+
+<p class="first">We want <code>+</code> to be <em>left-associative</em>, i.e.,</p>
+
+<p><code>2 + 3 + 4</code></p>
+
+<p>should be read as</p>
+
+<p><code>(2 + 3) + 4</code>.</p>
+
+<p>(Easier to see why this matters if you replace <code>+</code> with <code>-</code> )</p>
+
+<p>In other words:  an expression with <code>+</code> can be
+to the left of a <code>+</code>, but not to the right.</p>
+
+
+</div><div class="slide">
+ <h1>Unambigous grammar, cont</h1>
+
+<p class="first">The associativity requirement is satisfied by introducing a new class
+of expressions <code>T</code> that allow <code>*</code> but not <code>+</code>:</p>
+
+<pre class="example">E -&gt; E + T
+E -&gt; T
+</pre>
+
+
+</div><div class="slide">
+ <h1>Precedences</h1>
+
+<p class="first">We also want <code>*</code> to have higher priority than <code>+</code>, in other words</p>
+
+<p><code>2+3*4</code></p>
+
+<p>should be read as</p>
+
+<p><code>2+(3*4)</code>.</p>
+
+<p>The solution is similar: the class of expressions <code>T</code> should allow
+<code>*</code> but not <code>+</code>.</p>
+
+
+</div><div class="slide">
+ <h1>Precedences (cont)</h1>
+
+<p class="first">This gives us the following grammar:</p>
+
+<pre class="example">E -&gt; E + T
+E -&gt; T
+
+T -&gt; T * F
+T -&gt; F
+
+F -&gt; id
+</pre>
+
+
+
+</div><div class="slide">
+ <h1>Questions</h1>
+
+<ul>
+<li class="incremental">Does this grammar describe the same
+set of strings as the previous one?</li>
+
+<li class="incremental">Is it unambiguous?</li>
+
+<li class="incremental">Do we get the precedences and associativity we want?</li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>Syntax trees</h1>
+
+<p class="first">Syntax trees (abstract syntax)</p>
+
+<p>A syntax tree is a simplified representation of the source program.</p>
+
+<p>Its structure is similar to that of a parse tree (concrete syntax
+tree), but details not relevant to the translation are removed.</p>
+
+
+</div><div class="slide">
+ <h1>Syntax tree, example</h1>
+
+<pre class="example">E -&gt; E + T
+E -&gt; T
+
+T -&gt; T * F
+T -&gt; F
+
+F -&gt; id
+
+2*3+4*5
+
+      +
+     / \
+    /   \
+   *     *
+  / \   / \
+ 2  3   4  5
+</pre>
+
+
+</div><div class="slide">
+ <h1>Properties of syntax trees</h1>
+
+<ul>
+<li class="incremental">All rules in the grammar do not
+necessary have a correspondence in the
+tree
+
+<p>The expression <code>(2*3)+(4*4)</code> will
+probably have the same syntax tree as <code>2*3+4*4</code>.</p></li>
+
+<li class="incremental">The shape of the syntax tree is not given from the grammar; the
+tree below is an alternative way to construct a syntax tree for the
+same expression.</li>
+</ul>
+
+<pre class="example">            op
+           /|\
+          / + \
+         op    op
+        /|\   /|\
+       / * \ / * \
+      2    3 4    5
+</pre>
+
+
+
+
+</div><div class="slide">
+ <h1>Example datastructures for syntax trees (SML)</h1>
+
+<pre class="example">datatype id =
+   I_Name of string
+
+datatype expr =
+    FloatE of real
+  | IdE of id * pos
+  | AddE of expr * expr * pos
+  | MulE of expr * expr * pos
+</pre>
+
+
+</div><div class="slide">
+ <h1>Syntax tree definitions (C and Java)</h1>
+
+<p class="first">C: <code>tree.c</code>, also the <code>c-yacc-tree</code> example.</p>
+
+<p>Java: <code>javacc-calc-nodes</code>. Also look at class <code>Node</code> in the framework.</p>
+
+
+
+
+
+</div><div class="slide">
+ <h1>LR-parser generators</h1>
+
+<ul>
+<li class="incremental">Yacc</li>
+
+<li class="incremental">ML-Yacc</li>
+</ul>
+
+<p>An LR-parser</p>
+
+<ul>
+<li class="incremental">maintains a stack of of input tokens
+and grammar symbols</li>
+
+<li class="incremental">uses a finite-state automaton to
+determine the next action, given the
+stack and the next token on input</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>LR-parsers, possible actions:</h1>
+
+<ul>
+<li class="incremental"><code>shift</code> (put token on stack)</li>
+
+<li class="incremental"><code>reduce</code> (replace top symbols on stack with a grammar symbol,
+according to a production)</li>
+
+<li class="incremental"><code>accept</code> (we are done)</li>
+</ul>
+
+<p>A parser generator reads a <em>grammar description</em> and produces a parser
+(including an automaton, as above)</p>
+
+
+
+</div><div class="slide">
+ <h1>LR - input files and generated files</h1>
+
+<ul>
+<li class="incremental">Yacc takes a file <code>foo.y</code>
+
+<ul>
+<li class="incremental">and produces a file <code>foo.tab.c</code>
+
+<p>a parser in C</p></li>
+</ul></li>
+
+<li class="incremental">ML-Yacc takes a file <code>foo.grm</code> ...
+
+<ul>
+<li class="incremental">and produces the files <code>foo.grm.sml</code> and <code>foo.grm.sig</code>
+
+<p><code>foo.grm.sml</code> is a parser with declarations in <code>foo.grm.sig</code></p></li>
+</ul></li>
+
+<li class="incremental"><code>foo.y</code> and <code>foo.grm</code> describe grammars</li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>Grammar files (.y files, Yacc)</h1>
+
+<p class="first">Three sections:</p>
+
+<pre class="example">parser declarations
+
+%%
+
+grammar rules
+
+%%
+
+C code
+</pre>
+
+
+
+</div><div class="slide">
+ <h1>Parser declarations</h1>
+
+<p class="first">Terminal symbols, non-terminals, start symbol,</p>
+
+<p>Grammar rules</p>
+
+<pre class="example">exp : exp PLUS exp  { semantic action }
+</pre>
+
+<p>Example: simple calculator</p>
+
+
+
+
+</div><div class="slide">
+ <h1>Grammar files (.grm-files, ML-Yacc)</h1>
+
+<p class="first">Three sections:</p>
+
+<pre class="example">User declarations (ML-code)
+
+%%
+
+Parser declarations
+
+%%
+
+Grammar rules
+</pre>
+
+
+
+</div><div class="slide">
+ <h1>User declarations (.grm)</h1>
+
+<ul>
+<li class="incremental">ML-code (as in the lexer)</li>
+
+<li class="incremental">May be convenient to introduce abbreviations, for example
+
+<p><code>structure A = Absyn</code></p></li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>Parser declarations</h1>
+
+<p class="first">These declarations must be included (examples):</p>
+
+<ul>
+<li class="incremental">The name of the parser:
+
+<p><code>%name Foo</code></p></li>
+
+<li class="incremental">the type of position attributes:
+
+<p><code>%pos int</code></p></li>
+
+<li class="incremental">Terminal symbols and non-terminals:
+
+<pre class="example">%term ID of string | NUM of int | PLUS | EOF
+%nonterm EXP of int | START of int option
+</pre></li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>Grammar rules:</h1>
+
+<p class="first">Example:
+</p><pre class="example">  EXP : NUM             (NUM)
+      | ID              (lookup ID)
+      | EXP PLUS EXP    (EXP1+EXP2)
+      | EXP TIMES EXP   (EXP1*EXP2)
+      | EXP DIV EXP     (EXP1 div EXP2)
+      | EXP SUB EXP     (EXP1-EXP2)
+</pre><p></p>
+
+
+</div><div class="slide">
+ <h1>Grammar rules, in general:</h1>
+
+<pre class="example">Nonterminal  : RHS (Action)
+             | RHS (Action)
+</pre>
+
+<p>where <code>RHS</code> is a sequence of terminals and non-terminals. Action is SML
+code.</p>
+
+<p>The action may refer to the value associated with a grammar symbol by
+giving the name of the symbol. If one symbol occurs many times, write
+<code>name1</code>, <code>name2</code> etc.</p>
+
+<p>Similarly, you access position by writing <code>nameleft</code>, <code>nameright</code>,
+<code>name1left</code> etc.</p>
+
+
+
+</div><div class="slide">
+ <h1>How to run the parser generator</h1>
+
+<p class="first">Yacc: Simply type</p>
+
+<p><code>&gt; yacc foo.y </code></p>
+
+<p>on the command line</p>
+
+<p>(a file <code>y.tab.c</code> is produced)</p>
+
+
+
+</div><div class="slide">
+ <h1>ML-Yacc</h1>
+
+<p class="first">From unix-command line:</p>
+
+<p><code>sml-yacc foo.grm</code></p>
+
+<p>Under SML-NJ:</p>
+
+<p><code>CM.make("sources.cm")</code></p>
+
+<p>(This will compile the whole project. The file "<code>sources.cm</code>" must
+contain <code>foo.grm</code> and <code>ml-yacc-lib.cm</code>)</p>
+
+<p>You will obtain three files; <code>foo.grm.sig</code>, <code>foo.grm.sml</code>, <code>foo.grm.desc</code></p>
+
+
+
+</div><div class="slide">
+ <h1>Predictive parsing (LL)</h1>
+
+<ul>
+<li class="incremental">JavaCC</li>
+
+<li class="incremental">Handwritten parser</li>
+</ul>
+
+<p>Ideas:</p>
+
+<ul>
+<li class="incremental">introduce a procedure for every non-terminal</li>
+
+<li class="incremental">parser decisions are based on next token in input (LL(1)).</li>
+</ul>
+
+
+
+</div><div class="slide">
+ <h1>Making the grammar suitable for predictive parsing</h1>
+
+<p class="first">Elimination of left recursion:</p>
+
+<pre class="example">E -&gt; E + T
+E -&gt; T
+</pre>
+
+<p>One solution:</p>
+
+<pre class="example">E -&gt; T E'
+E' -&gt; + T E'
+E' -&gt;
+</pre>
+
+<p>Better: use equivalent EBNF rule:</p>
+
+<pre class="example">E -&gt; T { + T }*
+</pre>
+
+
+
+</div><div class="slide">
+ <h1>Left-factoring</h1>
+
+<p class="first">A predictive parser does not allow to rules to start with the same
+grammar symbol:</p>
+
+<pre class="example">A -&gt; a b
+A -&gt; a c </pre>
+
+<p>Instead, write</p>
+
+<p><code>
+A -&gt; a ( b | c)
+</code></p>
+
+
+
+</div><div class="slide">
+ <h1>The calculator example:</h1>
+
+<p class="first">Transform the grammar using EBNF:</p>
+
+<pre class="example">E -&gt; T { + T | - T }*
+T -&gt; F { '*' F | '/' F }*
+F -&gt; number | '(' E ')'
+</pre>
+
+
+
+
+
+
+
+<p>%%</p>
+
+
+
+
+</div><div class="slide">
+ <h1>JavaCC</h1>
+
+<ul>
+<li class="incremental">A predictive parser</li>
+
+<li class="incremental">Creates one method for each non-terminal</li>
+
+<li class="incremental">Intuitive, but less powerful than a parser generator based on LALR</li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>JavaCC, files</h1>
+
+<ul>
+<li class="incremental">Input: a file <code>parser.jj</code> that defines a parser <code>MyParser</code></li>
+
+<li class="incremental">Output:
+<code>MyParser.java</code> - the parser
+
+<p>Other files:
+</p><pre class="example">  MyParserConstants.java
+  MyParserTokenManager.java
+  ParseException.java
+  SimpleCharStream.java
+  Token.java
+  TokenMgrError.java
+</pre><p></p></li>
+</ul>
+
+
+</div><div class="slide">
+ <h1>A JavaCC file</h1>
+
+<pre class="example">options{
+  /* Code to set various options flags */
+}
+
+PARSER_BEGIN(MyParser)
+
+public class MyParser {
+  /* Your Java code here */
+}
+
+PARSER_END(MyParser)
+
+TOKEN_MGR_DECLS : {
+  /* Declarations used by tokenizer */
+}
+/* Token rules and actions */
+/* JavaCC rules and Actions */
+
+</pre>
+
+
+
+</div><div class="slide">
+ <h1>JavaCC, examples</h1>
+
+
+
+<ul>
+<li class="incremental"><code>javacc-calc</code>
+
+<p>Minimal example of a calculator in Java using javacc. The
+calculator reads expressions from standard input and evaluates them</p></li>
+</ul>
+
+
+<ul>
+<li class="incremental"><code>javacc-calc-nodes</code>
+
+<p>Slightly more complicated example of a calculator in Java using
+javacc. The calculator reads expressions from standard input. For each
+expression it builds a syntax tree and prints the tree. Finally it
+evaluates the tree and prints the result.</p></li>
+</ul>
+
+
+</div>
+
+</div>
+
+
+
+</body></html>
