@@ -4,6 +4,7 @@ define void @f(i8 %a) {
 	store i8 %a, i8* %1
 	ret void
 }
+
 define void @g() {
 ; <label>:0
 	%a = alloca i32

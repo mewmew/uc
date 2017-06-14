@@ -4,6 +4,7 @@ define i32 @g(i32 %a) {
 	store i32 %a, i32* %1
 	ret i32 42
 }
+
 define i32 @f() {
 ; <label>:0
 	%1 = call i32 @g(i32 1)

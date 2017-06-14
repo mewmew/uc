@@ -1,4 +1,5 @@
 @b = global [5 x i32] zeroinitializer
+
 define void @f(i32* %a) {
 ; <label>:0
 	%1 = alloca i32*

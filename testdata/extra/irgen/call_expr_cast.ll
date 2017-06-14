@@ -4,6 +4,7 @@ define i32 @g(i8 %a) {
 	store i8 %a, i8* %1
 	ret i32 42
 }
+
 define i32 @f() {
 ; <label>:0
 	%x = alloca i32

@@ -4,6 +4,7 @@ define void @g(i32* %a) {
 	store i32* %a, i32** %1
 	ret void
 }
+
 define void @f() {
 ; <label>:0
 	%a = alloca [5 x i32]

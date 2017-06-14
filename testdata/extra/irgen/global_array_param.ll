@@ -1,4 +1,5 @@
 @b = global [5 x i32] zeroinitializer
+
 define i32 @f(i32* %a) {
 ; <label>:0
 	%1 = alloca i32*
@@ -8,6 +9,7 @@ define i32 @f(i32* %a) {
 	%4 = load i32, i32* %3
 	ret i32 %4
 }
+
 define void @g() {
 ; <label>:0
 	%1 = call i32 @f(i32* getelementptr ([5 x i32], [5 x i32]* @b, i64 0, i64 0))
