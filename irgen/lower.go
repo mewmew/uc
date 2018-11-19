@@ -61,7 +61,13 @@ func (m *Module) funcDecl(n *ast.FuncDecl) {
 	if !ok {
 		panic(fmt.Sprintf("invalid function type; expected *types.FuncType, got %T", typ))
 	}
-	f := NewFunction(name, sig)
+	var params []*ir.Param
+	for i, p := range n.FuncType.Params {
+		paramType := sig.Params[i]
+		param := ir.NewParam(p.Name().String(), paramType)
+		params = append(params, param)
+	}
+	f := NewFunction(name, sig.RetType, params...)
 	if !astutil.IsDef(n) {
 		dbg.Printf("create function declaration: %v", n)
 		// Emit function declaration.
@@ -88,8 +94,7 @@ func (m *Module) funcBody(f *Function, params []*ast.VarDecl, body *ast.BlockStm
 	// approach which only needs one of these two.
 
 	// Emit local variable declarations for function parameters.
-	for i, paramType := range f.Sig.Params {
-		param := ir.NewParam("", paramType)
+	for i, param := range f.Params {
 		p := m.funcParam(f, param)
 		// Add mapping from parameter name to the corresponding allocated local
 		// variable; i.e.

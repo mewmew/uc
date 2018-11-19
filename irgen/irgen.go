@@ -61,13 +61,8 @@ type Function struct {
 // and signature.
 //
 // The caller is responsible for initializing basic blocks.
-func NewFunction(name string, sig *irtypes.FuncType) *Function {
-	var params []*ir.Param
-	for _, paramType := range sig.Params {
-		param := ir.NewParam("", paramType)
-		params = append(params, param)
-	}
-	f := ir.NewFunction(name, sig.RetType, params...)
+func NewFunction(name string, retType irtypes.Type, params ...*ir.Param) *Function {
+	f := ir.NewFunction(name, retType, params...)
 	return &Function{Function: f, idents: make(map[int]value.Value), exists: make(map[string]bool)}
 }
 
