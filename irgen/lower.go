@@ -9,6 +9,7 @@ import (
 
 	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/constant"
+	"github.com/llir/llvm/ir/enum"
 	irtypes "github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/mewmew/uc/ast"
@@ -87,7 +88,8 @@ func (m *Module) funcBody(f *Function, params []*ast.VarDecl, body *ast.BlockStm
 	// approach which only needs one of these two.
 
 	// Emit local variable declarations for function parameters.
-	for i, param := range f.Sig.Params {
+	for i, paramType := range f.Sig.Params {
+		param := ir.NewParam("", paramType)
 		p := m.funcParam(f, param)
 		// Add mapping from parameter name to the corresponding allocated local
 		// variable; i.e.
@@ -127,7 +129,7 @@ func (m *Module) funcBody(f *Function, params []*ast.VarDecl, body *ast.BlockStm
 }
 
 // funcParam lowers the given function parameter to LLVM IR, emitting code to f.
-func (m *Module) funcParam(f *Function, param *irtypes.Param) value.Value {
+func (m *Module) funcParam(f *Function, param *ir.Param) value.Value {
 	// Input:
 	//    void f(int a) {
 	//    }
@@ -155,10 +157,12 @@ func (m *Module) globalVarDecl(n *ast.VarDecl) {
 	switch {
 	case n.Val != nil:
 		panic("support for global variable initializer not yet implemented")
-	case irtypes.IsInt(typ):
-		val = constant.NewInt(0, typ)
 	default:
-		val = constant.NewZeroInitializer(typ)
+		if intType, ok := typ.(*irtypes.IntType); ok {
+			val = constant.NewInt(intType, 0)
+		} else {
+			val = constant.NewZeroInitializer(typ)
+		}
 	}
 	global := ir.NewGlobalDef(ident.Name, val)
 	m.setIdentValue(ident, global)
@@ -298,7 +302,7 @@ func (m *Module) returnStmt(f *Function, stmt *ast.ReturnStmt) {
 	}
 	result := m.expr(f, stmt.Result)
 	// Implicit conversion.
-	resultType := f.Sig.Ret
+	resultType := f.Sig.RetType
 	result = m.convert(f, result, resultType)
 	termRet := ir.NewRet(result)
 	f.curBlock.SetTerm(termRet)
@@ -332,7 +336,7 @@ func (m *Module) whileStmt(f *Function, stmt *ast.WhileStmt) {
 // cond lowers the given condition expression to LLVM IR, emitting code to f.
 func (m *Module) cond(f *Function, expr ast.Expr) value.Value {
 	cond := m.expr(f, expr)
-	if irtypes.IsBool(cond.Type()) {
+	if cond.Type().Equal(irtypes.I1) {
 		return cond
 	}
 	// Create boolean expression if cond is not already of boolean type.
@@ -340,7 +344,7 @@ func (m *Module) cond(f *Function, expr ast.Expr) value.Value {
 	//    cond != 0
 	// zero is the integer constant 0.
 	zero := constZero(cond.Type())
-	return f.curBlock.NewICmp(ir.IntNE, cond, zero)
+	return f.curBlock.NewICmp(enum.IPredNE, cond, zero)
 }
 
 // expr lowers the given expression to LLVM IR, emitting code to f.
@@ -374,9 +378,21 @@ func (m *Module) basicLit(f *Function, n *ast.BasicLit) value.Value {
 		if err != nil {
 			panic(fmt.Sprintf("unable to unquote character literal; %v", err))
 		}
-		return constant.NewInt(int64(s[0]), typ)
+		intType, ok := typ.(*irtypes.IntType)
+		if !ok {
+			panic(fmt.Errorf("invalid character literal type; expected *types.IntType, got %T", typ))
+		}
+		return constant.NewInt(intType, int64(s[0]))
 	case token.IntLit:
-		return constant.NewIntFromString(n.Val, typ)
+		intType, ok := typ.(*irtypes.IntType)
+		if !ok {
+			panic(fmt.Errorf("invalid integer literal type; expected *types.IntType, got %T", typ))
+		}
+		c, err := constant.NewIntFromString(intType, n.Val)
+		if err != nil {
+			panic(fmt.Errorf("unable to parse integer literal %q; %v", n.Val, err))
+		}
+		return c
 	default:
 		panic(fmt.Sprintf("support for basic literal kind %v not yet implemented", n.Kind))
 	}
@@ -414,37 +430,37 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 	case token.Lt:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
 		x, y = m.implicitConversion(f, x, y)
-		return f.curBlock.NewICmp(ir.IntSLT, x, y)
+		return f.curBlock.NewICmp(enum.IPredSLT, x, y)
 
 	// >
 	case token.Gt:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
 		x, y = m.implicitConversion(f, x, y)
-		return f.curBlock.NewICmp(ir.IntSGT, x, y)
+		return f.curBlock.NewICmp(enum.IPredSGT, x, y)
 
 	// <=
 	case token.Le:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
 		x, y = m.implicitConversion(f, x, y)
-		return f.curBlock.NewICmp(ir.IntSLE, x, y)
+		return f.curBlock.NewICmp(enum.IPredSLE, x, y)
 
 	// >=
 	case token.Ge:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
 		x, y = m.implicitConversion(f, x, y)
-		return f.curBlock.NewICmp(ir.IntSGE, x, y)
+		return f.curBlock.NewICmp(enum.IPredSGE, x, y)
 
 	// !=
 	case token.Ne:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
 		x, y = m.implicitConversion(f, x, y)
-		return f.curBlock.NewICmp(ir.IntNE, x, y)
+		return f.curBlock.NewICmp(enum.IPredNE, x, y)
 
 	// ==
 	case token.Eq:
 		x, y := m.expr(f, n.X), m.expr(f, n.Y)
 		x, y = m.implicitConversion(f, x, y)
-		return f.curBlock.NewICmp(ir.IntEQ, x, y)
+		return f.curBlock.NewICmp(enum.IPredEQ, x, y)
 
 	// &&
 	case token.Land:
@@ -496,14 +512,14 @@ func (m *Module) callExpr(f *Function, callExpr *ast.CallExpr) value.Value {
 		panic(fmt.Sprintf("invalid function type; expected *types.FuncType, got %T", typ))
 	}
 	params := sig.Params
-	result := sig.Ret
+	result := sig.RetType
 	// TODO: Validate result against function return type.
 	_ = result
 	var args []value.Value
 	// TODO: Add support for variadic arguments.
 	for i, arg := range callExpr.Args {
 		expr := m.expr(f, arg)
-		expr = m.convert(f, expr, params[i].Type())
+		expr = m.convert(f, expr, params[i])
 		args = append(args, expr)
 	}
 	v := m.valueFromIdent(f, callExpr.Name)
@@ -572,7 +588,7 @@ func (m *Module) identDef(f *Function, ident *ast.Ident, v value.Value) {
 	if !ok {
 		panic(fmt.Sprintf("invalid pointer type; expected *types.PointerType, got %T", addr.Type()))
 	}
-	v = m.convert(f, v, addrType.Elem)
+	v = m.convert(f, v, addrType.ElemType)
 	f.curBlock.NewStore(v, addr)
 }
 
@@ -645,7 +661,7 @@ func (m *Module) indexExprDef(f *Function, n *ast.IndexExpr, v value.Value) {
 	if !ok {
 		panic(fmt.Sprintf("invalid pointer type; expected *types.PointerType, got %T", addr.Type()))
 	}
-	v = m.convert(f, v, addrType.Elem)
+	v = m.convert(f, v, addrType.ElemType)
 	f.curBlock.NewStore(v, addr)
 }
 

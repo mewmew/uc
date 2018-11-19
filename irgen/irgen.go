@@ -37,7 +37,7 @@ func NewModule(info *sem.Info) *Module {
 
 // emitFunc emits to m the given function.
 func (m *Module) emitFunc(f *Function) {
-	m.AppendFunction(f.Function)
+	m.Funcs = append(m.Funcs, f.Function)
 }
 
 // emitGlobal emits to m the given global variable declaration.
@@ -62,7 +62,12 @@ type Function struct {
 //
 // The caller is responsible for initializing basic blocks.
 func NewFunction(name string, sig *irtypes.FuncType) *Function {
-	f := ir.NewFunction(name, sig.Ret, sig.Params...)
+	var params []*ir.Param
+	for _, paramType := range sig.Params {
+		param := ir.NewParam("", paramType)
+		params = append(params, param)
+	}
+	f := ir.NewFunction(name, sig.RetType, params...)
 	return &Function{Function: f, idents: make(map[int]value.Value), exists: make(map[string]bool)}
 }
 
@@ -76,7 +81,7 @@ func (f *Function) startBody() {
 func (f *Function) endBody() error {
 	if block := f.curBlock; block != nil && block.Term == nil {
 		switch {
-		case f.Function.Name == "main":
+		case f.Function.GlobalName == "main":
 			// From C11 spec $5.1.2.2.3.
 			//
 			// "If the return type of the main function is a type compatible with
@@ -84,15 +89,15 @@ func (f *Function) endBody() error {
 			// equivalent to calling the exit function with the value returned by
 			// the main function as its argument; reaching the } that terminates
 			// the main function returns a value of 0."
-			result := f.Sig.Ret
+			result := f.Sig.RetType
 			zero := constZero(result)
 			termRet := ir.NewRet(zero)
 			block.SetTerm(termRet)
 		default:
 			// Add void return terminator to the current basic block, if a
 			// terminator is missing.
-			switch result := f.Sig.Ret; {
-			case irtypes.IsVoid(result):
+			switch result := f.Sig.RetType; {
+			case result.Equal(irtypes.Void):
 				termRet := ir.NewRet(nil)
 				block.SetTerm(termRet)
 			default:

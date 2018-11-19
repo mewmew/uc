@@ -45,7 +45,11 @@ func (m *Module) convert(f *Function, v value.Value, to irtypes.Type) value.Valu
 	// Convert constant values.
 	switch v := v.(type) {
 	case *constant.Int:
-		return constant.NewIntFromString(v.Ident(), toType)
+		c, err := constant.NewIntFromString(toType, v.Ident())
+		if err != nil {
+			panic(fmt.Errorf("unable to parse integer literal %q; %v", v.Ident(), err))
+		}
+		return c
 	case *constant.Float:
 		panic(fmt.Sprintf("support for converting type %T not yet implemented", v))
 	}
@@ -54,13 +58,13 @@ func (m *Module) convert(f *Function, v value.Value, to irtypes.Type) value.Valu
 	// sext and zext, respectively.
 
 	// Convert unsigned values.
-	if irtypes.IsBool(fromType) {
+	if fromType.Equal(irtypes.I1) {
 		// Zero extend boolean values.
 		return f.curBlock.NewZExt(v, toType)
 	}
 
 	// Convert signed values.
-	if toType.Size > fromType.Size {
+	if toType.BitSize > fromType.BitSize {
 		// Sign extend.
 		return f.curBlock.NewSExt(v, toType)
 	}
@@ -98,12 +102,20 @@ func isRef(typ irtypes.Type) bool {
 
 // constZero returns the integer constant zero of the given type.
 func constZero(typ irtypes.Type) constant.Constant {
-	return constant.NewInt(0, typ)
+	intType, ok := typ.(*irtypes.IntType)
+	if !ok {
+		panic(fmt.Errorf("invalid integer literal type; expected *types.IntType, got %T", typ))
+	}
+	return constant.NewInt(intType, 0)
 }
 
 // constOne returns the integer constant one of the given type.
 func constOne(typ irtypes.Type) constant.Constant {
-	return constant.NewInt(1, typ)
+	intType, ok := typ.(*irtypes.IntType)
+	if !ok {
+		panic(fmt.Errorf("invalid integer literal type; expected *types.IntType, got %T", typ))
+	}
+	return constant.NewInt(intType, 1)
 }
 
 // isTentativeDef reports whether the given global variable or function
@@ -200,10 +212,10 @@ func toIrType(n uctypes.Type) irtypes.Type {
 		if ucType.Len == 0 {
 			t = irtypes.NewPointer(elem)
 		} else {
-			t = irtypes.NewArray(elem, int64(ucType.Len))
+			t = irtypes.NewArray(int64(ucType.Len), elem)
 		}
 	case *uctypes.Func:
-		var params []*irtypes.Param
+		var params []irtypes.Type
 		variadic := false
 		for _, p := range ucType.Params {
 			//TODO: Add support for variadic
@@ -212,7 +224,7 @@ func toIrType(n uctypes.Type) irtypes.Type {
 			}
 			pt := toIrType(p.Type)
 			dbg.Printf("converting type %#v to %#v", p.Type, pt)
-			params = append(params, irtypes.NewParam(p.Name, pt))
+			params = append(params, pt)
 		}
 		result := toIrType(ucType.Result)
 		typ := irtypes.NewFunc(result, params...)
