@@ -540,13 +540,14 @@ func (m *Module) ident(f *Function, ident *ast.Ident) value.Value {
 
 		// Emit getelementptr instruction.
 		if m.isGlobal(ident) {
-			var is []constant.Constant
+			var is []*constant.Index
 			for _, index := range indices {
 				i, ok := index.(constant.Constant)
 				if !ok {
 					break
 				}
-				is = append(is, i)
+				idx := constant.NewIndex(i)
+				is = append(is, idx)
 			}
 			if len(is) == len(indices) {
 				// In accordance with Clang, emit getelementptr constant expressions
@@ -608,7 +609,7 @@ func (m *Module) indexExpr(f *Function, n *ast.IndexExpr) value.Value {
 	zero := constZero(irtypes.I64)
 	indices := []value.Value{zero, index}
 	if typ, ok := typ.(*irtypes.PointerType); ok {
-		elem = typ.Elem
+		elem = typ.ElemType
 
 		// Emit load instruction.
 		// TODO: Validate typ against array.Elem().
@@ -618,13 +619,14 @@ func (m *Module) indexExpr(f *Function, n *ast.IndexExpr) value.Value {
 
 	// Emit getelementptr instruction.
 	if m.isGlobal(n.Name) {
-		var is []constant.Constant
+		var is []*constant.Index
 		for _, index := range indices {
 			i, ok := index.(constant.Constant)
 			if !ok {
 				break
 			}
-			is = append(is, i)
+			idx := constant.NewIndex(i)
+			is = append(is, idx)
 		}
 		if len(is) == len(indices) {
 			// In accordance with Clang, emit getelementptr constant expressions
