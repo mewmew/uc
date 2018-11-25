@@ -67,7 +67,7 @@ func (m *Module) funcDecl(n *ast.FuncDecl) {
 		param := ir.NewParam(p.Name().String(), paramType)
 		params = append(params, param)
 	}
-	f := NewFunction(name, sig.RetType, params...)
+	f := NewFunc(name, sig.RetType, params...)
 	if !astutil.IsDef(n) {
 		dbg.Printf("create function declaration: %v", n)
 		// Emit function declaration.

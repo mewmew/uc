@@ -57,12 +57,12 @@ type Function struct {
 	exists map[string]bool
 }
 
-// NewFunction returns a new function generator based on the given function name
-// and signature.
+// NewFunc returns a new function generator based on the given function name and
+// signature.
 //
 // The caller is responsible for initializing basic blocks.
-func NewFunction(name string, retType irtypes.Type, params ...*ir.Param) *Function {
-	f := ir.NewFunction(name, retType, params...)
+func NewFunc(name string, retType irtypes.Type, params ...*ir.Param) *Function {
+	f := ir.NewFunc(name, retType, params...)
 	return &Function{Function: f, idents: make(map[int]value.Value), exists: make(map[string]bool)}
 }
 
