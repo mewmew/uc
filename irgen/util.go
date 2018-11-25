@@ -212,7 +212,7 @@ func toIrType(n uctypes.Type) irtypes.Type {
 		if ucType.Len == 0 {
 			t = irtypes.NewPointer(elem)
 		} else {
-			t = irtypes.NewArray(int64(ucType.Len), elem)
+			t = irtypes.NewArray(uint64(ucType.Len), elem)
 		}
 	case *uctypes.Func:
 		var params []irtypes.Type
