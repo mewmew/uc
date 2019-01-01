@@ -14,7 +14,7 @@ import (
 // implicitConversion implicitly converts the value of the smallest type to the
 // largest type of x and y, emitting code to f. The new values of x and y are
 // returned.
-func (m *Module) implicitConversion(f *Function, x, y value.Value) (value.Value, value.Value) {
+func (m *Module) implicitConversion(f *Func, x, y value.Value) (value.Value, value.Value) {
 	// Implicit conversion.
 	switch {
 	case isLarger(x.Type(), y.Type()):
@@ -27,7 +27,7 @@ func (m *Module) implicitConversion(f *Function, x, y value.Value) (value.Value,
 
 // convert converts the given value to the specified type, emitting code to f.
 // No conversion is made, if v is already of the correct type.
-func (m *Module) convert(f *Function, v value.Value, to irtypes.Type) value.Value {
+func (m *Module) convert(f *Func, v value.Value, to irtypes.Type) value.Value {
 	// Early return if v is already of the correct type.
 	from := v.Type()
 	if irtypes.Equal(from, to) {
@@ -128,7 +128,7 @@ func isTentativeDef(n ast.Decl) bool {
 
 // genUnique generates a unique local variable name based on the given
 // identifier.
-func (f *Function) genUnique(ident *ast.Ident) string {
+func (f *Func) genUnique(ident *ast.Ident) string {
 	name := ident.Name
 	if !f.exists[name] {
 		f.exists[name] = true
@@ -152,7 +152,7 @@ func (m *Module) isGlobal(ident *ast.Ident) bool {
 
 // valueFromIdent returns the LLVM IR value associated with the given
 // identifier. Only search for global values if f is nil.
-func (m *Module) valueFromIdent(f *Function, ident *ast.Ident) value.Value {
+func (m *Module) valueFromIdent(f *Func, ident *ast.Ident) value.Value {
 	pos := ident.Decl.Name().Start()
 	if v, ok := m.idents[pos]; ok {
 		return v
@@ -175,7 +175,7 @@ func (m *Module) setIdentValue(ident *ast.Ident, v value.Value) {
 }
 
 // setIdentValue maps the given local identifier to the associated value.
-func (f *Function) setIdentValue(ident *ast.Ident, v value.Value) {
+func (f *Func) setIdentValue(ident *ast.Ident, v value.Value) {
 	pos := ident.Decl.Name().Start()
 	if old, ok := f.idents[pos]; ok {
 		panic(fmt.Sprintf("unable to map identifier %q to value %v; already mapped to value %v", ident, v, old))

@@ -74,7 +74,7 @@ func (m *Module) funcDecl(n *ast.FuncDecl) {
 		m.emitFunc(f)
 		return
 	}
-	m.setIdentValue(ident, f.Function)
+	m.setIdentValue(ident, f.Func)
 
 	// Generate function body.
 	dbg.Printf("create function definition: %v", n)
@@ -83,7 +83,7 @@ func (m *Module) funcDecl(n *ast.FuncDecl) {
 
 // funcBody lowers the given function declaration to LLVM IR, emitting code to
 // m.
-func (m *Module) funcBody(f *Function, params []*ast.VarDecl, body *ast.BlockStmt) {
+func (m *Module) funcBody(f *Func, params []*ast.VarDecl, body *ast.BlockStmt) {
 	// Initialize function body.
 	f.startBody()
 
@@ -134,7 +134,7 @@ func (m *Module) funcBody(f *Function, params []*ast.VarDecl, body *ast.BlockStm
 }
 
 // funcParam lowers the given function parameter to LLVM IR, emitting code to f.
-func (m *Module) funcParam(f *Function, param *ir.Param) value.Value {
+func (m *Module) funcParam(f *Func, param *ir.Param) value.Value {
 	// Input:
 	//    void f(int a) {
 	//    }
@@ -188,7 +188,7 @@ func (m *Module) typeDef(def *ast.TypeDef) {
 
 // localVarDef lowers the given local variable definition to LLVM IR, emitting
 // code to f.
-func (m *Module) localVarDef(f *Function, n *ast.VarDecl) {
+func (m *Module) localVarDef(f *Func, n *ast.VarDecl) {
 	// Input:
 	//    void f() {
 	//       int a;           // <-- relevant line
@@ -209,7 +209,7 @@ func (m *Module) localVarDef(f *Function, n *ast.VarDecl) {
 // --- [ Statements ] ----------------------------------------------------------
 
 // stmt lowers the given statement to LLVM IR, emitting code to f.
-func (m *Module) stmt(f *Function, stmt ast.Stmt) {
+func (m *Module) stmt(f *Func, stmt ast.Stmt) {
 	switch stmt := stmt.(type) {
 	case *ast.BlockStmt:
 		m.blockStmt(f, stmt)
@@ -235,7 +235,7 @@ func (m *Module) stmt(f *Function, stmt ast.Stmt) {
 }
 
 // blockStmt lowers the given block statement to LLVM IR, emitting code to f.
-func (m *Module) blockStmt(f *Function, stmt *ast.BlockStmt) {
+func (m *Module) blockStmt(f *Func, stmt *ast.BlockStmt) {
 	for _, item := range stmt.Items {
 		switch item := item.(type) {
 		case ast.Decl:
@@ -255,12 +255,12 @@ func (m *Module) blockStmt(f *Function, stmt *ast.BlockStmt) {
 
 // exprStmt lowers the given expression statement to LLVM IR, emitting code to
 // f.
-func (m *Module) exprStmt(f *Function, stmt *ast.ExprStmt) {
+func (m *Module) exprStmt(f *Func, stmt *ast.ExprStmt) {
 	m.expr(f, stmt.X)
 }
 
 // ifStmt lowers the given if statement to LLVM IR, emitting code to f.
-func (m *Module) ifStmt(f *Function, stmt *ast.IfStmt) {
+func (m *Module) ifStmt(f *Func, stmt *ast.IfStmt) {
 	cond := m.cond(f, stmt.Cond)
 	trueBranch := f.NewBlock("")
 	end := f.NewBlock("")
@@ -268,14 +268,14 @@ func (m *Module) ifStmt(f *Function, stmt *ast.IfStmt) {
 	if stmt.Else != nil {
 		falseBranch = f.NewBlock("")
 	}
-	termCondBr := ir.NewCondBr(cond, trueBranch.BasicBlock, falseBranch.BasicBlock)
+	termCondBr := ir.NewCondBr(cond, trueBranch.Block, falseBranch.Block)
 	f.curBlock.SetTerm(termCondBr)
 	f.curBlock = trueBranch
 	m.stmt(f, stmt.Body)
 	// Emit jump if body doesn't end with return statement (i.e. the current
 	// basic block is none nil).
 	if f.curBlock != nil {
-		termBr := ir.NewBr(end.BasicBlock)
+		termBr := ir.NewBr(end.Block)
 		f.curBlock.SetTerm(termBr)
 	}
 	if stmt.Else != nil {
@@ -284,7 +284,7 @@ func (m *Module) ifStmt(f *Function, stmt *ast.IfStmt) {
 		// Emit jump if body doesn't end with return statement (i.e. the current
 		// basic block is none nil).
 		if f.curBlock != nil {
-			termBr := ir.NewBr(end.BasicBlock)
+			termBr := ir.NewBr(end.Block)
 			f.curBlock.SetTerm(termBr)
 		}
 	}
@@ -292,7 +292,7 @@ func (m *Module) ifStmt(f *Function, stmt *ast.IfStmt) {
 }
 
 // returnStmt lowers the given return statement to LLVM IR, emitting code to f.
-func (m *Module) returnStmt(f *Function, stmt *ast.ReturnStmt) {
+func (m *Module) returnStmt(f *Func, stmt *ast.ReturnStmt) {
 	// Input:
 	//    int f() {
 	//       return 42;       // <-- relevant line
@@ -315,22 +315,22 @@ func (m *Module) returnStmt(f *Function, stmt *ast.ReturnStmt) {
 }
 
 // whileStmt lowers the given while statement to LLVM IR, emitting code to f.
-func (m *Module) whileStmt(f *Function, stmt *ast.WhileStmt) {
+func (m *Module) whileStmt(f *Func, stmt *ast.WhileStmt) {
 	condBranch := f.NewBlock("")
-	termBr := ir.NewBr(condBranch.BasicBlock)
+	termBr := ir.NewBr(condBranch.Block)
 	f.curBlock.SetTerm(termBr)
 	f.curBlock = condBranch
 	cond := m.cond(f, stmt.Cond)
 	bodyBranch := f.NewBlock("")
 	endBranch := f.NewBlock("")
-	termCondBr := ir.NewCondBr(cond, bodyBranch.BasicBlock, endBranch.BasicBlock)
+	termCondBr := ir.NewCondBr(cond, bodyBranch.Block, endBranch.Block)
 	f.curBlock.SetTerm(termCondBr)
 	f.curBlock = bodyBranch
 	m.stmt(f, stmt.Body)
 	// Emit jump if body doesn't end with return statement (i.e. the current
 	// basic block is none nil).
 	if f.curBlock != nil {
-		termBr := ir.NewBr(condBranch.BasicBlock)
+		termBr := ir.NewBr(condBranch.Block)
 		f.curBlock.SetTerm(termBr)
 	}
 	f.curBlock = endBranch
@@ -339,7 +339,7 @@ func (m *Module) whileStmt(f *Function, stmt *ast.WhileStmt) {
 // --- [ Expressions ] ----------------------------------------------------------
 
 // cond lowers the given condition expression to LLVM IR, emitting code to f.
-func (m *Module) cond(f *Function, expr ast.Expr) value.Value {
+func (m *Module) cond(f *Func, expr ast.Expr) value.Value {
 	cond := m.expr(f, expr)
 	if cond.Type().Equal(irtypes.I1) {
 		return cond
@@ -353,7 +353,7 @@ func (m *Module) cond(f *Function, expr ast.Expr) value.Value {
 }
 
 // expr lowers the given expression to LLVM IR, emitting code to f.
-func (m *Module) expr(f *Function, expr ast.Expr) value.Value {
+func (m *Module) expr(f *Func, expr ast.Expr) value.Value {
 	switch expr := expr.(type) {
 	case *ast.BasicLit:
 		return m.basicLit(f, expr)
@@ -375,7 +375,7 @@ func (m *Module) expr(f *Function, expr ast.Expr) value.Value {
 }
 
 // basicLit lowers the given basic literal to LLVM IR, emitting code to f.
-func (m *Module) basicLit(f *Function, n *ast.BasicLit) value.Value {
+func (m *Module) basicLit(f *Func, n *ast.BasicLit) value.Value {
 	typ := m.typeOf(n)
 	switch n.Kind {
 	case token.CharLit:
@@ -404,7 +404,7 @@ func (m *Module) basicLit(f *Function, n *ast.BasicLit) value.Value {
 }
 
 // binaryExpr lowers the given binary expression to LLVM IR, emitting code to f.
-func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
+func (m *Module) binaryExpr(f *Func, n *ast.BinaryExpr) value.Value {
 	switch n.Op {
 	// +
 	case token.Add:
@@ -474,20 +474,20 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 		start := f.curBlock
 		trueBranch := f.NewBlock("")
 		end := f.NewBlock("")
-		termCondBr := ir.NewCondBr(x, trueBranch.BasicBlock, end.BasicBlock)
+		termCondBr := ir.NewCondBr(x, trueBranch.Block, end.Block)
 		f.curBlock.SetTerm(termCondBr)
 		f.curBlock = trueBranch
 
 		y := m.cond(f, n.Y)
-		termBr := ir.NewBr(end.BasicBlock)
+		termBr := ir.NewBr(end.Block)
 		trueBranch.SetTerm(termBr)
 		f.curBlock = end
 
 		var incs []*ir.Incoming
 		zero := constZero(irtypes.I1)
-		inc := ir.NewIncoming(zero, start.BasicBlock)
+		inc := ir.NewIncoming(zero, start.Block)
 		incs = append(incs, inc)
-		inc = ir.NewIncoming(y, trueBranch.BasicBlock)
+		inc = ir.NewIncoming(y, trueBranch.Block)
 		incs = append(incs, inc)
 		return f.curBlock.NewPhi(incs...)
 
@@ -510,7 +510,7 @@ func (m *Module) binaryExpr(f *Function, n *ast.BinaryExpr) value.Value {
 }
 
 // callExpr lowers the given identifier to LLVM IR, emitting code to f.
-func (m *Module) callExpr(f *Function, callExpr *ast.CallExpr) value.Value {
+func (m *Module) callExpr(f *Func, callExpr *ast.CallExpr) value.Value {
 	typ := toIrType(callExpr.Name.Decl.Type())
 	sig, ok := typ.(*irtypes.FuncType)
 	if !ok {
@@ -528,15 +528,15 @@ func (m *Module) callExpr(f *Function, callExpr *ast.CallExpr) value.Value {
 		args = append(args, expr)
 	}
 	v := m.valueFromIdent(f, callExpr.Name)
-	callee, ok := v.(*ir.Function)
+	callee, ok := v.(*ir.Func)
 	if !ok {
-		panic(fmt.Sprintf("invalid callee type; expected *ir.Function, got %T", v))
+		panic(fmt.Sprintf("invalid callee type; expected *ir.Func, got %T", v))
 	}
 	return f.curBlock.NewCall(callee, args...)
 }
 
 // ident lowers the given identifier to LLVM IR, emitting code to f.
-func (m *Module) ident(f *Function, ident *ast.Ident) value.Value {
+func (m *Module) ident(f *Func, ident *ast.Ident) value.Value {
 	switch typ := m.typeOf(ident).(type) {
 	case *irtypes.ArrayType:
 		array := m.valueFromIdent(f, ident)
@@ -545,14 +545,13 @@ func (m *Module) ident(f *Function, ident *ast.Ident) value.Value {
 
 		// Emit getelementptr instruction.
 		if m.isGlobal(ident) {
-			var is []*constant.Index
+			var is []constant.Constant
 			for _, index := range indices {
 				i, ok := index.(constant.Constant)
 				if !ok {
 					break
 				}
-				idx := constant.NewIndex(i)
-				is = append(is, idx)
+				is = append(is, i)
 			}
 			if len(is) == len(indices) {
 				// In accordance with Clang, emit getelementptr constant expressions
@@ -576,7 +575,7 @@ func (m *Module) ident(f *Function, ident *ast.Ident) value.Value {
 }
 
 // identUse lowers the given identifier usage to LLVM IR, emitting code to f.
-func (m *Module) identUse(f *Function, ident *ast.Ident) value.Value {
+func (m *Module) identUse(f *Func, ident *ast.Ident) value.Value {
 	v := m.ident(f, ident)
 	typ := m.typeOf(ident)
 	if isRef(typ) {
@@ -588,7 +587,7 @@ func (m *Module) identUse(f *Function, ident *ast.Ident) value.Value {
 
 // identDef lowers the given identifier definition to LLVM IR, emitting code to
 // f.
-func (m *Module) identDef(f *Function, ident *ast.Ident, v value.Value) {
+func (m *Module) identDef(f *Func, ident *ast.Ident, v value.Value) {
 	addr := m.ident(f, ident)
 	addrType, ok := addr.Type().(*irtypes.PointerType)
 	if !ok {
@@ -599,7 +598,7 @@ func (m *Module) identDef(f *Function, ident *ast.Ident, v value.Value) {
 }
 
 // indexExpr lowers the given index expression to LLVM IR, emitting code to f.
-func (m *Module) indexExpr(f *Function, n *ast.IndexExpr) value.Value {
+func (m *Module) indexExpr(f *Func, n *ast.IndexExpr) value.Value {
 	index := m.expr(f, n.Index)
 	// Extend the index to a 64-bit integer.
 	if !irtypes.Equal(index.Type(), irtypes.I64) {
@@ -624,14 +623,13 @@ func (m *Module) indexExpr(f *Function, n *ast.IndexExpr) value.Value {
 
 	// Emit getelementptr instruction.
 	if m.isGlobal(n.Name) {
-		var is []*constant.Index
+		var is []constant.Constant
 		for _, index := range indices {
 			i, ok := index.(constant.Constant)
 			if !ok {
 				break
 			}
-			idx := constant.NewIndex(i)
-			is = append(is, idx)
+			is = append(is, i)
 		}
 		if len(is) == len(indices) {
 			// In accordance with Clang, emit getelementptr constant expressions
@@ -650,7 +648,7 @@ func (m *Module) indexExpr(f *Function, n *ast.IndexExpr) value.Value {
 
 // indexExprUse lowers the given index expression usage to LLVM IR, emitting
 // code to f.
-func (m *Module) indexExprUse(f *Function, n *ast.IndexExpr) value.Value {
+func (m *Module) indexExprUse(f *Func, n *ast.IndexExpr) value.Value {
 	v := m.indexExpr(f, n)
 	typ := m.typeOf(n)
 	if isRef(typ) {
@@ -662,7 +660,7 @@ func (m *Module) indexExprUse(f *Function, n *ast.IndexExpr) value.Value {
 
 // indexExprDef lowers the given identifier expression definition to LLVM IR,
 // emitting code to f.
-func (m *Module) indexExprDef(f *Function, n *ast.IndexExpr, v value.Value) {
+func (m *Module) indexExprDef(f *Func, n *ast.IndexExpr, v value.Value) {
 	addr := m.indexExpr(f, n)
 	addrType, ok := addr.Type().(*irtypes.PointerType)
 	if !ok {
@@ -673,7 +671,7 @@ func (m *Module) indexExprDef(f *Function, n *ast.IndexExpr, v value.Value) {
 }
 
 // unaryExpr lowers the given unary expression to LLVM IR, emitting code to f.
-func (m *Module) unaryExpr(f *Function, n *ast.UnaryExpr) value.Value {
+func (m *Module) unaryExpr(f *Func, n *ast.UnaryExpr) value.Value {
 	switch n.Op {
 	// -expr
 	case token.Sub:

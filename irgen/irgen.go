@@ -36,8 +36,8 @@ func NewModule(info *sem.Info) *Module {
 }
 
 // emitFunc emits to m the given function.
-func (m *Module) emitFunc(f *Function) {
-	m.Funcs = append(m.Funcs, f.Function)
+func (m *Module) emitFunc(f *Func) {
+	m.Funcs = append(m.Funcs, f.Func)
 }
 
 // emitGlobal emits to m the given global variable declaration.
@@ -45,12 +45,12 @@ func (m *Module) emitGlobal(global *ir.Global) {
 	m.Globals = append(m.Globals, global)
 }
 
-// A Function represents an LLVM IR function generator.
-type Function struct {
+// A Func represents an LLVM IR function generator.
+type Func struct {
 	// Function being generated.
-	*ir.Function
+	*ir.Func
 	// Current basic block being generated.
-	curBlock *BasicBlock
+	curBlock *Block
 	// Maps from identifier source code position to the associated value.
 	idents map[int]value.Value
 	// Map of existing local variable names.
@@ -61,22 +61,22 @@ type Function struct {
 // signature.
 //
 // The caller is responsible for initializing basic blocks.
-func NewFunc(name string, retType irtypes.Type, params ...*ir.Param) *Function {
+func NewFunc(name string, retType irtypes.Type, params ...*ir.Param) *Func {
 	f := ir.NewFunc(name, retType, params...)
-	return &Function{Function: f, idents: make(map[int]value.Value), exists: make(map[string]bool)}
+	return &Func{Func: f, idents: make(map[int]value.Value), exists: make(map[string]bool)}
 }
 
 // startBody initializes the generation of the function body.
-func (f *Function) startBody() {
+func (f *Func) startBody() {
 	entry := f.NewBlock("") // "entry"
 	f.curBlock = entry
 }
 
 // endBody finalizes the generation of the function body.
-func (f *Function) endBody() error {
+func (f *Func) endBody() error {
 	if block := f.curBlock; block != nil && block.Term == nil {
 		switch {
-		case f.Function.GlobalName == "main":
+		case f.Func.Name() == "main":
 			// From C11 spec $5.1.2.2.3.
 			//
 			// "If the return type of the main function is a type compatible with
@@ -110,23 +110,23 @@ func (f *Function) endBody() error {
 }
 
 // emitLocal emits to f the given named value instruction.
-func (f *Function) emitLocal(ident *ast.Ident, inst valueInst) value.Value {
+func (f *Func) emitLocal(ident *ast.Ident, inst valueInst) value.Value {
 	return f.curBlock.emitLocal(ident, inst)
 }
 
-// A BasicBlock represents an LLVM IR basic block generator.
-type BasicBlock struct {
+// A Block represents an LLVM IR basic block generator.
+type Block struct {
 	// Basic block being generated.
-	*ir.BasicBlock
+	*ir.Block
 	// Parent function of the basic block.
-	parent *Function
+	parent *Func
 }
 
 // NewBlock returns a new basic block generator based on the given name and
 // parent function.
-func (f *Function) NewBlock(name string) *BasicBlock {
+func (f *Func) NewBlock(name string) *Block {
 	block := ir.NewBlock(name)
-	return &BasicBlock{BasicBlock: block, parent: f}
+	return &Block{Block: block, parent: f}
 }
 
 // valueInst represents an instruction producing a value.
@@ -136,7 +136,7 @@ type valueInst interface {
 }
 
 // emitLocal emits to b the given named value instruction.
-func (b *BasicBlock) emitLocal(ident *ast.Ident, inst valueInst) value.Value {
+func (b *Block) emitLocal(ident *ast.Ident, inst valueInst) value.Value {
 	name := b.parent.genUnique(ident)
 	inst.SetName(name)
 	b.parent.setIdentValue(ident, inst)
@@ -144,10 +144,10 @@ func (b *BasicBlock) emitLocal(ident *ast.Ident, inst valueInst) value.Value {
 }
 
 // SetTerm sets the terminator of the basic block.
-func (b *BasicBlock) SetTerm(term ir.Terminator) {
+func (b *Block) SetTerm(term ir.Terminator) {
 	if b.Term != nil {
 		panic(fmt.Sprintf("terminator instruction already set for basic block; old term (%v), new term (%v), basic block (%v)", term, b.Term, b))
 	}
-	b.BasicBlock.Term = term
-	b.parent.Blocks = append(b.parent.Blocks, b.BasicBlock)
+	b.Block.Term = term
+	b.parent.Blocks = append(b.parent.Blocks, b.Block)
 }
