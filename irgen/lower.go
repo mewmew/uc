@@ -540,6 +540,7 @@ func (m *Module) ident(f *Func, ident *ast.Ident) value.Value {
 	switch typ := m.typeOf(ident).(type) {
 	case *irtypes.ArrayType:
 		array := m.valueFromIdent(f, ident)
+		arrayElemType := array.Type().(*irtypes.PointerType).ElemType
 		zero := constZero(irtypes.I64)
 		indices := []value.Value{zero, zero}
 
@@ -559,16 +560,18 @@ func (m *Module) ident(f *Func, ident *ast.Ident) value.Value {
 				// TODO: Validate typ against array.
 				_ = typ
 				if array, ok := array.(constant.Constant); ok {
-					return constant.NewGetElementPtr(array, is...)
+					return constant.NewGetElementPtr(arrayElemType, array, is...)
 				}
 				panic(fmt.Sprintf("invalid constant array type; expected constant.Constant, got %T", array))
 			}
 		}
-		return f.curBlock.NewGetElementPtr(array, indices...)
+		return f.curBlock.NewGetElementPtr(arrayElemType, array, indices...)
 	case *irtypes.PointerType:
 		// Emit load instruction.
 		// TODO: Validate typ against srcAddr.Elem().
-		return f.curBlock.NewLoad(m.valueFromIdent(f, ident))
+		src := m.valueFromIdent(f, ident)
+		srcElemType := src.Type().(*irtypes.PointerType).ElemType
+		return f.curBlock.NewLoad(srcElemType, src)
 	default:
 		return m.valueFromIdent(f, ident)
 	}
@@ -582,7 +585,8 @@ func (m *Module) identUse(f *Func, ident *ast.Ident) value.Value {
 		return v
 	}
 	// TODO: Validate typ against v.Elem()
-	return f.curBlock.NewLoad(v)
+	elemType := v.Type().(*irtypes.PointerType).ElemType
+	return f.curBlock.NewLoad(elemType, v)
 }
 
 // identDef lowers the given identifier definition to LLVM IR, emitting code to
@@ -617,11 +621,13 @@ func (m *Module) indexExpr(f *Func, n *ast.IndexExpr) value.Value {
 
 		// Emit load instruction.
 		// TODO: Validate typ against array.Elem().
-		addr = f.curBlock.NewLoad(array)
+		arrayElemType := array.Type().(*irtypes.PointerType).ElemType
+		addr = f.curBlock.NewLoad(arrayElemType, array)
 		indices = []value.Value{index}
 	}
 
 	// Emit getelementptr instruction.
+	addrElemType := addr.Type().(*irtypes.PointerType).ElemType
 	if m.isGlobal(n.Name) {
 		var is []constant.Constant
 		for _, index := range indices {
@@ -637,13 +643,13 @@ func (m *Module) indexExpr(f *Func, n *ast.IndexExpr) value.Value {
 			// TODO: Validate elem against addr.
 			_ = elem
 			if addr, ok := addr.(constant.Constant); ok {
-				return constant.NewGetElementPtr(addr, is...)
+				return constant.NewGetElementPtr(addrElemType, addr, is...)
 			}
 			panic(fmt.Sprintf("invalid constant address type; expected constant.Constant, got %T", addr))
 		}
 	}
 	// TODO: Validate elem against array.Elem().
-	return f.curBlock.NewGetElementPtr(addr, indices...)
+	return f.curBlock.NewGetElementPtr(addrElemType, addr, indices...)
 }
 
 // indexExprUse lowers the given index expression usage to LLVM IR, emitting
@@ -655,7 +661,8 @@ func (m *Module) indexExprUse(f *Func, n *ast.IndexExpr) value.Value {
 		return v
 	}
 	// TODO: Validate typ against v.Elem().
-	return f.curBlock.NewLoad(v)
+	elemType := v.Type().(*irtypes.PointerType).ElemType
+	return f.curBlock.NewLoad(elemType, v)
 }
 
 // indexExprDef lowers the given identifier expression definition to LLVM IR,
