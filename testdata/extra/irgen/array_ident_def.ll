@@ -1,5 +1,5 @@
 define void @f(i32* %a) {
-; <label>:0
+0:
 	%1 = alloca i32*
 	%b = alloca [5 x i32]
 	store i32* %a, i32** %1
